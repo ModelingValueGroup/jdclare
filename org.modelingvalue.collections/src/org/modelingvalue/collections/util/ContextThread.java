@@ -1,0 +1,156 @@
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// (C) Copyright 2018 Modeling Value Group B.V. (http://modelingvalue.org)                                             ~
+//                                                                                                                     ~
+// Licensed under the GNU Lesser General Public License v3.0 (the "License"). You may not use this file except in      ~
+// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
+// an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
+// specific language governing permissions and limitations under the License.                                          ~
+//                                                                                                                     ~
+// Contributors:                                                                                                       ~
+//     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+package org.modelingvalue.collections.util;
+
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.modelingvalue.collections.Collection;
+
+public final class ContextThread extends ForkJoinWorkerThread {
+
+    public static final ForkJoinWorkerThreadFactory FACTORY   = new ContextThreadFactory();
+    public static final int                         POOL_SIZE = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
+
+    private static final ContextPool                THE_POOL  = new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
+
+    public static ContextPool thePool() {
+        return THE_POOL;
+    }
+
+    private final static ThreadLocal<Object[]> CONTEXT = new ThreadLocal<Object[]>();
+
+    public static Object[] getContext() {
+        Thread currentThread = Thread.currentThread();
+        return currentThread instanceof ContextThread ? ((ContextThread) currentThread).getCtx() : CONTEXT.get();
+    }
+
+    public static Object[] setIncrement(Object[] context) {
+        return setContext(context, +1);
+    }
+
+    public static Object[] setDecrement(Object[] context) {
+        return setContext(context, -1);
+    }
+
+    public static Object[] setContext(Object[] context) {
+        return setContext(context, 0);
+    }
+
+    private static Object[] setContext(Object[] context, int delta) {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof ContextThread) {
+            ContextThread contextThread = (ContextThread) currentThread;
+            Object[] pre = contextThread.getCtx();
+            contextThread.setCtx(context, delta);
+            return pre;
+        } else {
+            Object[] pre = CONTEXT.get();
+            CONTEXT.set(context);
+            return pre;
+        }
+    }
+
+    public static int getNr() {
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof ContextThread) {
+            return ((ContextThread) currentThread).nr;
+        } else {
+            return 0;
+        }
+    }
+
+    public static int nrOfRunningThreads() {
+        return THE_POOL.runningThreads();
+    }
+
+    private final int nr;
+    private Object[]  context;
+
+    private ContextThread(ForkJoinPool pool, int nr) {
+        super(pool);
+        this.nr = nr;
+    }
+
+    private Object[] getCtx() {
+        return context;
+    }
+
+    private void setCtx(Object[] context, int delta) {
+        this.context = context;
+        if (delta != 0) {
+            THE_POOL.activity[nr] += delta;
+            if (THE_POOL.activity[nr] == 0 || THE_POOL.activity[nr] == 1) {
+                THE_POOL.running = -1;
+            }
+        }
+    }
+
+    @Override
+    public ContextPool getPool() {
+        return (ContextPool) super.getPool();
+    }
+
+    @Override
+    protected void onTermination(Throwable exception) {
+        super.onTermination(exception);
+        context = null;
+    }
+
+    public static final class ContextPool extends ForkJoinPool {
+
+        private final AtomicInteger counter    = new AtomicInteger(0);
+
+        private final int[]         activity   = new int[POOL_SIZE];
+        private boolean             maxReached = false;
+        private int                 running    = -1;
+
+        private ContextPool(int parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, boolean asyncMode) {
+            super(parallelism, factory, handler, asyncMode);
+        }
+
+        public int runningThreads() {
+            int nr = running;
+            if (nr < 0) {
+                for (int i = 0; i < activity.length; i++) {
+                    if (activity[i] > 0) {
+                        nr++;
+                    }
+                }
+                running = nr;
+            }
+            return nr;
+        }
+    }
+
+    private static final class ContextThreadFactory implements ForkJoinWorkerThreadFactory {
+
+        @Override
+        public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+            ContextPool contextPool = (ContextPool) pool;
+            if (!contextPool.maxReached) {
+                int nr = contextPool.counter.getAndIncrement();
+                if (nr < POOL_SIZE) {
+                    return new ContextThread(pool, nr);
+                }
+                contextPool.maxReached = true;
+            }
+            return null;
+        }
+
+    }
+
+}

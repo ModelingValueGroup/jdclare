@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Collections
+Bundle-SymbolicName: org.modelingvalue.collections
+Bundle-Version: 2.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: org.modelingvalue.collections;version="2.0.0",
+ org.modelingvalue.collections.impl;version="2.0.0",
+ org.modelingvalue.collections.struct,
+ org.modelingvalue.collections.struct.impl,
+ org.modelingvalue.collections.util;version="2.0.0"

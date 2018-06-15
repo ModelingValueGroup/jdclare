@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Sales demo" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.modelingvalue.jdclare.examples.SalesUniverse" />
+    <module name="org.modelingvalue.jdclare.examples" />
+    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    <method />
+  </configuration>
+</component>

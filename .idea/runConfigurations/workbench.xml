@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="workbench" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.modelingvalue.jdclare.workbench.WBUniverse" />
+    <module name="org.modelingvalue.jdclare.workbench" />
+    <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+    <method />
+  </configuration>
+</component>

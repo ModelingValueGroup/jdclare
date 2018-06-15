@@ -1,0 +1,947 @@
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// (C) Copyright 2018 Modeling Value Group B.V. (http://modelingvalue.org)                                             ~
+//                                                                                                                     ~
+// Licensed under the GNU Lesser General Public License v3.0 (the "License"). You may not use this file except in      ~
+// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
+// an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
+// specific language governing permissions and limitations under the License.                                          ~
+//                                                                                                                     ~
+// Contributors:                                                                                                       ~
+//     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+package org.modelingvalue.collections.impl;
+
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.ContextThread;
+
+public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
+
+    private static final long           serialVersionUID             = 3453919290764033219L;
+
+    private static final int            EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
+
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction     RETURN_2                     = (v1, v2) -> v1.equals(v2) ? v1 : v2;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction     RETURN_1                     = (v1, v2) -> v1;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction     RETURN_NULL                  = (v1, v2) -> null;
+
+    private static final int            PART_SIZE                    = Integer.getInteger("HASH_PARTITION_SIZE", 6);
+    private static final int            PART_REST                    = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
+    private static final int            NR_OF_PARTS                  = Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1);
+    private static final int[]          PART_MASKS                   = new int[NR_OF_PARTS];
+    private static final int[]          INDEX_MASKS                  = new int[NR_OF_PARTS];
+    private static final int[]          PART_SHIFTS                  = new int[NR_OF_PARTS];
+
+    private static final int            COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 4);
+    private static final HashMultiValue DUMMY                        = new HashMultiValue(new Object[0], 0, 0, 1, 0, 0, 0);
+    private static final Object[][]     SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
+
+    static {
+        int normal = Integer.MAX_VALUE << (Integer.SIZE - PART_SIZE);
+        int small = normal << 1;
+        for (int i = 0; i < NR_OF_PARTS; i++) {
+            if (i < PART_REST) {
+                PART_MASKS[i] = small >>> (i * (PART_SIZE - 1));
+            } else {
+                PART_MASKS[i] = normal >>> (i * PART_SIZE - PART_REST);
+            }
+            INDEX_MASKS[i] = i > 0 ? (INDEX_MASKS[i - 1] | PART_MASKS[i]) : PART_MASKS[i];
+            PART_SHIFTS[i] = Integer.numberOfTrailingZeros(PART_MASKS[i]);
+        }
+        if (PART_SIZE < 2 || PART_SIZE > 6) {
+            throw new Error("HASH_PARTITION_SIZE must be 2, 3, 4, 5 or 6");
+        }
+        for (int i = 0; i < COMPARE_MAX; i++) {
+            SINGLES[i][i] = DUMMY;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static int index(Object v, Function key) {
+        return v == null ? 0 : v instanceof HashMultiValue ? ((HashMultiValue) v).index : key.apply(v).hashCode();
+    }
+
+    protected static int level(Object v) {
+        return v instanceof HashMultiValue ? ((HashMultiValue) v).level : NR_OF_PARTS;
+    }
+
+    protected static long mask(Object v, int id, int level) {
+        if (v instanceof HashMultiValue && ((HashMultiValue) v).level == level) {
+            return ((HashMultiValue) v).mask;
+        } else {
+            return 1L << ((id & PART_MASKS[level]) >>> PART_SHIFTS[level]);
+        }
+    }
+
+    protected static Object get(Object v, int level, int i) {
+        if (v instanceof HashMultiValue && ((HashMultiValue) v).level == level) {
+            return ((HashMultiValue) v).values[i];
+        } else {
+            return v;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static Object key(Object value, Function key) {
+        return value instanceof HashMultiValue ? value : key.apply(value);
+    }
+
+    protected abstract Function<T, Object> key();
+
+    protected static final class DistinctCollectionSpliterator<T> extends CollectionSpliterator<T> {
+
+        private static final int DISTINCT_CHARACTERISTICS = Spliterator.DISTINCT | CHARACTERISTICS;
+
+        public DistinctCollectionSpliterator(Object value, int min, int max, int size) {
+            super(value, min, max, size);
+        }
+
+        @Override
+        protected Spliterator<T> split(Object value, int min, int max, int size) {
+            return new DistinctCollectionSpliterator<>(value, min, max, size);
+        }
+
+        @Override
+        public int characteristics() {
+            return DISTINCT_CHARACTERISTICS;
+        }
+
+    }
+
+    private static final class HashMultiValue extends MultiValue {
+        private static final long serialVersionUID = 3238646981697101095L;
+        private final int         index, level;
+        private final long        mask;
+
+        private HashMultiValue(Object[] values, int size, int hash, int depth, int index, int level, long mask) {
+            super(values, size, hash, depth);
+            this.index = index;
+            this.level = level;
+            this.mask = level < NR_OF_PARTS ? mask : 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode() + size + index + level + depth;
+        }
+
+        @Override
+        protected boolean equalsWithStop(Object obj, boolean[] stop) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj instanceof HashMultiValue)) {
+                return false;
+            }
+            HashMultiValue other = (HashMultiValue) obj;
+            if (hash != other.hash || index != other.index || level != other.level || size != other.size || depth != other.depth || mask != other.mask) {
+                return false;
+            }
+            if (level == NR_OF_PARTS) {
+                outer:
+                for (int ia = 0; ia < values.length; ia++) {
+                    for (int ib = 0; ib < values.length; ib++) {
+                        if (Objects.equals(values[ia], other.values[ib])) {
+                            continue outer;
+                        }
+                    }
+                    stop[0] = true;
+                    return false;
+                }
+                return true;
+            } else {
+                return getIntStream(0, values.length, stop, size).allMatch(i -> {
+                    if (stop[0]) {
+                        return false;
+                    }
+                    if (!TreeCollectionImpl.equalsWithStop(values[i], other.values[i], stop)) {
+                        stop[0] = true;
+                        return false;
+                    }
+                    if (values[i] != other.values[i]) {
+                        if (System.identityHashCode(values[i]) > System.identityHashCode(other.values[i])) {
+                            values[i] = other.values[i];
+                        } else {
+                            other.values[i] = values[i];
+                        }
+                    }
+                    return true;
+                });
+            }
+        }
+
+        private Object set(int i, Object niw, int oldPos, long newMask, int newLen) {
+            Object old = oldPos >= 0 ? values[oldPos] : null;
+            if (Objects.equals(old, niw)) {
+                return this;
+            } else {
+                int d = depth(niw);
+                if (d < depth - 1) {
+                    if (old != null && depth == depth(old) + 1) {
+                        for (int ii = 0; ii < values.length; ii++) {
+                            if (ii != oldPos) {
+                                d = Math.max(d, depth(values[ii]));
+                            }
+                        }
+                    } else {
+                        d = depth - 1;
+                    }
+                }
+                int newPos = getIt(newMask, i);
+                assert newPos >= 0 || oldPos >= 0;
+                Object[] result = new Object[newLen];
+                System.arraycopy(values, 0, result, 0, old != null ? oldPos : newPos);
+                oldPos = old != null ? oldPos + 1 : newPos;
+                if (niw != null) {
+                    System.arraycopy(values, oldPos, result, newPos + 1, values.length - oldPos);
+                    result[newPos] = niw;
+                } else {
+                    assert old != null;
+                    System.arraycopy(values, oldPos, result, oldPos - 1, values.length - oldPos);
+                }
+                return new HashMultiValue(result, size + size(niw) - size(old), hash + hash(niw) - hash(old), d + 1, index, level, newMask);
+            }
+        }
+
+        private static Object of(Object v1, Object v2, int index, int level, long newMask) {
+            return new HashMultiValue(new Object[]{v1, v2}, size(v1) + size(v2), hash(v1) + hash(v2), Math.max(depth(v1), depth(v2)) + 1, index, level, newMask);
+        }
+
+        private static HashMultiValue of(Object v1, Object v2, int index) {
+            return new HashMultiValue(new Object[]{v1, v2}, 2, index * 2, 2, index, NR_OF_PARTS, 3);
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private Object set(Function key, Object find, Object set) {
+            assert (level == NR_OF_PARTS);
+            int si = values.length;
+            for (int i = 0; i < values.length; i++) {
+                if (key.apply(values[i]).equals(find)) {
+                    si = i;
+                    break;
+                }
+            }
+            if (set == null) {
+                if (si == values.length) {
+                    return this;
+                } else if (values.length == 2) {
+                    return si == 0 ? values[1] : values[0];
+                } else {
+                    Object[] result = new Object[values.length - 1];
+                    System.arraycopy(values, 0, result, 0, si);
+                    System.arraycopy(values, si + 1, result, si, values.length - si - 1);
+                    return new HashMultiValue(result, result.length, hash - index, 2, index, NR_OF_PARTS, mask & ~(1L << values.length));
+                }
+            } else if (si != values.length && values[si].equals(set)) {
+                return this;
+            } else {
+                Object[] result = new Object[si == values.length ? values.length + 1 : values.length];
+                System.arraycopy(values, 0, result, 0, values.length);
+                result[si] = set;
+                if (result.length > EQUAL_HASHCODE_WARNING_LEVEL) {
+                    System.err.println("WARNING: " + result.length + " non equal objects with equal hashcode");
+                }
+                return new HashMultiValue(result, result.length, result.length * index, 2, index, NR_OF_PARTS, si == values.length ? mask | 1L << si : mask);
+            }
+        }
+    }
+
+    private static int getIt(long mask, int idx) {
+        return (mask & 1L << idx) == 0 ? -1 : idx == 0 ? 0 : Long.bitCount(mask << (Long.SIZE - idx));
+    }
+
+    protected static <T> Object addAll(Object value, Function<T, Object> key, T[] adds) {
+        for (T added : adds) {
+            value = add(value, key, added, key);
+        }
+        return value;
+    }
+
+    protected static <T> Object addAll(Object value, Function<T, Object> key, java.util.Collection<? extends T> adds) {
+        for (T added : adds) {
+            value = add(value, key, added, key);
+        }
+        return value;
+    }
+
+    protected static <T> Object putAll(Object value, Function<T, Object> key, T[] adds) {
+        for (T added : adds) {
+            value = put(value, key, added, key);
+        }
+        return value;
+    }
+
+    protected static <T> Object putAll(Object value, Function<T, Object> key, java.util.Collection<? extends T> adds) {
+        for (T added : adds) {
+            value = put(value, key, added, key);
+        }
+        return value;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected static <T> T get(Object v, Function key, Object find) {
+        int id = find.hashCode(), it;
+        next:
+        while (v instanceof HashMultiValue) {
+            HashMultiValue mv = (HashMultiValue) v;
+            if (mv.level == 0 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
+                if (mv.level == NR_OF_PARTS) {
+                    for (it = 0; it < mv.values.length; it++) {
+                        if (key.apply(mv.values[it]).equals(find)) {
+                            v = mv.values[it];
+                            continue next;
+                        }
+                    }
+                    v = null;
+                } else {
+                    it = getIt(mv.mask, (id & PART_MASKS[mv.level]) >>> PART_SHIFTS[mv.level]);
+                    v = it >= 0 ? mv.values[it] : null;
+                }
+            } else {
+                v = null;
+            }
+        }
+        return v != null && key.apply(v).equals(find) ? (T) v : null;
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected static Object set(Object val1, Function key1, Function set1, Object val2, Function key2, Function set2, BiFunction set12) {
+        return set(val1, key1, index(val1, key1), set1, val2, key2, index(val2, key2), set2, 0, 0, set12, false);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object set(Object val1, Function key1, int id1, Function set1, Object val2, Function key2, int id2, Function set2, int lev, int idx, BiFunction set12, boolean flip) {
+        if (val1 == null && val2 == null) {
+            return null;
+        } else if (val2 == null) {
+            return set1.apply(val1);
+        } else if (val1 == null) {
+            return set2.apply(val2);
+        } else {
+            int i1 = -1, i2 = -1;
+            for (int max = Math.min(level(val1), level(val2)); lev < max; lev++) {
+                i1 = id1 & PART_MASKS[lev];
+                i2 = id2 & PART_MASKS[lev];
+                if (i2 != i1) {
+                    break;
+                } else {
+                    idx |= i1;
+                }
+            }
+            if (i2 == i1 && key(val1, key1).equals(key(val2, key2))) {
+                return flip ? set12.apply(val2, val1) : set12.apply(val1, val2);
+            } else if (lev == NR_OF_PARTS) {
+                return setEqualHashes(val1, key1, set1, val2, key2, set2, idx, set12, flip);
+            } else if (val1 instanceof HashMultiValue && ((HashMultiValue) val1).level == lev && val2 instanceof HashMultiValue && ((HashMultiValue) val2).level == lev) {
+                return setMultiMulti((HashMultiValue) val1, key1, set1, (HashMultiValue) val2, key2, set2, lev, idx, set12, flip);
+            } else if (val1 instanceof HashMultiValue && ((HashMultiValue) val1).level == lev) {
+                return setMultiOne((HashMultiValue) val1, key1, set1, val2, key2, id2, set2, lev, idx, set12, flip);
+            } else if (val2 instanceof HashMultiValue && ((HashMultiValue) val2).level == lev) {
+                return setMultiOne((HashMultiValue) val2, key2, set2, val1, key1, id1, set1, lev, idx, set12, !flip);
+            } else {
+                val1 = set1.apply(val1);
+                val2 = set2.apply(val2);
+                if (val1 == null) {
+                    return val2;
+                } else if (val2 == null) {
+                    return val1;
+                } else {
+                    i2 >>>= PART_SHIFTS[lev];
+                    i1 >>>= PART_SHIFTS[lev];
+                    long downMask = 1L << i1 | 1L << i2;
+                    if (i1 < i2) {
+                        return HashMultiValue.of(val1, val2, idx, lev, downMask);
+                    } else {
+                        return HashMultiValue.of(val2, val1, idx, lev, downMask);
+                    }
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Object setMultiOne(HashMultiValue mv1, Function key1, Function set1, Object val2, Function key2, int id2, Function set2, int lev, int idx, BiFunction set12, boolean flip) {
+        int p2 = id2 & PART_MASKS[lev], i = p2 >>> PART_SHIFTS[lev], it1 = getIt(mv1.mask, i);
+        Object val = it1 >= 0 ? mv1.values[it1] : null;
+        val = set(val, key1, index(val, key1), set1, val2, key2, id2, set2, lev + 1, idx | p2, set12, flip);
+        if (set1 == nullFunction()) {
+            return val;
+        } else if (set1 == identity()) {
+            long downMask = val == null ? (mv1.mask & ~(1L << i)) : (mv1.mask | 1L << i);
+            int newLength = Long.bitCount(downMask);
+            if (newLength == 1) {
+                return mv1.values[getIt(mv1.mask, Long.numberOfTrailingZeros(downMask))];
+            } else {
+                return mv1.set(i, val, it1, downMask, newLength);
+            }
+        } else {
+            Object[] result = null;
+            int len = 0, hash = 0, size = 0, depth = 0;
+            long mask = mv1.mask;
+            boolean eq = true;
+            Object v, e;
+            for (int it = 0; it < mv1.values.length; it++) {
+                v = mv1.values[it];
+                e = it == it1 ? val : set1.apply(v);
+                if (e != v) {
+                    eq = false;
+                }
+                if (e != null) {
+                    if (result == null) {
+                        result = new Object[Long.bitCount(mask)];
+                    }
+                    result[len++] = e;
+                    hash += hash(e);
+                    size += size(e);
+                    depth = Math.max(depth, depth(e));
+                } else {
+                    mask &= ~(1L << i);
+                }
+            }
+            if (len == 0) {
+                return null;
+            } else if (len == 1) {
+                return result[0];
+            } else if (eq) {
+                return mv1;
+            } else {
+                result = len == result.length ? result : Arrays.copyOf(result, len);
+                return new HashMultiValue(result, size, hash, depth + 1, idx, lev, mask);
+            }
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Object setMultiMulti(HashMultiValue mv1, Function key1, Function set1, HashMultiValue mv2, Function key2, Function set2, int lev, int idx, BiFunction set12, boolean flip) {
+        long mask = (mv1.mask & mv2.mask) | (set1 != nullFunction() ? mv1.mask : 0L) | (set2 != nullFunction() ? mv2.mask : 0L);
+        Object[] result = null;
+        int len = 0, hash = 0, size = 0, depth = 0, i, i1, i2, l;
+        boolean eq1 = (mask & mv1.mask) == mv1.mask, eq2 = (mask & mv2.mask) == mv2.mask;
+        if (set1 == identity()) {
+            size += mv1.size;
+            hash += mv1.hash;
+        }
+        if (set2 == identity()) {
+            size += mv2.size;
+            hash += mv2.hash;
+        }
+        Object e, e1, e2;
+        for (i = Long.numberOfTrailingZeros(mask); i < Long.SIZE; i += Long.numberOfTrailingZeros(mask >>> i)) {
+            i1 = getIt(mv1.mask, i);
+            i2 = getIt(mv2.mask, i);
+            if (i1 >= 0 && i2 < 0) {
+                if (set1 == identity()) {
+                    l = Math.min(Long.SIZE - i, Math.min(Long.numberOfTrailingZeros(~mv1.mask >>> i), Long.numberOfTrailingZeros(mv2.mask >>> i)));
+                    if (result == null) {
+                        result = new Object[Long.bitCount(mask)];
+                    }
+                    System.arraycopy(mv1.values, i1, result, len, l);
+                    len += l;
+                    i += l;
+                    eq2 = false;
+                    continue;
+                } else {
+                    eq1 = false;
+                }
+            }
+            if (i2 >= 0 && i1 < 0) {
+                if (set2 == identity()) {
+                    l = Math.min(Long.SIZE - i, Math.min(Long.numberOfTrailingZeros(~mv2.mask >>> i), Long.numberOfTrailingZeros(mv1.mask >>> i)));
+                    if (result == null) {
+                        result = new Object[Long.bitCount(mask)];
+                    }
+                    System.arraycopy(mv2.values, i2, result, len, l);
+                    len += l;
+                    i += l;
+                    eq1 = false;
+                    continue;
+                } else {
+                    eq2 = false;
+                }
+            }
+            e1 = i1 >= 0 ? mv1.values[i1] : null;
+            e2 = i2 >= 0 ? mv2.values[i2] : null;
+            if (e1 != null && set1 == identity()) {
+                hash -= hash(e1);
+                size -= size(e1);
+            }
+            if (e2 != null && set2 == identity()) {
+                hash -= hash(e2);
+                size -= size(e2);
+            }
+            e = set(e1, key1, index(e1, key1), set1, e2, key2, index(e2, key2), set2, lev + 1, idx | (i << PART_SHIFTS[lev]), set12, flip);
+            if (e != e1) {
+                eq1 = false;
+            }
+            if (e != e2) {
+                eq2 = false;
+            }
+            if (e != null) {
+                if (result == null) {
+                    result = new Object[Long.bitCount(mask)];
+                }
+                result[len++] = e;
+                hash += hash(e);
+                size += size(e);
+                depth = Math.max(depth, depth(e));
+            } else {
+                mask &= ~(1L << i);
+            }
+            i++;
+        }
+        if (len == 0) {
+            return null;
+        } else if (len == 1) {
+            return result[0];
+        } else if (eq1) {
+            return mv1;
+        } else if (eq2) {
+            return mv2;
+        } else {
+            result = len == result.length ? result : Arrays.copyOf(result, len);
+            if (depth < Math.max(mv1.depth, mv2.depth) - 1) {
+                depth = 0;
+                for (i = 0; i < result.length; i++) {
+                    depth = Math.max(depth, depth(result[i]));
+                }
+            }
+            return new HashMultiValue(result, size, hash, depth + 1, idx, lev, mask);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object setEqualHashes(Object val1, Function key1, Function set1, Object val2, Function key2, Function set2, int idx, BiFunction set12, boolean flip) {
+        int len1 = length(val1), len2 = length(val2);
+        if (len1 + len2 > 2) {
+            Object e1, k1, e2, k2, e;
+            Object[] result = null;
+            int len = 0, i1, i2;
+            boolean eq1 = true, eq2 = true;
+            next1:
+            for (i1 = 0; i1 < len1; i1++) {
+                e1 = get(val1, i1);
+                k1 = key1.apply(e1);
+                for (i2 = 0; i2 < len2; i2++) {
+                    e2 = get(val2, i2);
+                    k2 = key2.apply(e2);
+                    if (k1.equals(k2)) {
+                        e = flip ? set12.apply(e2, e1) : set12.apply(e1, e2);
+                        if (e != e1) {
+                            eq1 = false;
+                        }
+                        if (e != e2) {
+                            eq2 = false;
+                        }
+                        if (e != null) {
+                            if (result == null) {
+                                result = new Object[len1 + len2];
+                            }
+                            result[len++] = e;
+                        }
+                        continue next1;
+                    }
+                }
+                e = set1.apply(e1);
+                if (e != e1) {
+                    eq1 = false;
+                }
+                eq2 = false;
+                if (e != null) {
+                    if (result == null) {
+                        result = new Object[len1 + len2];
+                    }
+                    result[len++] = e;
+                }
+            }
+            if (set2 != nullFunction()) {
+                next2:
+                for (i2 = 0; i2 < len2; i2++) {
+                    e2 = get(val2, i2);
+                    k2 = key2.apply(e2);
+                    for (i1 = 0; i1 < len1; i1++) {
+                        k1 = key1.apply(get(val1, i1));
+                        if (k1.equals(k2)) {
+                            continue next2;
+                        }
+                    }
+                    e = set2.apply(e2);
+                    eq1 = false;
+                    if (e != e2) {
+                        eq2 = false;
+                    }
+                    if (e != null) {
+                        if (result == null) {
+                            result = new Object[len1 + len2];
+                        }
+                        result[len++] = e;
+                    }
+                }
+            }
+            if (len == 0) {
+                return null;
+            } else if (len == 1) {
+                return result[0];
+            } else if (eq1) {
+                return val1;
+            } else if (eq2) {
+                return val2;
+            } else {
+                result = len == result.length ? result : Arrays.copyOf(result, len);
+                if (len > EQUAL_HASHCODE_WARNING_LEVEL) {
+                    System.err.println("WARNING: " + len + " non equal objects with equal hashcode");
+                }
+                return new HashMultiValue(result, len, len * idx, 2, idx, NR_OF_PARTS, 0);
+            }
+        } else {
+            val1 = set1.apply(val1);
+            val2 = set2.apply(val2);
+            if (val1 == null) {
+                return val2;
+            } else if (val2 == null) {
+                return val1;
+            } else {
+                return HashMultiValue.of(val1, val2, idx);
+            }
+        }
+    }
+
+    protected static <T1, T2> Object add(Object value, Function<T1, Object> key1, Object added, Function<T2, Object> key2) {
+        return set(value, key1, identity(), added, key2, identity(), RETURN_1);
+    }
+
+    protected static <T1, T2> Object put(Object value, Function<T1, Object> key1, Object added, Function<T2, Object> key2) {
+        return set(value, key1, identity(), added, key2, identity(), RETURN_2);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static <T1, T2> Object merge(Object value, Function<T1, Object> key1, Object merged, Function<T2, Object> key2, BinaryOperator merger) {
+        return set(value, key1, identity(), merged, key2, identity(), merger::apply);
+    }
+
+    protected static <T1, T2> Object remove(Object value, Function<T1, Object> key1, Object removed, Function<T2, Object> key2) {
+        return set(value, key1, identity(), removed, key2, nullFunction(), RETURN_NULL);
+    }
+
+    protected static <T1, T2> Object retain(Object value, Function<T1, Object> key1, Object retained, Function<T2, Object> key2) {
+        return set(value, key1, nullFunction(), retained, key2, nullFunction(), RETURN_1);
+    }
+
+    protected static <T1, T2> Object exclusive(Object value, Function<T1, Object> key1, Object excl, Function<T2, Object> key2) {
+        return set(value, key1, identity(), excl, key2, identity(), RETURN_NULL);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <R extends ContainingCollection<T>> R hashMerge(R[] branches) {
+        return (R) create(visit(a -> {
+            for (int i = 1; i < a.length; i++) {
+                if (a[i] != a[0]) {
+                    return a[i];
+                }
+            }
+            return a[0];
+        }, branches));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected StreamCollection<Object[]> getCompareStream(ContainingCollection<? extends T> toCompare) {
+        HashCollectionImpl<T> other = (HashCollectionImpl<T>) toCompare;
+        return new StreamCollectionImpl<>(new Comparer(key(), value, other.key(), other.value, size() + other.size()), isParallel());
+    }
+
+    private static final class Comparer implements Spliterator<Object[]> {
+        private static final int VISIT_CHARACTERISTICS = Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL;
+
+        @SuppressWarnings("rawtypes")
+        private final Function   key1, key2;
+        private final Object     val1, val2;
+        private final int        total;
+
+        @SuppressWarnings("rawtypes")
+        private Comparer(Function key1, Object val1, Function key2, Object val2, int total) {
+            this.key1 = key1;
+            this.key2 = key2;
+            this.val1 = val1;
+            this.val2 = val2;
+            this.total = total;
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super Object[]> visitor) {
+            Object[] pair = new Object[2];
+            set(val1, key1, index(val1, key1), e1 -> {
+                pair[0] = e1;
+                pair[1] = null;
+                visitor.accept(pair);
+                return null;
+            }, val2, key2, index(val2, key2), e2 -> {
+                pair[0] = null;
+                pair[1] = e2;
+                visitor.accept(pair);
+                return null;
+            }, 0, 0, (v1, v2) -> {
+                if ((key1 != identity() || key2 != identity()) && !Objects.equals(v1, v2)) {
+                    pair[0] = v1;
+                    pair[1] = v2;
+                    visitor.accept(pair);
+                }
+                return null;
+            }, false);
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super Object[]> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Spliterator<Object[]> trySplit() {
+            return null;
+        }
+
+        @Override
+        public long estimateSize() {
+            return total;
+        }
+
+        @Override
+        public int characteristics() {
+            return VISIT_CHARACTERISTICS;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Object visit(Function<? super Object[], Object> visitor, ContainingCollection<? extends T>... others) {
+        Object[] values = new Object[others.length + 1];
+        @SuppressWarnings("rawtypes")
+        Function[] keys = new Function[values.length];
+        int[] ids = new int[values.length];
+        boolean[] keep = new boolean[values.length];
+        values[0] = value;
+        keys[0] = key();
+        ids[0] = index(value, key());
+        int maxLevel = level(value);
+        keep[0] = visitor.apply(SINGLES[0]) == DUMMY;
+        for (int i = 1; i < values.length; i++) {
+            HashCollectionImpl<T> other = (HashCollectionImpl<T>) others[i - 1];
+            values[i] = other.value;
+            keys[i] = other.key();
+            ids[i] = index(other.value, other.key());
+            maxLevel = Math.min(maxLevel, level(other.value));
+            keep[i] = visitor.apply(SINGLES[i]) == DUMMY;
+        }
+        return visit(visitor, keep, keys, values, ids, maxLevel, 0, 0);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Object visit(Function<? super Object[], Object> visitor, boolean[] keep, Function[] keys, Object[] values, int[] ids, int maxLevel, int level, int index) {
+        if (equalKeys(values, keys)) {
+            return visitor.apply(values);
+        } else {
+            stop:
+            for (int cnt = 0, idx, newIndex = index; level < maxLevel; cnt = 0, index = newIndex, level++) {
+                for (int i = 0; i < values.length; i++) {
+                    if (values[i] != null) {
+                        idx = index | (ids[i] & PART_MASKS[level]);
+                        if (cnt++ > 0) {
+                            if (idx != newIndex) {
+                                break stop;
+                            }
+                        } else {
+                            newIndex = idx;
+                        }
+                    }
+                }
+            }
+            if (level == NR_OF_PARTS) {
+                return visitEqualHashes(visitor, keep, keys, values, index);
+            } else {
+                return visitUnequalHashes(visitor, keep, keys, values, ids, level, index);
+            }
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Object visitUnequalHashes(Function<? super Object[], Object> visitor, boolean[] keep, Function[] keys, Object[] values, int[] ids, int level, int index) {
+        Object result = null, val;
+        int resultIdx = -1, maxLevel = -1, idx, it, prev = 0;
+        int[] downIds = new int[values.length];
+        Object[] downValues = new Object[values.length];
+        long[] masks = new long[values.length];
+        long downMask, mask = 0;
+        for (it = 0; it < values.length; it++) {
+            if (keep[it]) {
+                val = values[it];
+                // use 'idx' for current length
+                idx = val instanceof HashMultiValue && ((HashMultiValue) val).level == level ? ((HashMultiValue) val).values.length : val != null ? 1 : 0;
+                if (idx > prev) {
+                    prev = idx;
+                    // use 'maxLevel' for selected init value
+                    maxLevel = it;
+                    resultIdx = (ids[it] & PART_MASKS[level]) >>> PART_SHIFTS[level];
+                    result = val;
+                }
+            }
+        }
+        for (it = 0; it < values.length; it++) {
+            downMask = mask(values[it], ids[it], level);
+            masks[it] = downMask;
+            if (it != maxLevel) {
+                mask |= downMask;
+            }
+        }
+        for (idx = Long.numberOfTrailingZeros(mask); idx < Long.SIZE; idx++, idx += Long.numberOfTrailingZeros(mask >>> idx)) {
+            maxLevel = NR_OF_PARTS;
+            for (it = 0; it < values.length; it++) {
+                // use 'prev' as it
+                prev = getIt(masks[it], idx);
+                if (prev >= 0) {
+                    downValues[it] = get(values[it], level, prev);
+                    downIds[it] = downValues[it] == values[it] ? ids[it] : index(downValues[it], keys[it]);
+                    maxLevel = Math.min(level(downValues[it]), maxLevel);
+                } else {
+                    downValues[it] = null;
+                }
+            }
+            val = visit(visitor, keep, keys, downValues, downIds, maxLevel, level, index);
+            if (result == null) {
+                resultIdx = idx;
+                result = val;
+            } else if (result instanceof HashMultiValue && ((HashMultiValue) result).level == level && index == ((HashMultiValue) result).index) {
+                downMask = val == null ? (((HashMultiValue) result).mask & ~(1L << idx)) : (((HashMultiValue) result).mask | 1L << idx);
+                // use 'maxlevel' as new length
+                maxLevel = Long.bitCount(downMask);
+                if (maxLevel == 1) {
+                    resultIdx = Long.numberOfTrailingZeros(downMask);
+                    result = ((HashMultiValue) result).values[getIt(((HashMultiValue) result).mask, resultIdx)];
+                } else {
+                    resultIdx = -1;
+                    result = ((HashMultiValue) result).set(idx, val, getIt(((HashMultiValue) result).mask, idx), downMask, maxLevel);
+                }
+            } else if (idx == resultIdx) {
+                result = val;
+            } else if (val != null) {
+                downMask = 1L << resultIdx | 1L << idx;
+                if (resultIdx < idx) {
+                    result = HashMultiValue.of(result, val, index, level, downMask);
+                } else {
+                    result = HashMultiValue.of(val, result, index, level, downMask);
+                }
+                resultIdx = -1;
+            }
+        }
+        return result;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object visitEqualHashes(Function<? super Object[], Object> visitor, boolean[] keep, Function[] keys, Object[] values, int index) {
+        Object[] downValues = new Object[values.length];
+        Object obj, other, key, result = null;
+        int it, length, base = -1, prev = -1;
+        for (it = 0; it < values.length; it++) {
+            if (keep[it]) {
+                obj = values[it];
+                length = obj instanceof HashMultiValue && ((HashMultiValue) obj).level == NR_OF_PARTS ? ((HashMultiValue) obj).values.length : obj != null ? 1 : 0;
+                if (length > prev) {
+                    base = it;
+                    prev = length;
+                    result = values[it];
+                }
+            }
+        }
+        for (int i = 0; i < values.length; i++) {
+            if (i != base) {
+                length = length(values[i]);
+                next:
+                for (int ii = 0; ii < length; ii++) {
+                    downValues[i] = get(values[i], ii);
+                    key = keys[i].apply(downValues[i]);
+                    for (int iii = 0; iii < values.length; iii++) {
+                        if (iii != i) {
+                            downValues[iii] = null;
+                            it = length(values[iii]);
+                            for (int iiii = 0; iiii < it; iiii++) {
+                                other = get(values[iii], iiii);
+                                if (key.equals(keys[iii].apply(other))) {
+                                    if (base != iii && iii < i) {
+                                        // already done
+                                        continue next;
+                                    } else {
+                                        downValues[iii] = other;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    obj = visitor.apply(downValues);
+                    if (result == null) {
+                        result = obj;
+                    } else if (result instanceof HashMultiValue && ((HashMultiValue) result).level == NR_OF_PARTS) {
+                        assert index == ((HashMultiValue) result).index;
+                        result = ((HashMultiValue) result).set(keys[0], key, obj);
+                    } else if (!(result instanceof HashMultiValue) && keys[0].apply(result).equals(key)) {
+                        result = obj;
+                    } else if (obj != null) {
+                        result = HashMultiValue.of(result, obj, index);
+                    }
+                }
+            }
+        }
+        return result;
+
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static boolean equalKeys(Object[] values, Function[] keys) {
+        Object prev = null;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] != null) {
+                Object obj = key(values[i], keys[i]);
+                if (prev != null) {
+                    if (!prev.equals(obj)) {
+                        return false;
+                    } else if (obj == values[i]) {
+                        values[i] = prev;
+                    }
+                } else {
+                    prev = obj;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean contains(Object e) {
+        return get(value, key(), e) != null;
+    }
+
+    @Override
+    public ContainingCollection<T> addUnique(T e) {
+        return add(e);
+    }
+
+    @Override
+    public ContainingCollection<T> addAllUnique(Collection<? extends T> e) {
+        return addAll(e);
+    }
+
+}
