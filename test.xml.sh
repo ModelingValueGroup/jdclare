@@ -14,8 +14,8 @@ cat <<EOF >test.xml
 
     <path id="cp">
         <path>
-            <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
-            <pathelement location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
+            <pathelement location="\${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
+            <pathelement location="\${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
         </path>
         <dirset dir="out/production">
             <include name="*"/>
