@@ -13,10 +13,10 @@ cat <<EOF >test.xml
 <project name="mvg-jdclare" default="all">
 
     <path id="cp">
-        <fileset dir="lib">
-            <include name="junit*.jar"/>
-            <include name="hamcrest*.jar"/>
-        </fileset>
+        <path>
+            <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
+            <pathelement location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
+        </path>
         <dirset dir="out/production">
             <include name="*"/>
         </dirset>
