@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_org.modelingvalue.jdclare.swing.examples" default="compile.module.org.modelingvalue.jdclare.swing.examples">
+  <dirname property="module.org.modelingvalue.jdclare.swing.examples.basedir" file="${ant.file.module_org.modelingvalue.jdclare.swing.examples}"/>
+  
+  <property name="module.jdk.home.org.modelingvalue.jdclare.swing.examples" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.org.modelingvalue.jdclare.swing.examples" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.org.modelingvalue.jdclare.swing.examples" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.org.modelingvalue.jdclare.swing.examples" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+  
+  <property name="org.modelingvalue.jdclare.swing.examples.output.dir" value="${module.org.modelingvalue.jdclare.swing.examples.basedir}/../out/production/org.modelingvalue.jdclare.swing.examples"/>
+  <property name="org.modelingvalue.jdclare.swing.examples.testoutput.dir" value="${module.org.modelingvalue.jdclare.swing.examples.basedir}/../out/test/org.modelingvalue.jdclare.swing.examples"/>
+  
+  <path id="org.modelingvalue.jdclare.swing.examples.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.swing.examples.module.production.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.swing.examples}"/>
+    <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.swing.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.swing.examples.runtime.production.module.classpath">
+    <pathelement location="${org.modelingvalue.jdclare.swing.examples.output.dir}"/>
+    <path refid="org.modelingvalue.jdclare.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.swing.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.production.module.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.swing.examples.module.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.swing.examples}"/>
+    <pathelement location="${org.modelingvalue.jdclare.swing.examples.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.swing.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.swing.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.swing.examples.runtime.module.classpath">
+    <pathelement location="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.swing.examples.output.dir}"/>
+    <path refid="org.modelingvalue.jdclare.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.swing.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.org.modelingvalue.jdclare.swing.examples">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.org.modelingvalue.jdclare.swing.examples">
+    <patternset refid="excluded.from.module.org.modelingvalue.jdclare.swing.examples"/>
+  </patternset>
+  
+  <path id="org.modelingvalue.jdclare.swing.examples.module.test.sourcepath">
+    <dirset dir="${module.org.modelingvalue.jdclare.swing.examples.basedir}">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.org.modelingvalue.jdclare.swing.examples" depends="compile.module.org.modelingvalue.jdclare.swing.examples.production,compile.module.org.modelingvalue.jdclare.swing.examples.tests" description="Compile module org.modelingvalue.jdclare.swing.examples"/>
+  
+  <target name="compile.module.org.modelingvalue.jdclare.swing.examples.production" depends="compile.module.org.modelingvalue.jdclare,compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.jdclare.swing,compile.module.org.modelingvalue.transactions" description="Compile module org.modelingvalue.jdclare.swing.examples; production classes"/>
+  
+  <target name="compile.module.org.modelingvalue.jdclare.swing.examples.tests" depends="compile.module.org.modelingvalue.jdclare.swing.examples.production" description="compile module org.modelingvalue.jdclare.swing.examples; test classes" unless="skip.tests">
+    <mkdir dir="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}"/>
+    <javac destdir="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.jdclare.swing.examples}/javac">
+      <compilerarg line="${compiler.args.org.modelingvalue.jdclare.swing.examples}"/>
+      <bootclasspath refid="org.modelingvalue.jdclare.swing.examples.module.bootclasspath"/>
+      <classpath refid="org.modelingvalue.jdclare.swing.examples.module.classpath"/>
+      <src refid="org.modelingvalue.jdclare.swing.examples.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.org.modelingvalue.jdclare.swing.examples"/>
+    </javac>
+    
+    <copy todir="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}">
+      <fileset dir="${module.org.modelingvalue.jdclare.swing.examples.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.org.modelingvalue.jdclare.swing.examples.basedir}/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.org.modelingvalue.jdclare.swing.examples" description="cleanup module">
+    <delete dir="${org.modelingvalue.jdclare.swing.examples.output.dir}"/>
+    <delete dir="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}"/>
+  </target>
+</project>

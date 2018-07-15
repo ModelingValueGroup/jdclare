@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_org.modelingvalue.collections.test" default="compile.module.org.modelingvalue.collections.test">
+  <dirname property="module.org.modelingvalue.collections.test.basedir" file="${ant.file.module_org.modelingvalue.collections.test}"/>
+  
+  <property name="module.jdk.home.org.modelingvalue.collections.test" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.org.modelingvalue.collections.test" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.org.modelingvalue.collections.test" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.org.modelingvalue.collections.test" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+  
+  <property name="org.modelingvalue.collections.test.output.dir" value="${module.org.modelingvalue.collections.test.basedir}/../out/production/org.modelingvalue.collections.test"/>
+  <property name="org.modelingvalue.collections.test.testoutput.dir" value="${module.org.modelingvalue.collections.test.basedir}/../out/test/org.modelingvalue.collections.test"/>
+  
+  <path id="org.modelingvalue.collections.test.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="org.modelingvalue.collections.test.module.production.classpath">
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <path refid="${module.jdk.classpath.org.modelingvalue.collections.test}"/>
+  </path>
+  
+  <path id="org.modelingvalue.collections.test.runtime.production.module.classpath">
+    <pathelement location="${org.modelingvalue.collections.test.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.collections.test.module.classpath">
+    <pathelement location="${org.modelingvalue.collections.test.output.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <path refid="${module.jdk.classpath.org.modelingvalue.collections.test}"/>
+    <path refid="library.junit:junit:4.12.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.collections.test.runtime.module.classpath">
+    <pathelement location="${org.modelingvalue.collections.test.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.test.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
+    <path refid="library.junit:junit:4.12.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.org.modelingvalue.collections.test">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.org.modelingvalue.collections.test">
+    <patternset refid="excluded.from.module.org.modelingvalue.collections.test"/>
+  </patternset>
+  
+  <path id="org.modelingvalue.collections.test.module.test.sourcepath">
+    <dirset dir="${module.org.modelingvalue.collections.test.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.org.modelingvalue.collections.test" depends="compile.module.org.modelingvalue.collections.test.production,compile.module.org.modelingvalue.collections.test.tests" description="Compile module org.modelingvalue.collections.test"/>
+  
+  <target name="compile.module.org.modelingvalue.collections.test.production" depends="compile.module.org.modelingvalue.collections" description="Compile module org.modelingvalue.collections.test; production classes"/>
+  
+  <target name="compile.module.org.modelingvalue.collections.test.tests" depends="compile.module.org.modelingvalue.collections.test.production" description="compile module org.modelingvalue.collections.test; test classes" unless="skip.tests">
+    <mkdir dir="${org.modelingvalue.collections.test.testoutput.dir}"/>
+    <javac destdir="${org.modelingvalue.collections.test.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.collections.test}/javac">
+      <compilerarg line="${compiler.args.org.modelingvalue.collections.test}"/>
+      <bootclasspath refid="org.modelingvalue.collections.test.module.bootclasspath"/>
+      <classpath refid="org.modelingvalue.collections.test.module.classpath"/>
+      <src refid="org.modelingvalue.collections.test.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.org.modelingvalue.collections.test"/>
+    </javac>
+    
+    <copy todir="${org.modelingvalue.collections.test.testoutput.dir}">
+      <fileset dir="${module.org.modelingvalue.collections.test.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.org.modelingvalue.collections.test" description="cleanup module">
+    <delete dir="${org.modelingvalue.collections.test.output.dir}"/>
+    <delete dir="${org.modelingvalue.collections.test.testoutput.dir}"/>
+  </target>
+</project>
