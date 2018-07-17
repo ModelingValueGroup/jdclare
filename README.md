@@ -66,8 +66,8 @@ The best way to learn a language is to go through some examples. You can run the
 
 ##### Why do you have to specify an Universe?
 
-In JDclare you specify rules over a set of related objects. One particular kind of relation is define in containment properties. In JDclare all objects have to be contained (direct or indirect) by the Universe. The only exception is the Universe itself, the Universe is the only object that is not contained by another object. 
-So, if you make an JDclare application you extend the standard Universe (DUniverse). The standard Universe contains all objects of JDclare itself. And in your extension of the standard Universe you can add the objects for your application.  
+In JDclare you specify rules over a set of related objects. One particular kind of relation is the containment property. In JDclare all objects have to be contained (direct or indirect) by the Universe. The only exception is the Universe itself. The Universe is the only object that is not contained by another object. 
+If a JDclare application you have to extend the standard Universe (DUniverse). The standard Universe contains all objects of JDclare itself. And in an extension of the standard Universe you can add the objects for your application.  
 
 
 ##### Why do you specify DUniverse in stead of Universe?
