@@ -413,7 +413,10 @@ In this example, if you change "a" the rule for b() is has higher priority then 
 
 ##### What is the purpose of this example?
 
-This examples shows that rules can be used to add objects in the Universe. The rule for the property elements 'creates' objects of type Element in the BigUniverse. The number of objects is initially 1000, but can you change the number of objects by typing a number. The rule does not construct the objects, but dclares the objects : that is, if you would run the rule for the second time, it would have no effect. Also note, that you dont have to specify a rule to 'delete' the objects : this is all done in the JDclare engine. 
+This examples shows that rules can be used to add objects in the Universe. 
+The rule for the property *elements* 'creates' objects of type Element in the BigUniverse. The number of objects is initially 1000, but can you change the number of objects by typing a number. 
+The rule does not construct the objects, but dclares the objects : that is, if you would run the rule for the second time, it would have no effect. 
+Also note, that you don not have to specify a rule to 'delete' the objects : this is all done in the JDclare engine. 
 
 
 *Example 6:* [RecursiveUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/RecursiveUniverse.java)
@@ -481,9 +484,9 @@ This examples shows that rules can be used to add objects in the Universe. The r
 
 	}
 	
-##### What does this example do??
+##### What does this example do?
 
-In this example the rule for property child in the Element class dclares if its own number less then the required depth (initially set to 3) a child Element with a number incremented by 1, and this is done recursively. So this child Element 'creates' if its number less then required depth a child Element with a number incremented by 1, and so on. You can change the depth by typing a number.
+In this example the rule for property *child* in the Element class dclares if its own number less then the required depth (initially set to 3) a child Element with a number incremented by 1, and this is done recursively. So this child Element 'creates' if its number less then required depth a child Element with a number incremented by 1, and so on. You can change the depth by typing a number.
 
-The property element in the RecursiveUniverse dclares an object Element with key 0 in the RecursiveUniverse. The constant annotation on the property means that this property never changes. 
+The property *element* in the RecursiveUniverse dclares an object Element with key 0 in the RecursiveUniverse. The constant annotation on the property means that this property never changes. 
 
