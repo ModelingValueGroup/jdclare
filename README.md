@@ -40,7 +40,7 @@ JDclare is very much work in progress. No backwards compatibility is guaranteed 
 Examples
 -------------------
 
-The best way to learn a language is to go through some examples. You can run these examples yourself by importing the projects in your favorite IDE. Note that JDclare requires Java 9 or higher. 
+The best way to learn a language is to go through some examples. You can run these examples yourself by importing the project org.modelingvalue.jdclare.examples in your favorite IDE. Note that JDclare requires Java 9 or higher. 
 
 *Example 1: HelloUniverse* [HelloUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/HelloUniverse.java)
 
