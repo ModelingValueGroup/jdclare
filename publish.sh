@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-echo "please implement me"
+git tag -l --points-at HEAD
