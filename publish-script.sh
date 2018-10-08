@@ -100,14 +100,21 @@ EOF
         done
     fi
 }
+currentBranch() {
+    if [ "${GIT_BRANCH:-}" != "" ]; then
+        sed 's|.*/||' <<<$GIT_BRANCH
+    else
+        git branch | grep \* | cut -d ' ' -f2
+    fi
+}
 publish() {
     local  token="$1"; shift
     local  draft="$1"; shift
     local assets=("$@")
 
-    local branch="$(git branch | grep \* | cut -d ' ' -f2)"
+    local branch="$(currentBranch)"
     if [ "$branch" != master ]; then
-        echo "INFO: not on master branch, so no publishing"
+        echo "INFO: not on master branch (but on $branch), so no publishing"
     elif ! validateToken "$token"; then
         echo "ERROR: not a valid token"
     else
