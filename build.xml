@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="jdclare" default="all">
-  
-  
+
+
   <property file="build.properties"/>
   <!-- Uncomment the following property if no tests compilation is needed -->
-  <!-- 
+  <!--
   <property name="skip.tests" value="true"/>
    -->
-  
+
   <!-- Compiler options -->
-  
+
   <property name="compiler.debug" value="on"/>
   <property name="compiler.generate.no.warnings" value="off"/>
   <property name="compiler.args" value=""/>
@@ -53,9 +53,9 @@
     <include name="**/?*.tld"/>
     <include name="**/?*.ftl"/>
   </patternset>
-  
+
   <!-- JDK definitions -->
-  
+
   <property name="jdk.bin.9.0" value="${jdk.home.9.0}/bin"/>
   <path id="jdk.classpath.9.0">
     <fileset dir="${jdk.home.9.0}">
@@ -158,56 +158,56 @@
       <include name="../Home!/oracle.net"/>
     </fileset>
   </path>
-  
+
   <property name="project.jdk.home" value="${jdk.home.9.0}"/>
   <property name="project.jdk.bin" value="${jdk.bin.9.0}"/>
   <property name="project.jdk.classpath" value="jdk.classpath.9.0"/>
-  
-  
+
+
   <!-- Project Libraries -->
-  
+
   <path id="library.junit:junit:4.12.classpath">
     <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
     <pathelement location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
   </path>
-  
-  
+
+
   <!-- Global Libraries -->
-  
+
   <!-- Modules -->
-  
+
   <import file="${basedir}/org.modelingvalue.collections/module_org.modelingvalue.collections.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.collections.test/module_org.modelingvalue.collections.test.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.transactions/module_org.modelingvalue.transactions.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare/module_org.modelingvalue.jdclare.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.transactions.test/module_org.modelingvalue.transactions.test.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare.examples/module_org.modelingvalue.jdclare.examples.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare.swing/module_org.modelingvalue.jdclare.swing.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare.syntax/module_org.modelingvalue.jdclare.syntax.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare.swing.examples/module_org.modelingvalue.jdclare.swing.examples.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare.syntax.test/module_org.modelingvalue.jdclare.syntax.test.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare.test/module_org.modelingvalue.jdclare.test.xml"/>
-  
+
   <import file="${basedir}/org.modelingvalue.jdclare.workbench/module_org.modelingvalue.jdclare.workbench.xml"/>
-  
+
   <target name="init" description="Build initialization">
     <!-- Perform any build initialization in this target -->
   </target>
-  
+
   <target name="clean" depends="clean.module.org.modelingvalue.collections, clean.module.org.modelingvalue.collections.test, clean.module.org.modelingvalue.transactions, clean.module.org.modelingvalue.jdclare, clean.module.org.modelingvalue.transactions.test, clean.module.org.modelingvalue.jdclare.examples, clean.module.org.modelingvalue.jdclare.swing, clean.module.org.modelingvalue.jdclare.syntax, clean.module.org.modelingvalue.jdclare.swing.examples, clean.module.org.modelingvalue.jdclare.syntax.test, clean.module.org.modelingvalue.jdclare.test, clean.module.org.modelingvalue.jdclare.workbench" description="cleanup all"/>
-  
+
   <target name="build.modules" depends="init, clean, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.collections.test, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.jdclare, compile.module.org.modelingvalue.transactions.test, compile.module.org.modelingvalue.jdclare.examples, compile.module.org.modelingvalue.jdclare.swing, compile.module.org.modelingvalue.jdclare.syntax, compile.module.org.modelingvalue.jdclare.swing.examples, compile.module.org.modelingvalue.jdclare.syntax.test, compile.module.org.modelingvalue.jdclare.test, compile.module.org.modelingvalue.jdclare.workbench" description="build all modules"/>
-  
+
   <target name="init.artifacts">
     <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
     <property name="artifact.output.dclare-collections-src.jar" value="${basedir}/out/artifacts"/>
@@ -221,17 +221,17 @@
     <property name="temp.jar.path.dclare-transactions.jar" value="${artifacts.temp.dir}/dclare-transactions.jar"/>
     <property name="temp.jar.path.dclare-transactions.jar2" value="${artifacts.temp.dir}/1/dclare-transactions.jar"/>
   </target>
-  
+
   <target name="artifact.dclare-collections-src.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections" description="Build &#39;dclare-collections-src.jar&#39; artifact">
     <property name="artifact.temp.output.dclare-collections-src.jar" value="${artifacts.temp.dir}/dclare_collections_src_jar"/>
     <mkdir dir="${artifact.temp.output.dclare-collections-src.jar}"/>
     <jar destfile="${temp.jar.path.dclare-collections.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.collections/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
     </jar>
     <copy file="${temp.jar.path.dclare-collections.jar}" tofile="${artifact.temp.output.dclare-collections-src.jar}/dclare-collections.jar"/>
   </target>
-  
+
   <target name="artifact.dclare-collections.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections" description="Build &#39;dclare-collections.jar&#39; artifact">
     <property name="artifact.temp.output.dclare-collections.jar" value="${artifacts.temp.dir}/dclare_collections_jar"/>
     <mkdir dir="${artifact.temp.output.dclare-collections.jar}"/>
@@ -240,19 +240,19 @@
     </jar>
     <copy file="${temp.jar.path.dclare-collections.jar2}" tofile="${artifact.temp.output.dclare-collections.jar}/dclare-collections.jar"/>
   </target>
-  
+
   <target name="artifact.dclare-transactions-src.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;dclare-transactions-src.jar&#39; artifact">
     <property name="artifact.temp.output.dclare-transactions-src.jar" value="${artifacts.temp.dir}/dclare_transactions_src_jar"/>
     <mkdir dir="${artifact.temp.output.dclare-transactions-src.jar}"/>
     <jar destfile="${temp.jar.path.dclare-transactions.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.collections/src"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.transactions/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
     </jar>
     <copy file="${temp.jar.path.dclare-transactions.jar}" tofile="${artifact.temp.output.dclare-transactions-src.jar}/dclare-transactions.jar"/>
   </target>
-  
+
   <target name="artifact.dclare-transactions.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;dclare-transactions.jar&#39; artifact">
     <property name="artifact.temp.output.dclare-transactions.jar" value="${artifacts.temp.dir}/dclare_transactions_jar"/>
     <mkdir dir="${artifact.temp.output.dclare-transactions.jar}"/>
@@ -262,7 +262,7 @@
     </jar>
     <copy file="${temp.jar.path.dclare-transactions.jar2}" tofile="${artifact.temp.output.dclare-transactions.jar}/dclare-transactions.jar"/>
   </target>
-  
+
   <target name="build.all.artifacts" depends="artifact.dclare-collections-src.jar, artifact.dclare-collections.jar, artifact.dclare-transactions-src.jar, artifact.dclare-transactions.jar" description="Build all artifacts">
     <mkdir dir="${artifact.output.dclare-collections-src.jar}"/>
     <copy todir="${artifact.output.dclare-collections-src.jar}">
@@ -280,10 +280,10 @@
     <copy todir="${artifact.output.dclare-transactions.jar}">
       <fileset dir="${artifact.temp.output.dclare-transactions.jar}"/>
     </copy>
-    
+
     <!-- Delete temporary files -->
     <delete dir="${artifacts.temp.dir}"/>
   </target>
-  
+
   <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
 </project>
