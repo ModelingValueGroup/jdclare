@@ -108,7 +108,7 @@ publish() {
     local branch="$(git branch | grep \* | cut -d ' ' -f2)"
     if [ "$branch" != master ]; then
         echo "INFO: not on master branch, so no publishing"
-    elsif ! validateToken "$token"
+    elif ! validateToken "$token"; then
         echo "ERROR: not a valid token"
     else
         git tag -l --points-at HEAD \
