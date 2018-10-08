@@ -226,7 +226,7 @@
     <mkdir dir="${artifact.temp.output.dclare-collections-src.jar}"/>
     <jar destfile="${temp.jar.path.dclare-collections-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.collections/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
     </jar>
     <copy file="${temp.jar.path.dclare-collections-src.jar}" tofile="${artifact.temp.output.dclare-collections-src.jar}/dclare-collections-src.jar"/>
   </target>
@@ -246,8 +246,8 @@
     <jar destfile="${temp.jar.path.dclare-transactions-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.collections/src"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.transactions/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
     </jar>
     <copy file="${temp.jar.path.dclare-transactions-src.jar}" tofile="${artifact.temp.output.dclare-transactions-src.jar}/dclare-transactions-src.jar"/>
   </target>
