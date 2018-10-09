@@ -42,7 +42,8 @@
     <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.syntax.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
-    <path refid="library.junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath"/>
   </path>
   
   <path id="org.modelingvalue.jdclare.syntax.test.runtime.module.classpath">
@@ -52,7 +53,8 @@
     <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.runtime.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.syntax.runtime.module.classpath"/>
-    <path refid="library.junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath"/>
   </path>
   
   

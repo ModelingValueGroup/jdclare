@@ -166,8 +166,11 @@
   
   <!-- Project Libraries -->
   
-  <path id="library.junit:junit:4.12.classpath">
+  <path id="library.maven:_junit:junit:4.12.classpath">
     <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
+  </path>
+  
+  <path id="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath">
     <pathelement location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
   </path>
   
