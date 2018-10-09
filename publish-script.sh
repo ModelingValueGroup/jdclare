@@ -47,7 +47,7 @@ publishTag() {
     local  branch="$1"; shift
     local  assets=("$@")
 
-    local comment="release '$tag' created on $(date +'%Y-%m-%d %H:%M:%S')"
+    local comment="release $tag created on $(date +'%Y-%m-%d %H:%M:%S')"
     local   isPre="$(contains pre "$tag")"
 
     echo "release info:"
