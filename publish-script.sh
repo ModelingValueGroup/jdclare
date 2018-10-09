@@ -80,12 +80,15 @@ publishTag() {
 EOF
 )"
     local relJson="$(curl_ "$token" -X POST -d "$json" "$REPOS_URL/releases")"
+            echo "======================"
+            echo "$relJson"
+            echo "======================"
     local uploadUrl="$(jq --raw-output '.upload_url' <<<"$relJson")"
     if [ "$uploadUrl" == "null" ]; then
         echo "ERROR: unable to create the release: $relJson"
         exit 99
     fi
-    local uploadUrl="$(sed 's/{\?.*//' <<<$uploadUrl)"
+    local uploadUrl="$(sed 's/{\?.*//' <<<"$uploadUrl")"
     echo "    using upload url: $uploadUrl"
 
     for file in "${assets[@]}"; do
@@ -98,17 +101,17 @@ EOF
             echo "        => ok"
         else
             echo "        => bad ($state)"
-            echo "====="
-            echo "$attJson"
-            echo "====="
-            echo "$uploadUrl?name=$name"
-            echo "====="
+                        echo "====="
+                        echo "$attJson"
+                        echo "====="
+                        echo "$uploadUrl?name=$name"
+                        echo "====="
         fi
     done
 }
 currentBranch() {
     if [ "${GIT_BRANCH:-}" != "" ]; then
-        sed 's|.*/||' <<<$GIT_BRANCH
+        sed 's|.*/||' <<<"$GIT_BRANCH"
     else
         git branch | grep \* | cut -d ' ' -f2
     fi

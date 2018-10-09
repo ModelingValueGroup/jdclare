@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+RUN_TESTS="$1"; shift
+
 genFileSets() {
     ls -d out/test/* \
         | while read d; do
@@ -25,6 +27,7 @@ cat <<EOF >test.xml
     </path>
 
     <target name="all">
+$([ "$RUN_TESTS" != true ] && echo "<!-- do not run tests for this run")
         <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="once">
             <classpath refid="cp"/>
             <batchtest todir=".">
@@ -32,6 +35,7 @@ $(genFileSets)
                 <formatter type="xml"/>
             </batchtest>
         </junit>
+$([ "$RUN_TESTS" != true ] && echo "-->")
     </target>
 </project>
 EOF
