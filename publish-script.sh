@@ -79,10 +79,11 @@ publishTag() {
 }
 EOF
 )"
+set -x
     local relJson="$(curl_ "$token" -X POST -d "$json" "$REPOS_URL/releases")"
-            echo "======================"
-            echo "$relJson"
-            echo "======================"
+echo "======================"
+echo "$relJson"
+echo "======================"
     local uploadUrl="$(jq --raw-output '.upload_url' <<<"$relJson")"
     if [ "$uploadUrl" == "null" ]; then
         echo "ERROR: unable to create the release: $relJson"
@@ -90,6 +91,7 @@ EOF
     fi
     local uploadUrl="$(sed 's/{\?.*//' <<<"$uploadUrl")"
     echo "    using upload url: $uploadUrl"
+set +x
 
     for file in "${assets[@]}"; do
         local mimeType="$(file -b --mime-type "$file")"
@@ -101,11 +103,11 @@ EOF
             echo "        => ok"
         else
             echo "        => bad ($state)"
-                        echo "====="
-                        echo "$attJson"
-                        echo "====="
-                        echo "$uploadUrl?name=$name"
-                        echo "====="
+echo "====="
+echo "$attJson"
+echo "====="
+echo "$uploadUrl?name=$name"
+echo "====="
         fi
     done
 }
