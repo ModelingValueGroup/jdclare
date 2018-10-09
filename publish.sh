@@ -7,13 +7,12 @@ isDraft="$1"; shift
 
 . publish-script.sh
 
+JARS=(collections transactions jdclare)
+
 if [ "$version" != "" ]; then
     publish \
         "$version" \
         "$token" \
         "$isDraft" \
-        out/artifacts/dclare-collections.jar \
-        out/artifacts/dclare-collections-src.jar \
-        out/artifacts/dclare-transactions.jar \
-        out/artifacts/dclare-transactions-src.jar
+        $(for n in "${JARS[@]}"; do echo "out/artifacts/$n.jar out/artifacts/$n-src.jar";done)
 fi
