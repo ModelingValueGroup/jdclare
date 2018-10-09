@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_org.modelingvalue.collections" default="compile.module.org.modelingvalue.collections">
+  <dirname property="module.org.modelingvalue.collections.basedir" file="${ant.file.module_org.modelingvalue.collections}"/>
+  
+  <property name="module.jdk.home.org.modelingvalue.collections" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.org.modelingvalue.collections" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.org.modelingvalue.collections" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.org.modelingvalue.collections" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+  
+  <property name="org.modelingvalue.collections.output.dir" value="${module.org.modelingvalue.collections.basedir}/../out/production/org.modelingvalue.collections"/>
+  <property name="org.modelingvalue.collections.testoutput.dir" value="${module.org.modelingvalue.collections.basedir}/../out/test/org.modelingvalue.collections"/>
+  
+  <path id="org.modelingvalue.collections.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="org.modelingvalue.collections.module.production.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.collections}"/>
+  </path>
+  
+  <path id="org.modelingvalue.collections.runtime.production.module.classpath">
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+  </path>
+  
+  <path id="org.modelingvalue.collections.module.classpath">
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <path refid="${module.jdk.classpath.org.modelingvalue.collections}"/>
+  </path>
+  
+  <path id="org.modelingvalue.collections.runtime.module.classpath">
+    <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.org.modelingvalue.collections">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.org.modelingvalue.collections">
+    <patternset refid="excluded.from.module.org.modelingvalue.collections"/>
+  </patternset>
+  
+  <path id="org.modelingvalue.collections.module.sourcepath">
+    <dirset dir="${module.org.modelingvalue.collections.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.org.modelingvalue.collections" depends="compile.module.org.modelingvalue.collections.production,compile.module.org.modelingvalue.collections.tests" description="Compile module org.modelingvalue.collections"/>
+  
+  <target name="compile.module.org.modelingvalue.collections.production" description="Compile module org.modelingvalue.collections; production classes">
+    <mkdir dir="${org.modelingvalue.collections.output.dir}"/>
+    <javac destdir="${org.modelingvalue.collections.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.collections}/javac">
+      <compilerarg line="${compiler.args.org.modelingvalue.collections}"/>
+      <bootclasspath refid="org.modelingvalue.collections.module.bootclasspath"/>
+      <classpath refid="org.modelingvalue.collections.module.production.classpath"/>
+      <src refid="org.modelingvalue.collections.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.org.modelingvalue.collections"/>
+    </javac>
+    
+    <copy todir="${org.modelingvalue.collections.output.dir}">
+      <fileset dir="${module.org.modelingvalue.collections.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.org.modelingvalue.collections.tests" depends="compile.module.org.modelingvalue.collections.production" description="compile module org.modelingvalue.collections; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.org.modelingvalue.collections" description="cleanup module">
+    <delete dir="${org.modelingvalue.collections.output.dir}"/>
+    <delete dir="${org.modelingvalue.collections.testoutput.dir}"/>
+  </target>
+</project>

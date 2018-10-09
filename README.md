@@ -40,9 +40,9 @@ JDclare is very much work in progress. No backwards compatibility is guaranteed 
 Examples
 -------------------
 
-The best way to learn a language is to go through some examples. You can run these examples yourself by importing the projects in your favorite IDE. Note that JDclare requires Java 9 or higher. 
+The best way to learn a language is to go through some examples. You can run these examples yourself by importing the project org.modelingvalue.jdclare.examples in your favorite IDE. Note that JDclare requires Java 9 or higher. 
 
-*Example 1: HelloUniverse* [HelloUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/HelloUniverse.java)
+*Example 1:* [HelloUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/HelloUniverse.java)
 
 	package org.modelingvalue.jdclare.examples;
 	
@@ -66,13 +66,13 @@ The best way to learn a language is to go through some examples. You can run the
 
 ##### Why do you have to specify an Universe?
 
-In JDclare you specify rules over a set of related objects. One particular kind of relation is define in containment properties. In JDclare all objects have to be contained (direct or indirect) by the Universe. The only exception is the Universe itself, the Universe is the only object that is not contained by another object. 
-So, if you make an JDclare application you extend the standard Universe (DUniverse). The standard Universe contains all objects of JDclare itself. And in your extension of the standard Universe you can add the objects for your application.  
+In JDclare you specify rules over a set of related objects. A relation is a property of type Reference. One particular kind of relation is the containment property. In JDclare all objects have to be contained (direct or indirect) by the Universe. The only exception is the Universe itself. The Universe is the only object that is not contained by another object. 
+If a JDclare application you have to extend the standard Universe (DUniverse). The standard Universe contains all objects of JDclare itself. And in an extension of the standard Universe you can add the objects for your application.  
 
 
 ##### Why do you specify DUniverse in stead of Universe?
 
-All interfaces starting with the letter 'D' are predefined interfaces part of the JDclare library and you can use or extend them in your application
+All interfaces starting with the letter 'D' are predefined interfaces part of the JDclare library and you can use or extend them in your application.
 
 
 ##### What is the meaning of the main method? Do we still have to specify a process?
@@ -82,15 +82,15 @@ JDclare makes it possible to declaratively specify a program in Java. JDclare ha
 
 ##### How do you define a rule in JDclare? 
 
-In JDclare you define a rule by constraining a property. A property is defined by a method on an interface without arguments and a return type and the method (or the method in the super class) has a @Property annotation : the name of the property is the name of the method, and the type of the property is the return type of the method. In the example there is a property named output with type IOString. The body of the method defines the rule that describes the invariant : something that is always holds. In this example the rule sets the string "Hello Universe ..." to the output property. The @Override indicates that the property output already exists in the DUniverse.
+In JDclare you define a rule by constraining a property. A property is defined by a method on an interface without arguments and a return type and the method (or the method in the super class) has a @Property annotation. The name of the property is the name of the method, and the type of the property is the return type of the method. In the example there is a property named output with type IOString. The body of the method defines the rule that describes the invariant : something that always holds. In this example the rule sets the string "Hello Universe ..." to the output property. The @Override indicates that the property output already exists in the DUniverse.
 You can also define a rule outside a property - then you have to give the method a @Rule annotation.
 
 ##### Where does dSize() come from?
 
-dSize() is a property defined on DObject and because DUniverse extends from DObject the property is also defined on DUniverse. All objects that have state that can be changed must be instances of a Class that extends from DObject. The dSize() is a property with a rule that calculates the number of contained objects + 1. All other objects in Dclare are immutable: they typically inherit from DStruct. All collections in JDclare are also immutable.
+dSize() is a property defined on DObject and because DUniverse extends from DObject the property is also defined on DUniverse. All objects that have state that can be changed must be instances of a Class that extends from DObject. The dSize() is a property with a rule that calculates the number of contained objects + 1. All other objects in Dclare that do not have state are immutable: they typically inherit from DStruct. All collections in JDclare are also immutable.
 
 
-*Example 2: EchoUniverse* [EchoUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/EchoUniverse.java)
+*Example 2:* [EchoUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/EchoUniverse.java)
 
 	package org.modelingvalue.jdclare.examples;
 	
@@ -122,7 +122,7 @@ dSize() is a property defined on DObject and because DUniverse extends from DObj
 
 ##### What does runAndRead do?
 
-Run instantiates all objects in the Universe as in the previous example. Read listens for input. So the application does not stop.
+Run instantiates all objects in the Universe as in the previous example. Read listens for input.
 
 ##### What does the output property do?
 
@@ -133,7 +133,7 @@ Note that the example uses the type String. In JDCLare you can use all Java type
 
 JDclare has a reactive engine, it means that the system will react automatically on state changes. So when the input property changes by an event - in this case because a user types something - then the engine will try to make the system consistent again by running a minimal set of rules. 
 
-*Example 3: SalesUniverse* [SalesUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/SalesUniverse.java)
+*Example 3:* [SalesUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/SalesUniverse.java)
 
 	package org.modelingvalue.jdclare.examples;
 	
@@ -283,7 +283,7 @@ ReadInput is a rule that reads the input property, and depending on the input ch
 
 In JDclare you can specify the rule over a collection  : every collection is also a stream in the used collection framework [MVG collections](https://github.com/ModelingValueGroup/jdclare/tree/master/org.modelingvalue.collections) so you can use for instance map and reduce directly on the collection. In this example, the orders collection is reduced to show the total price of the order for all customers.
 
-*Example 4: CyclicUniverse* [CyclicUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/CyclicUniverse.java)
+*Example 4:* [CyclicUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/CyclicUniverse.java)
 
 	package org.modelingvalue.jdclare.examples;
 	
@@ -341,9 +341,152 @@ In JDclare you can specify the rule over a collection  : every collection is als
 
 ##### Why does this example work? JDclare could also reset "a" to its original value if you change "a"?
 
-This is because JDclare uses a "push out" strategy to prioritize rules. If a property value has changed, then all rules are executed that or have read this property, or have written this property. However, the JDclare engine first tries to get to a consistent state by first running the rules that have read the property. Rules that are triggered because of a change in the value of a property they read are triggered before rules that triggered because of a change of a property they wrote.
-In this example, if you change "a" the rule for b() is has higher priority, so property "b" will get the new value for "a", and because "b" changes, also "a" will get the new value.
+This is because JDclare uses a "push out" strategy to prioritize rules. In general, if a property value has changed, then all rules are executed that or have read this property, or have written this property. However, the JDclare engine tries to get to a consistent state by first running the rules that have read the property. So rules that are triggered because of a change in the value of a property they read are triggered *before* rules that triggered because of a change of a property they wrote.
+In this example, if you change "a" the rule for b() is has higher priority then the rule for a(), so property "b" will get the new value for "a", and because "b" changes, also "a" will get the new value.
 
 
+*Example 5:* [BigUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/BigUniverse.java)
 
+	package org.modelingvalue.jdclare.examples;
+
+	import static org.modelingvalue.jdclare.DClare.*;
+	import static org.modelingvalue.jdclare.PropertyQualifier.*;
+	
+	import org.modelingvalue.collections.Collection;
+	import org.modelingvalue.collections.Set;
+	import org.modelingvalue.jdclare.DNamed;
+	import org.modelingvalue.jdclare.DStruct1;
+	import org.modelingvalue.jdclare.DUniverse;
+	import org.modelingvalue.jdclare.Default;
+	import org.modelingvalue.jdclare.IOString;
+	import org.modelingvalue.jdclare.Property;
+	import org.modelingvalue.jdclare.Rule;
+
+	public interface BigUniverse extends DUniverse {
+
+    static void main(String[] args) {
+        runAndRead(BigUniverse.class);
+    }
+
+    @Default
+    @Property
+    default int size() {
+        return 1000;
+    }
+
+    @Property(containment)
+    default Set<Element> elements() {
+        return Collection.range(size()).map(i -> dclare(Element.class, i)).toSet();
+    }
+
+    interface Element extends DNamed, DStruct1<Integer> {
+        @Property(key = 0)
+        int nr();
+
+        @Override
+        default String name() {
+            return "E" + nr();
+        }
+    }
+
+    @Override
+    default IOString output() {
+        return IOString.of(elements());
+    }
+
+    @Rule
+    default void readInput() {
+        String input = input().string().replaceAll("\\s+", "");
+        if (input.equals("stop")) {
+            set(this, DUniverse::stop, true);
+        } else if (!input.isEmpty()) {
+            try {
+                set(this, BigUniverse::size, Integer.parseInt(input));
+            } catch (NumberFormatException nfe) {
+                set(this, DUniverse::error, IOString.ofln("Only integer or 'stop' allowed"));
+            }
+        }
+        set(this, DUniverse::input, IOString.of(""));
+    }
+
+	}
+
+##### What is the purpose of this example?
+
+This examples shows that rules can be used to add objects in the Universe. 
+The rule for the property *elements* 'creates' objects of type Element in the BigUniverse. The number of objects is initially 1000, but can you change the number of objects by typing a number. 
+The rule does not construct the objects, but dclares the objects : that is, if you would run the rule for the second time, it would have no effect. 
+Also note, that you don not have to specify a rule to 'delete' the objects : this is all done in the JDclare engine. 
+
+
+*Example 6:* [RecursiveUniverse](https://github.com/ModelingValueGroup/jdclare/blob/master/org.modelingvalue.jdclare.examples/src/org/modelingvalue/jdclare/examples/RecursiveUniverse.java)
+
+
+	package org.modelingvalue.jdclare.examples;
+	
+	import static org.modelingvalue.jdclare.DClare.*;
+	import static org.modelingvalue.jdclare.PropertyQualifier.*;
+	
+	import org.modelingvalue.jdclare.DObject;
+	import org.modelingvalue.jdclare.DStruct1;
+	import org.modelingvalue.jdclare.DUniverse;
+	import org.modelingvalue.jdclare.Default;
+	import org.modelingvalue.jdclare.IOString;
+	import org.modelingvalue.jdclare.Property;
+	import org.modelingvalue.jdclare.Rule;
+	
+	public interface RecursiveUniverse extends DUniverse {
+
+    static void main(String[] args) {
+        runAndRead(RecursiveUniverse.class);
+    }
+
+    @Default
+    @Property
+    default int depth() {
+        return 3;
+    }
+
+    @Property({containment, constant})
+    default Element element() {
+        return dclare(Element.class, 0);
+    }
+
+    interface Element extends DObject, DStruct1<Integer> {
+        @Property(key = 0)
+        int nr();
+
+        @Property({containment, optional})
+        default Element child() {
+            return nr() < dAncestor(RecursiveUniverse.class).depth() ? dclare(Element.class, nr() + 1) : null;
+        }
+    }
+
+    @Override
+    default IOString output() {
+        return IOString.of(element().dString());
+    }
+
+    @Rule
+    default void readInput() {
+        String input = input().string().replaceAll("\\s+", "");
+        if (input.equals("stop")) {
+            set(this, DUniverse::stop, true);
+        } else if (!input.isEmpty()) {
+            try {
+                set(this, RecursiveUniverse::depth, Integer.parseInt(input));
+            } catch (NumberFormatException nfe) {
+                set(this, DUniverse::error, IOString.ofln("Only integer or 'stop' allowed"));
+            }
+        }
+        set(this, DUniverse::input, IOString.of(""));
+    }
+
+	}
+	
+##### What does this example do?
+
+In this example the rule for property *child* in the Element class dclares if its own number less then the required depth (initially set to 3) a child Element with a number incremented by 1, and this is done recursively. So this child Element 'creates' if its number less then required depth a child Element with a number incremented by 1, and so on. You can change the depth by typing a number.
+
+The property *element* in the RecursiveUniverse dclares an object Element with key 0 in the RecursiveUniverse. The constant annotation on the property means that this property never changes. 
 

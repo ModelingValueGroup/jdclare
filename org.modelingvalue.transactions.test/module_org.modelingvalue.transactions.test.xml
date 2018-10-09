@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_org.modelingvalue.transactions.test" default="compile.module.org.modelingvalue.transactions.test">
+  <dirname property="module.org.modelingvalue.transactions.test.basedir" file="${ant.file.module_org.modelingvalue.transactions.test}"/>
+  
+  <property name="module.jdk.home.org.modelingvalue.transactions.test" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.org.modelingvalue.transactions.test" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.org.modelingvalue.transactions.test" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.org.modelingvalue.transactions.test" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+  
+  <property name="org.modelingvalue.transactions.test.output.dir" value="${module.org.modelingvalue.transactions.test.basedir}/../out/production/org.modelingvalue.transactions.test"/>
+  <property name="org.modelingvalue.transactions.test.testoutput.dir" value="${module.org.modelingvalue.transactions.test.basedir}/../out/test/org.modelingvalue.transactions.test"/>
+  
+  <path id="org.modelingvalue.transactions.test.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="org.modelingvalue.transactions.test.module.production.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.transactions.test}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+  </path>
+  
+  <path id="org.modelingvalue.transactions.test.runtime.production.module.classpath">
+    <pathelement location="${org.modelingvalue.transactions.test.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.production.module.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.transactions.test.module.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.transactions.test}"/>
+    <pathelement location="${org.modelingvalue.transactions.test.output.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <path refid="library.junit:junit:4.12.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.transactions.test.runtime.module.classpath">
+    <pathelement location="${org.modelingvalue.transactions.test.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.test.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+    <path refid="library.junit:junit:4.12.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.org.modelingvalue.transactions.test">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.org.modelingvalue.transactions.test">
+    <patternset refid="excluded.from.module.org.modelingvalue.transactions.test"/>
+  </patternset>
+  
+  <path id="org.modelingvalue.transactions.test.module.test.sourcepath">
+    <dirset dir="${module.org.modelingvalue.transactions.test.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.org.modelingvalue.transactions.test" depends="compile.module.org.modelingvalue.transactions.test.production,compile.module.org.modelingvalue.transactions.test.tests" description="Compile module org.modelingvalue.transactions.test"/>
+  
+  <target name="compile.module.org.modelingvalue.transactions.test.production" depends="compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.transactions" description="Compile module org.modelingvalue.transactions.test; production classes"/>
+  
+  <target name="compile.module.org.modelingvalue.transactions.test.tests" depends="compile.module.org.modelingvalue.transactions.test.production" description="compile module org.modelingvalue.transactions.test; test classes" unless="skip.tests">
+    <mkdir dir="${org.modelingvalue.transactions.test.testoutput.dir}"/>
+    <javac destdir="${org.modelingvalue.transactions.test.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.transactions.test}/javac">
+      <compilerarg line="${compiler.args.org.modelingvalue.transactions.test}"/>
+      <bootclasspath refid="org.modelingvalue.transactions.test.module.bootclasspath"/>
+      <classpath refid="org.modelingvalue.transactions.test.module.classpath"/>
+      <src refid="org.modelingvalue.transactions.test.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.org.modelingvalue.transactions.test"/>
+    </javac>
+    
+    <copy todir="${org.modelingvalue.transactions.test.testoutput.dir}">
+      <fileset dir="${module.org.modelingvalue.transactions.test.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.org.modelingvalue.transactions.test" description="cleanup module">
+    <delete dir="${org.modelingvalue.transactions.test.output.dir}"/>
+    <delete dir="${org.modelingvalue.transactions.test.testoutput.dir}"/>
+  </target>
+</project>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_org.modelingvalue.jdclare.syntax" default="compile.module.org.modelingvalue.jdclare.syntax">
+  <dirname property="module.org.modelingvalue.jdclare.syntax.basedir" file="${ant.file.module_org.modelingvalue.jdclare.syntax}"/>
+  
+  <property name="module.jdk.home.org.modelingvalue.jdclare.syntax" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.org.modelingvalue.jdclare.syntax" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.org.modelingvalue.jdclare.syntax" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.org.modelingvalue.jdclare.syntax" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+  
+  <property name="org.modelingvalue.jdclare.syntax.output.dir" value="${module.org.modelingvalue.jdclare.syntax.basedir}/../out/production/org.modelingvalue.jdclare.syntax"/>
+  <property name="org.modelingvalue.jdclare.syntax.testoutput.dir" value="${module.org.modelingvalue.jdclare.syntax.basedir}/../out/test/org.modelingvalue.jdclare.syntax"/>
+  
+  <path id="org.modelingvalue.jdclare.syntax.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.syntax.module.production.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.syntax}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.syntax.runtime.production.module.classpath">
+    <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.runtime.production.module.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.syntax.module.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.syntax}"/>
+    <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.syntax.runtime.module.classpath">
+    <pathelement location="${org.modelingvalue.jdclare.syntax.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.runtime.module.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.org.modelingvalue.jdclare.syntax">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.org.modelingvalue.jdclare.syntax">
+    <patternset refid="excluded.from.module.org.modelingvalue.jdclare.syntax"/>
+  </patternset>
+  
+  <path id="org.modelingvalue.jdclare.syntax.module.sourcepath">
+    <dirset dir="${module.org.modelingvalue.jdclare.syntax.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.org.modelingvalue.jdclare.syntax" depends="compile.module.org.modelingvalue.jdclare.syntax.production,compile.module.org.modelingvalue.jdclare.syntax.tests" description="Compile module org.modelingvalue.jdclare.syntax"/>
+  
+  <target name="compile.module.org.modelingvalue.jdclare.syntax.production" depends="compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.transactions,compile.module.org.modelingvalue.jdclare" description="Compile module org.modelingvalue.jdclare.syntax; production classes">
+    <mkdir dir="${org.modelingvalue.jdclare.syntax.output.dir}"/>
+    <javac destdir="${org.modelingvalue.jdclare.syntax.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.jdclare.syntax}/javac">
+      <compilerarg line="${compiler.args.org.modelingvalue.jdclare.syntax}"/>
+      <bootclasspath refid="org.modelingvalue.jdclare.syntax.module.bootclasspath"/>
+      <classpath refid="org.modelingvalue.jdclare.syntax.module.production.classpath"/>
+      <src refid="org.modelingvalue.jdclare.syntax.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.org.modelingvalue.jdclare.syntax"/>
+    </javac>
+    
+    <copy todir="${org.modelingvalue.jdclare.syntax.output.dir}">
+      <fileset dir="${module.org.modelingvalue.jdclare.syntax.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.org.modelingvalue.jdclare.syntax.tests" depends="compile.module.org.modelingvalue.jdclare.syntax.production" description="compile module org.modelingvalue.jdclare.syntax; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.org.modelingvalue.jdclare.syntax" description="cleanup module">
+    <delete dir="${org.modelingvalue.jdclare.syntax.output.dir}"/>
+    <delete dir="${org.modelingvalue.jdclare.syntax.testoutput.dir}"/>
+  </target>
+</project>

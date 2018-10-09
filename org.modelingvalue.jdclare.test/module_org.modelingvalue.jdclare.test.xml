@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_org.modelingvalue.jdclare.test" default="compile.module.org.modelingvalue.jdclare.test">
+  <dirname property="module.org.modelingvalue.jdclare.test.basedir" file="${ant.file.module_org.modelingvalue.jdclare.test}"/>
+  
+  <property name="module.jdk.home.org.modelingvalue.jdclare.test" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.org.modelingvalue.jdclare.test" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.org.modelingvalue.jdclare.test" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.org.modelingvalue.jdclare.test" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+  
+  <property name="org.modelingvalue.jdclare.test.output.dir" value="${module.org.modelingvalue.jdclare.test.basedir}/../out/production/org.modelingvalue.jdclare.test"/>
+  <property name="org.modelingvalue.jdclare.test.testoutput.dir" value="${module.org.modelingvalue.jdclare.test.basedir}/../out/test/org.modelingvalue.jdclare.test"/>
+  
+  <path id="org.modelingvalue.jdclare.test.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.test.module.production.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.test}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.test.runtime.production.module.classpath">
+    <pathelement location="${org.modelingvalue.jdclare.test.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.syntax.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.production.module.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.test.module.classpath">
+    <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.test}"/>
+    <pathelement location="${org.modelingvalue.jdclare.test.output.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.syntax.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <path refid="library.junit:junit:4.12.classpath"/>
+  </path>
+  
+  <path id="org.modelingvalue.jdclare.test.runtime.module.classpath">
+    <pathelement location="${org.modelingvalue.jdclare.test.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.jdclare.test.output.dir}"/>
+    <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.syntax.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.jdclare.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+    <path refid="library.junit:junit:4.12.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.org.modelingvalue.jdclare.test">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.org.modelingvalue.jdclare.test">
+    <patternset refid="excluded.from.module.org.modelingvalue.jdclare.test"/>
+  </patternset>
+  
+  <path id="org.modelingvalue.jdclare.test.module.test.sourcepath">
+    <dirset dir="${module.org.modelingvalue.jdclare.test.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.org.modelingvalue.jdclare.test" depends="compile.module.org.modelingvalue.jdclare.test.production,compile.module.org.modelingvalue.jdclare.test.tests" description="Compile module org.modelingvalue.jdclare.test"/>
+  
+  <target name="compile.module.org.modelingvalue.jdclare.test.production" depends="compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.jdclare.syntax,compile.module.org.modelingvalue.jdclare,compile.module.org.modelingvalue.transactions" description="Compile module org.modelingvalue.jdclare.test; production classes"/>
+  
+  <target name="compile.module.org.modelingvalue.jdclare.test.tests" depends="compile.module.org.modelingvalue.jdclare.test.production" description="compile module org.modelingvalue.jdclare.test; test classes" unless="skip.tests">
+    <mkdir dir="${org.modelingvalue.jdclare.test.testoutput.dir}"/>
+    <javac destdir="${org.modelingvalue.jdclare.test.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.jdclare.test}/javac">
+      <compilerarg line="${compiler.args.org.modelingvalue.jdclare.test}"/>
+      <bootclasspath refid="org.modelingvalue.jdclare.test.module.bootclasspath"/>
+      <classpath refid="org.modelingvalue.jdclare.test.module.classpath"/>
+      <src refid="org.modelingvalue.jdclare.test.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.org.modelingvalue.jdclare.test"/>
+    </javac>
+    
+    <copy todir="${org.modelingvalue.jdclare.test.testoutput.dir}">
+      <fileset dir="${module.org.modelingvalue.jdclare.test.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.org.modelingvalue.jdclare.test" description="cleanup module">
+    <delete dir="${org.modelingvalue.jdclare.test.output.dir}"/>
+    <delete dir="${org.modelingvalue.jdclare.test.testoutput.dir}"/>
+  </target>
+</project>
