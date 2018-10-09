@@ -3,8 +3,8 @@ set -ue
 
 ###############################################################################
    GITHUB_URL="https://api.github.com"
-        OWNER="$(git remote -v | head -1 | sed 's|.*:\([^/]*\)/\([^.]*\).*|\1|')"
-        REPOS="$(git remote -v | head -1 | sed 's|.*:\([^/]*\)/\([^.]*\).*|\2|')"
+        OWNER="$(git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||' | sed 's|\([^/]*\)/\(.*\)|\1|')"
+        REPOS="$(git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||' | sed 's|\([^/]*\)/\(.*\)|\2|')"
     REPOS_URL="$GITHUB_URL/repos/$OWNER/$REPOS"
 ###############################################################################
 contains() {
