@@ -34,7 +34,8 @@
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
     <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
-    <path refid="library.junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath"/>
   </path>
   
   <path id="org.modelingvalue.transactions.test.runtime.module.classpath">
@@ -42,7 +43,8 @@
     <pathelement location="${org.modelingvalue.transactions.test.output.dir}"/>
     <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
     <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
-    <path refid="library.junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_junit:junit:4.12.classpath"/>
+    <path refid="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath"/>
   </path>
   
   
