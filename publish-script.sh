@@ -20,7 +20,7 @@ contains() {
 curl_() {
     local token="$1"; shift
 
-    set -x
+    #set -x
     curl \
         --location \
         --remote-header-name \
@@ -29,7 +29,7 @@ curl_() {
         -o - \
         --header "Authorization: token $token" \
         "$@"
-    set +x
+    #set +x
 }
 validateToken() {
     local token="$1"; shift
@@ -53,18 +53,18 @@ publishTag() {
     local   isPre="$(contains pre "$tag")"
 
     echo "release info:"
-    echo "      tag     = $tag"
-    echo "      relName = $tag"
-    echo "      isDraft = $isDraft"
-    echo "      isPre   = $isPre"
-    echo "      branch  = $branch"
-    echo "      comment = $comment"
+    echo "        tag     = $tag"
+    echo "        relName = $tag"
+    echo "        isDraft = $isDraft"
+    echo "        isPre   = $isPre"
+    echo "        branch  = $branch"
+    echo "        comment = $comment"
 
 
     local   relJson="$(getRelease "$token" "$tag")"
     local uploadUrl="$(jq --raw-output '.upload_url' <<<"$relJson")"
     if [ "$uploadUrl" != "null" ]; then
-        echo "ERROR: this release already exists, delete it first"
+        echo "ERROR: this release already exists, delete it first" 1>&2
         exit 99
     fi
     echo "    creating new release..."
@@ -79,20 +79,16 @@ publishTag() {
 }
 EOF
 )"
-set -x
     local relJson="$(curl_ "$token" -X POST -d "$json" "$REPOS_URL/releases")"
-echo "======================"
-echo "$relJson"
-echo "======================"
     local uploadUrl="$(jq --raw-output '.upload_url' <<<"$relJson")"
     if [ "$uploadUrl" == "null" ]; then
-        echo "ERROR: unable to create the release: $relJson"
+        echo "ERROR: unable to create the release: $relJson" 1>&2
         exit 99
     fi
     local uploadUrl="$(sed -E 's/\{\?.*//' <<<"$uploadUrl")"
     echo "    using upload url: $uploadUrl"
-set +x
 
+    local hadError=false
     for file in "${assets[@]}"; do
         local mimeType="$(file -b --mime-type "$file")"
         local     name="$(basename "$file" | sed "s/\(.*\)\.\([^.]*\)/\1.$tag.\2/")"
@@ -102,14 +98,14 @@ set +x
         if [ "$state" == "uploaded" ]; then
             echo "        => ok"
         else
-            echo "        => bad ($state)"
-echo "====="
-echo "$attJson"
-echo "====="
-echo "$uploadUrl?name=$name"
-echo "====="
+            echo "        => oops, not correctly attached: $state"
+            hadError=true
         fi
     done
+    if [ "$hadError" == true ]; then
+        echo "ERROR: some assets could not be attached" 1>&2
+        exit 99
+    fi
 }
 currentBranch() {
     if [ "${GIT_BRANCH:-}" != "" ]; then
@@ -125,23 +121,27 @@ publish() {
     local  assets=("$@")
 
     if [ "$version" == "" ]; then
-        echo "ERROR: version is empty"
+        echo "ERROR: version is empty" 1>&2
         exit 60
     fi
     if [ "$(git tag -l "$version")" ]; then
-        echo "ERROR: tag $version already exists"
+        echo "ERROR: tag $version already exists" 1>&2
         exit 70
     fi
     if ! validateToken "$token"; then
-        echo "ERROR: not a valid token"
+        echo "ERROR: not a valid token" 1>&2
         exit 80
     fi
+    local hadError=false
     for file in "${assets[@]}"; do
         if [ ! -f "$file" ]; then
-            echo "ERROR: can not find file $file"
-            exit 90
+            echo "ERROR: file not found: $file" 1>&2
+            hadError=true
         fi
     done
+    if [ "$hadError" == true ]; then
+        exit 95
+    fi
 
     local branch="$(currentBranch)"
     publishTag "$version" "$token" "$isDraft" "$branch" "${assets[@]}"
