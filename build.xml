@@ -217,38 +217,37 @@
     <property name="artifact.output.transactions-src.jar" value="${basedir}/out/artifacts"/>
     <property name="artifact.output.transactions.jar" value="${basedir}/out/artifacts"/>
     <mkdir dir="${artifacts.temp.dir}"/>
-    <property name="temp.jar.path.dclare-collections-src.jar" value="${artifacts.temp.dir}/dclare-collections-src.jar"/>
-    <property name="temp.jar.path.dclare-collections.jar" value="${artifacts.temp.dir}/dclare-collections.jar"/>
+    <property name="temp.jar.path.collections-src.jar" value="${artifacts.temp.dir}/collections-src.jar"/>
+    <property name="temp.jar.path.collections.jar" value="${artifacts.temp.dir}/collections.jar"/>
+    <property name="temp.jar.path.jdclare-src.jar" value="${artifacts.temp.dir}/jdclare-src.jar"/>
+    <property name="temp.jar.path.jdclare.jar" value="${artifacts.temp.dir}/jdclare.jar"/>
     <property name="temp.jar.path.transactions-src.jar" value="${artifacts.temp.dir}/transactions-src.jar"/>
-    <property name="temp.jar.path.dclare-transactions.jar" value="${artifacts.temp.dir}/dclare-transactions.jar"/>
-    <property name="temp.jar.path.dclare-transactions-src.jar" value="${artifacts.temp.dir}/dclare-transactions-src.jar"/>
-    <property name="temp.jar.path.dclare-transactions.jar2" value="${artifacts.temp.dir}/1/dclare-transactions.jar"/>
-    <mkdir dir="${artifacts.temp.dir}/1"/>
+    <property name="temp.jar.path.transactions.jar" value="${artifacts.temp.dir}/transactions.jar"/>
   </target>
   
   <target name="artifact.collections-src.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections" description="Build &#39;collections-src.jar&#39; artifact">
     <property name="artifact.temp.output.collections-src.jar" value="${artifacts.temp.dir}/collections_src_jar"/>
     <mkdir dir="${artifact.temp.output.collections-src.jar}"/>
-    <jar destfile="${temp.jar.path.dclare-collections-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.collections-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
       <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
     </jar>
-    <copy file="${temp.jar.path.dclare-collections-src.jar}" tofile="${artifact.temp.output.collections-src.jar}/dclare-collections-src.jar"/>
+    <copy file="${temp.jar.path.collections-src.jar}" tofile="${artifact.temp.output.collections-src.jar}/collections-src.jar"/>
   </target>
   
   <target name="artifact.collections.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections" description="Build &#39;collections.jar&#39; artifact">
     <property name="artifact.temp.output.collections.jar" value="${artifacts.temp.dir}/collections_jar"/>
     <mkdir dir="${artifact.temp.output.collections.jar}"/>
-    <jar destfile="${temp.jar.path.dclare-collections.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.collections.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
     </jar>
-    <copy file="${temp.jar.path.dclare-collections.jar}" tofile="${artifact.temp.output.collections.jar}/dclare-collections.jar"/>
+    <copy file="${temp.jar.path.collections.jar}" tofile="${artifact.temp.output.collections.jar}/collections.jar"/>
   </target>
   
   <target name="artifact.jdclare-src.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.jdclare" description="Build &#39;jdclare-src.jar&#39; artifact">
     <property name="artifact.temp.output.jdclare-src.jar" value="${artifacts.temp.dir}/jdclare_src_jar"/>
     <mkdir dir="${artifact.temp.output.jdclare-src.jar}"/>
-    <jar destfile="${temp.jar.path.transactions-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.jdclare-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
       <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
@@ -256,40 +255,40 @@
       <zipfileset dir="${org.modelingvalue.jdclare.output.dir}"/>
       <zipfileset dir="${basedir}/org.modelingvalue.jdclare/src"/>
     </jar>
-    <copy file="${temp.jar.path.transactions-src.jar}" tofile="${artifact.temp.output.jdclare-src.jar}/transactions-src.jar"/>
+    <copy file="${temp.jar.path.jdclare-src.jar}" tofile="${artifact.temp.output.jdclare-src.jar}/jdclare-src.jar"/>
   </target>
   
   <target name="artifact.jdclare.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.jdclare" description="Build &#39;jdclare.jar&#39; artifact">
     <property name="artifact.temp.output.jdclare.jar" value="${artifacts.temp.dir}/jdclare_jar"/>
     <mkdir dir="${artifact.temp.output.jdclare.jar}"/>
-    <jar destfile="${temp.jar.path.dclare-transactions.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.jdclare.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.jdclare.output.dir}"/>
     </jar>
-    <copy file="${temp.jar.path.dclare-transactions.jar}" tofile="${artifact.temp.output.jdclare.jar}/dclare-transactions.jar"/>
+    <copy file="${temp.jar.path.jdclare.jar}" tofile="${artifact.temp.output.jdclare.jar}/jdclare.jar"/>
   </target>
   
   <target name="artifact.transactions-src.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;transactions-src.jar&#39; artifact">
     <property name="artifact.temp.output.transactions-src.jar" value="${artifacts.temp.dir}/transactions_src_jar"/>
     <mkdir dir="${artifact.temp.output.transactions-src.jar}"/>
-    <jar destfile="${temp.jar.path.dclare-transactions-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.transactions-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
       <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
       <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
     </jar>
-    <copy file="${temp.jar.path.dclare-transactions-src.jar}" tofile="${artifact.temp.output.transactions-src.jar}/dclare-transactions-src.jar"/>
+    <copy file="${temp.jar.path.transactions-src.jar}" tofile="${artifact.temp.output.transactions-src.jar}/transactions-src.jar"/>
   </target>
   
   <target name="artifact.transactions.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;transactions.jar&#39; artifact">
     <property name="artifact.temp.output.transactions.jar" value="${artifacts.temp.dir}/transactions_jar"/>
     <mkdir dir="${artifact.temp.output.transactions.jar}"/>
-    <jar destfile="${temp.jar.path.dclare-transactions.jar2}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.transactions.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
     </jar>
-    <copy file="${temp.jar.path.dclare-transactions.jar2}" tofile="${artifact.temp.output.transactions.jar}/dclare-transactions.jar"/>
+    <copy file="${temp.jar.path.transactions.jar}" tofile="${artifact.temp.output.transactions.jar}/transactions.jar"/>
   </target>
   
   <target name="build.all.artifacts" depends="artifact.collections-src.jar, artifact.collections.jar, artifact.jdclare-src.jar, artifact.jdclare.jar, artifact.transactions-src.jar, artifact.transactions.jar" description="Build all artifacts">
