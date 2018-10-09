@@ -20,6 +20,7 @@ contains() {
 curl_() {
     local token="$1"; shift
 
+    set -x
     curl \
         --location \
         --remote-header-name \
@@ -28,6 +29,7 @@ curl_() {
         -o - \
         --header "Authorization: token $token" \
         "$@"
+    set +x
 }
 validateToken() {
     local token="$1"; shift
