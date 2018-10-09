@@ -692,24 +692,30 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         });
     }
 
+    @SuppressWarnings("resource")
     @Override
     public List<T> merge(List<T>[] branches) {
-        @SuppressWarnings("resource")
-        List<T> result = branches.length > 0 ? branches[0] : this;
-        for (int i = 1; i < branches.length; i++) {
-            for (T t : this) {
-                if (!branches[i].contains(t)) {
-                    result = result.remove(t);
-                }
+        int biggest = -1;
+        int size = -1;
+        for (int i = 0; i < branches.length; i++) {
+            if (branches[i].size() > size) {
+                size = branches[i].size();
+                biggest = i;
             }
-            for (int eb = 0; eb < branches[i].size(); eb++) {
-                T t = branches[i].get(eb);
-                int et = firstIndexOf(t);
-                if (et != eb) {
-                    if (et >= 0) {
+        }
+        List<T> result = biggest >= 0 ? branches[biggest] : this;
+        for (int i = 0; i < branches.length; i++) {
+            if (i != biggest) {
+                for (T t : this) {
+                    if (!branches[i].contains(t)) {
                         result = result.remove(t);
                     }
-                    result = result.insert(Math.min(result.size(), eb), t);
+                }
+                for (int eb = 0; eb < branches[i].size(); eb++) {
+                    T t = branches[i].get(eb);
+                    if (!contains(t) && !result.contains(t)) {
+                        result = result.insert(Math.min(result.size(), eb), t);
+                    }
                 }
             }
         }
