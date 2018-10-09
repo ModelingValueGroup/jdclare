@@ -89,7 +89,7 @@ echo "======================"
         echo "ERROR: unable to create the release: $relJson"
         exit 99
     fi
-    local uploadUrl="$(sed 's/{\?.*//' <<<"$uploadUrl")"
+    local uploadUrl="$(sed -E 's/\{\?.*//' <<<"$uploadUrl")"
     echo "    using upload url: $uploadUrl"
 set +x
 
