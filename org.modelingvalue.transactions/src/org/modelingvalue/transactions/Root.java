@@ -46,6 +46,7 @@ public class Root extends Compound {
 
     static final int                                                                                                     MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 128000);
     static final int                                                                                                     MAX_NR_OF_CHANGES       = Integer.getInteger("MAX_NR_OF_CHANGES", 32);
+    private static final int                                                                                             MAX_NR_OF_HISTORY       = Integer.getInteger("MAX_NR_OF_HISTORY", 64) + 3;
 
     public static final Setable<Root, Boolean>                                                                           STOPPED                 = Setable.of("stopped", false);
     public static final Setable<Root, Set<Leaf>>                                                                         NATIVES                 = Setable.of("natives", Set.of());
@@ -104,6 +105,9 @@ public class Root extends Compound {
                     } else if (leaf != dummy) {
                         history = history.append(state);
                         future = List.of();
+                        if (history.size() > MAX_NR_OF_HISTORY) {
+                            history = history.removeFirst();
+                        }
                         try {
                             state = post(apply(schedule(pre(state), leaf, Priority.high)));
                         } catch (TooManyChangesException tmce) {
