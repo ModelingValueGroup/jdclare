@@ -53,10 +53,10 @@ public class Imperative extends AbstractLeaf {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void commit(State post, boolean timeTraveling) {
-        Long changeNr = pre.get(this, CHANGE_NR);
+        State finalPre = pre;
         State now = state();
-        if (now != pre) {
-            State finalPre = pre;
+        Long changeNr = finalPre.get(this, CHANGE_NR);
+        if (now != finalPre) {
             root().put(Pair.of(this, "toDClare"), () -> {
                 CHANGE_NR.set(Imperative.this, changeNr + 1);
                 finalPre.diff(now, o -> true, s -> true).forEach(s -> {
@@ -73,7 +73,7 @@ public class Imperative extends AbstractLeaf {
             if (!timeTraveling) {
                 pre = state();
             }
-            diffHandler.accept(pre, post, true);
+            diffHandler.accept(finalPre, post, true);
             if (timeTraveling) {
                 pre = state();
             }
