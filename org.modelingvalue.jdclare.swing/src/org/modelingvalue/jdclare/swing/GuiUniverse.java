@@ -41,7 +41,7 @@ public interface GuiUniverse extends DUniverse {
     @Override
     default void init() {
         DUniverse.super.init();
-        dClare().addNative("swingNative", callNativesOfClass(DVisible.class), SwingUtilities::invokeLater);
+        dClare().addIntegration("swingNative", callNativesOfClass(DVisible.class), SwingUtilities::invokeLater);
         KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         kfm.addKeyEventDispatcher(e -> {
             if (e.getID() == KeyEvent.KEY_PRESSED && e.isControlDown()) {
