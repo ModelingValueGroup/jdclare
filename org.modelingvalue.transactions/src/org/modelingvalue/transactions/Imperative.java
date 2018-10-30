@@ -13,28 +13,36 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TriConsumer;
 
-public class Imperative extends Leaf {
+public class Imperative extends AbstractLeaf {
 
     public static Imperative of(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
         return new Imperative(id, init, root, scheduler, diffHandler);
     }
 
+    private static Setable<Imperative, Long>         CHANGE_NR = Setable.of("CHANGE_NR", 0l);
+
     private final Consumer<Runnable>                 scheduler;
     private final TriConsumer<State, State, Boolean> diffHandler;
-    private boolean                                  doFire;
+    private State                                    pre;
+    private State                                    state;
 
     private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
-        super(id, root, null, Priority.high);
-        init(init);
-        this.scheduler = scheduler;
+        super(id, root, Priority.high);
+        this.state = init;
+        this.pre = state();
+        this.scheduler = r -> scheduler.accept(() -> {
+            AbstractLeaf.setCurrent(this);
+            r.run();
+        });
         this.diffHandler = diffHandler;
     }
 
@@ -45,36 +53,31 @@ public class Imperative extends Leaf {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void commit(State post, boolean timeTraveling) {
-        Leaf.setCurrent(this);
-        Map<Pair<Object, Setable>, Object> changes = setted.result();
-        State pre = pre();
-        preState = null;
-        init(post);
-        diffHandler.accept(pre, post, changes.isEmpty());
-        Map<Pair<Object, Setable>, Object> effects = setted.result();
-        post = pre();
-        preState = null;
-        for (Entry<Pair<Object, Setable>, Object> set : effects) {
-            post = post.set(set.getKey().get0(), set.getKey().get1(), set.getValue());
-        }
-        init(post);
-        if (!changes.isEmpty() || (!timeTraveling && !effects.isEmpty())) {
-            Map<Pair<Object, Setable>, Object> diff = effects.putAll(changes);
+        Long changeNr = pre.get(this, CHANGE_NR);
+        State now = state();
+        if (now != pre) {
+            State finalPre = pre;
             root().put(Pair.of(this, "toDClare"), () -> {
-                for (Entry<Pair<Object, Setable>, Object> set : diff) {
-                    set.getKey().get1().set(set.getKey().get0(), set.getValue());
-                }
+                CHANGE_NR.set(Imperative.this, changeNr + 1);
+                finalPre.diff(now, o -> true, s -> true).forEach(s -> {
+                    Object o = s.getKey();
+                    for (Entry<Setable, Pair<Object, Object>> d : s.getValue()) {
+                        d.getKey().set(o, d.getValue().b());
+                    }
+                });
             });
-        } else if (timeTraveling) {
-            run(() -> run(() -> doFire = true));
-        } else {
-            doFire = true;
+            CHANGE_NR.set(this, changeNr + 1);
+            pre = state();
+        } else if (post.get(this, CHANGE_NR).equals(changeNr)) {
+            state = post;
+            if (!timeTraveling) {
+                pre = state();
+            }
+            diffHandler.accept(pre, post, true);
+            if (timeTraveling) {
+                pre = state();
+            }
         }
-    }
-
-    @Override
-    protected boolean merge() {
-        return false;
     }
 
     @Override
@@ -83,21 +86,46 @@ public class Imperative extends Leaf {
     }
 
     @Override
-    protected void trigger(Leaf leaf, Priority prio) {
+    protected void trigger(AbstractLeaf leaf, Priority prio) {
         // Do nothing
     }
 
-    @Override
-    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        super.changed(object, property, preValue, postValue);
-        if (doFire) {
-            doFire = false;
-            root().dummy();
-        }
+    public void schedule(Runnable action) {
+        scheduler.accept(action);
     }
 
-    public void run(Runnable action) {
-        scheduler.accept(action);
+    @Override
+    public State state() {
+        return state;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <O, T> T set(O object, Setable<O, T> property, T post) {
+        T[] old = (T[]) new Object[1];
+        boolean first = pre == state;
+        state = state.set(object, property, post, old);
+        changed(object, property, old[0], post, first);
+        return old[0];
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
+        T[] oldNew = (T[]) new Object[2];
+        boolean first = pre == state;
+        state = state.set(object, property, function, element, oldNew);
+        changed(object, property, oldNew[0], oldNew[1], first);
+        return oldNew[0];
+    }
+
+    private <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue, boolean first) {
+        if (!Objects.equals(preValue, postValue)) {
+            if (first) {
+                root().dummy();
+            }
+            changed(object, property, preValue, postValue);
+        }
     }
 
 }
