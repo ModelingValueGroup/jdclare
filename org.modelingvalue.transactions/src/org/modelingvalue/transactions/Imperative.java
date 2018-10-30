@@ -14,28 +14,28 @@
 package org.modelingvalue.transactions;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.TriConsumer;
 
 public class Imperative extends AbstractLeaf {
 
-    public static Imperative of(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
+    public static Imperative of(Object id, State init, Root root, Consumer<Runnable> scheduler, BiConsumer<State, State> diffHandler) {
         return new Imperative(id, init, root, scheduler, diffHandler);
     }
 
-    private static Setable<Imperative, Long>         CHANGE_NR = Setable.of("CHANGE_NR", 0l);
+    private static Setable<Imperative, Long> CHANGE_NR = Setable.of("CHANGE_NR", 0l);
 
-    private final Consumer<Runnable>                 scheduler;
-    private final TriConsumer<State, State, Boolean> diffHandler;
-    private State                                    pre;
-    private State                                    state;
+    private final Consumer<Runnable>         scheduler;
+    private final BiConsumer<State, State>   diffHandler;
+    private State                            pre;
+    private State                            state;
 
-    private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
+    private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, BiConsumer<State, State> diffHandler) {
         super(id, root, Priority.high);
         this.state = init;
         this.pre = state();
@@ -73,7 +73,7 @@ public class Imperative extends AbstractLeaf {
             if (!timeTraveling) {
                 pre = state();
             }
-            diffHandler.accept(finalPre, post, true);
+            diffHandler.accept(finalPre, post);
             if (timeTraveling) {
                 pre = state();
             }

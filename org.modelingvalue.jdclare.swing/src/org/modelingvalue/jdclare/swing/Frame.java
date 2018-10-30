@@ -24,7 +24,6 @@ import javax.swing.JMenuBar;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DObject;
-import org.modelingvalue.jdclare.Deferred;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.Frame.FrameNative;
@@ -94,7 +93,6 @@ public interface Frame extends DContainer {
         }
 
         @Override
-        @Deferred
         public void preferredSize(DDimension pre, DDimension post) {
             super.preferredSize(pre, post);
             if (post != null) {

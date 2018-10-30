@@ -17,6 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.Collection;
@@ -29,7 +30,6 @@ import org.modelingvalue.collections.util.ContextThread.ContextPool;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TraceTimer;
-import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.collections.util.Triple;
 
 public class Root extends Compound {
@@ -195,13 +195,13 @@ public class Root extends Compound {
         }
     }
 
-    public void addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler) {
+    public void addIntegration(String id, BiConsumer<State, State> diffHandler) {
         Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(id, Root.this, () -> {
-            diffHandler.accept(preState(), Leaf.getCurrent().state(), true);
+            diffHandler.accept(preState(), Leaf.getCurrent().state());
         }));
     }
 
-    public Imperative addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
+    public Imperative addIntegration(String id, BiConsumer<State, State> diffHandler, Consumer<Runnable> scheduler) {
         Imperative n = Imperative.of(id, emptyState, this, scheduler, diffHandler);
         Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(n, Root.this, () -> {
             State pre = Leaf.getCurrent().state();

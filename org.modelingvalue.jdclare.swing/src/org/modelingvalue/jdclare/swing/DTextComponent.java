@@ -24,7 +24,6 @@ import javax.swing.text.JTextComponent;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Default;
-import org.modelingvalue.jdclare.Deferred;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DTextComponent.TextComponentNative;
@@ -73,7 +72,6 @@ public interface DTextComponent extends DComponent {
             swing.removeCaretListener(this);
         }
 
-        @Deferred
         public void string(String pre, String post) {
             if (!swing.getText().equals(post)) {
                 int start = swing.getSelectionStart();
@@ -84,7 +82,6 @@ public interface DTextComponent extends DComponent {
             }
         }
 
-        @Deferred
         public void selection(Pair<Integer, Integer> pre, Pair<Integer, Integer> post) {
             swing.select(post.a(), post.b());
             swing.requestFocus();

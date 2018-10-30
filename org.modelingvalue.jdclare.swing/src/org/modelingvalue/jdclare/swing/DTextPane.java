@@ -30,7 +30,6 @@ import javax.swing.text.StyledDocument;
 
 import org.modelingvalue.collections.List;
 import org.modelingvalue.jdclare.DObject;
-import org.modelingvalue.jdclare.Deferred;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DTextPane.TextPaneNative;
@@ -103,13 +102,11 @@ public interface DTextPane<E extends TextElement> extends DTextComponent {
         }
 
         @Override
-        @Deferred
         public void string(String pre, String post) {
             super.string(pre, post);
             elements(null, visible.elements());
         }
 
-        @Deferred
         public void elements(List<E> pre, List<E> post) {
             Highlighter highlighter = swing.getHighlighter();
             highlighter.removeAllHighlights();
