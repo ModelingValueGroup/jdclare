@@ -23,21 +23,21 @@ public class Observed<O, T> extends Setable<O, T> {
         return of(id, def, null);
     }
 
-    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<Leaf, C, V, V> changed) {
+    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<AbstractLeaf, C, V, V> changed) {
         return new Observed<C, V>(id, def, changed);
     }
 
     private final Observers<O, T>[] observers;
 
     @SuppressWarnings("unchecked")
-    protected Observed(Object id, T def, QuadConsumer<Leaf, O, T, T> changed) {
+    protected Observed(Object id, T def, QuadConsumer<AbstractLeaf, O, T, T> changed) {
         this(id, def, new Observers[]{
                 Observers.of(Pair.of(id, Priority.first), Priority.first), //
                 Observers.of(Pair.of(id, Priority.high), Priority.high), //
                 Observers.of(Pair.of(id, Priority.low), Priority.low)}, changed);
     }
 
-    private Observed(Object id, T def, Observers<O, T>[] observers, QuadConsumer<Leaf, O, T, T> changed) {
+    private Observed(Object id, T def, Observers<O, T>[] observers, QuadConsumer<AbstractLeaf, O, T, T> changed) {
         super(id, def, ($, o, p, n) -> {
             if (changed != null) {
                 changed.accept($, o, p, n);

@@ -23,9 +23,9 @@ public enum Priority {
 
     low(2);
 
-    public final Setable<Compound, Set<Leaf>> triggered;
-    public final Setable<Compound, Set<Leaf>> scheduled;
-    public final int                          nr;
+    public final Setable<Compound, Set<AbstractLeaf>> triggered;
+    public final Setable<Compound, Set<AbstractLeaf>> scheduled;
+    public final int                                  nr;
 
     private Priority(int nr) {
         triggered = Setable.of(this, Set.of());

@@ -16,22 +16,15 @@ package org.modelingvalue.transactions;
 import java.util.ConcurrentModificationException;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
-import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
 
-public class Leaf extends Transaction {
-
-    protected static final Context<Leaf> CURRENT = Context.of();
+public class Leaf extends AbstractLeaf {
 
     public static Leaf of(Object id, Compound parent, Runnable action) {
         return new Leaf(id, parent, action, Priority.high);
@@ -45,23 +38,14 @@ public class Leaf extends Transaction {
     @SuppressWarnings("rawtypes")
     protected Concurrent<Map<Pair<Object, Setable>, Object>> setted = new Setted();
     protected State                                          preState;
-    private final Priority                                   initPrio;
 
     protected Leaf(Object id, Compound parent, Runnable action, Priority initPrio) {
-        super(id, parent);
+        super(id, parent, initPrio);
         this.action = action;
-        this.initPrio = initPrio;
     }
 
-    protected Priority initPrio() {
-        return initPrio;
-    }
-
-    public void trigger() {
-        getCurrent().trigger(this, initPrio());
-    }
-
-    public State pre() {
+    @Override
+    public State state() {
         if (preState == null) {
             throw new ConcurrentModificationException();
         }
@@ -86,7 +70,7 @@ public class Leaf extends Transaction {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected State result() {
-        State result = pre();
+        State result = state();
         for (Entry<Pair<Object, Setable>, Object> set : setted.result()) {
             result = result.set(set.getKey().get0(), set.getKey().get1(), set.getValue());
         }
@@ -111,42 +95,19 @@ public class Leaf extends Transaction {
     }
 
     @Override
-    public boolean isAncestorOf(Transaction child) {
-        return false;
-    }
-
-    public <O, T> T get(O object, Getable<O, T> property) {
-        if (property instanceof Observed) {
-            ConstantSetable<?, ?> lazyConstant = ConstantSetable.CURRENT.get();
-            if (lazyConstant != null) {
-                throw new NonDeterministicException("Reading changeable '" + property + "' while initializing constant '" + lazyConstant + "'");
-            }
-        }
-        return pre().get(object, property);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public <O> void clear(O object) {
-        Map<Setable, Object> properties = pre().properties(object);
-        if (properties != null) {
-            for (Entry<Setable, Object> e : properties) {
-                set(object, e.getKey(), e.getKey().getDefault());
-            }
-        }
-    }
-
     @SuppressWarnings({"rawtypes", "unchecked"})
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
         Pair<Object, Setable> slot = Pair.of(object, property);
-        T prePre = pre().get(object, property);
+        T prePre = state().get(object, property);
         Entry<Pair<Object, Setable>, Object> e = setted.get().getEntry(slot);
         return set(object, property, function.apply(e == null ? prePre : (T) e.getValue(), element), slot, prePre);
     }
 
+    @Override
     @SuppressWarnings("rawtypes")
     public <O, T> T set(O object, Setable<O, T> property, T post) {
         Pair<Object, Setable> slot = Pair.of(object, property);
-        T prePre = pre().get(object, property);
+        T prePre = state().get(object, property);
         return set(object, property, post, slot, prePre);
     }
 
@@ -156,49 +117,13 @@ public class Leaf extends Transaction {
         Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
         T pre = bra == null ? prePre : (T) bra.getValue();
         if (!Objects.equals(pre, post)) {
-            if (merge() && bra != null) {
+            if (bra != null) {
                 post = (T) Leaf.merge(slot, prePre, pre, post);
             }
             setted.set(map.put(slot, post));
             changed(object, property, pre, post);
         }
         return prePre;
-    }
-
-    protected boolean merge() {
-        return true;
-    }
-
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Object observed, Object post) {
-        for (Observer leaf : leafs) {
-            trigger(leaf, prio);
-        }
-    }
-
-    protected void trigger(Leaf leaf, Priority prio) {
-        if (!equals(leaf)) {
-            set(commonAncestor(leaf), prio.triggered, Set::add, leaf);
-        }
-    }
-
-    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        property.changed(this, object, preValue, postValue);
-    }
-
-    public static Consumer<Leaf> consumer(Runnable action) {
-        return $ -> CURRENT.run($, action);
-    }
-
-    public static <R> Function<Leaf, R> function(Supplier<R> supplier) {
-        return $ -> CURRENT.get($, supplier);
-    }
-
-    public static Leaf getCurrent() {
-        return CURRENT.get();
-    }
-
-    public static void setCurrent(Leaf t) {
-        CURRENT.set(t);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -211,7 +136,7 @@ public class Leaf extends Transaction {
                     Object post = e.getValue();
                     Entry<Pair<Object, Setable>, Object> bra = base.getEntry(slot);
                     if (bra != null && !Objects.equals(bra.getValue(), post)) {
-                        post = Leaf.merge(slot, Leaf.this.pre().get(slot.a(), slot.b()), bra.getValue(), post);
+                        post = Leaf.merge(slot, Leaf.this.state().get(slot.a(), slot.b()), bra.getValue(), post);
                     }
                     base = base.put(slot, post);
                 }
@@ -231,10 +156,6 @@ public class Leaf extends Transaction {
         } else {
             throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);
         }
-    }
-
-    public boolean mayChange() {
-        return true;
     }
 
 }

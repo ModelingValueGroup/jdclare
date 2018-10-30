@@ -175,7 +175,7 @@ public class Compound extends Transaction {
 
     @SuppressWarnings("unchecked")
     protected State scheduleTriggered(State state) {
-        Set<Leaf>[] ls = new Set[1];
+        Set<AbstractLeaf>[] ls = new Set[1];
         for (Priority prio : Priority.values()) {
             state = state.set(this, prio.triggered, Set.of(), ls);
             state = schedule(state, ls[0], prio);
@@ -183,14 +183,14 @@ public class Compound extends Transaction {
         return state;
     }
 
-    protected State schedule(State state, Set<Leaf> ls, Priority prio) {
-        for (Leaf leaf : ls) {
+    protected State schedule(State state, Set<AbstractLeaf> ls, Priority prio) {
+        for (AbstractLeaf leaf : ls) {
             state = schedule(state, leaf, prio);
         }
         return state;
     }
 
-    protected State schedule(State state, Leaf leaf, Priority prio) {
+    protected State schedule(State state, AbstractLeaf leaf, Priority prio) {
         Compound parent = leaf.parent;
         state = state.set(parent, prio.scheduled, Set::add, leaf);
         while (!equals(parent)) {

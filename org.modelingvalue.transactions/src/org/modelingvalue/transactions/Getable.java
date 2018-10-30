@@ -63,12 +63,12 @@ public abstract class Getable<O, T> {
         return currentLeaf(object).get(object, this);
     }
 
-    protected Leaf currentLeaf(O object) {
-        Leaf current = Leaf.getCurrent();
+    protected AbstractLeaf currentLeaf(O object) {
+        AbstractLeaf current = AbstractLeaf.getCurrent();
         if (current == null) {
             throw new NullPointerException("No current transaction in " + Thread.currentThread() + " , while reading " + toString());
         } else if (object == null) {
-            throw new NullPointerException("Object is null, while reading " + current.pre().get((this::toString)));
+            throw new NullPointerException("Object is null, while reading " + current.state().get((this::toString)));
         }
         return current;
     }

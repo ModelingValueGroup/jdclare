@@ -49,7 +49,7 @@ public class Root extends Compound {
     private static final int                                                                                             MAX_NR_OF_HISTORY       = Integer.getInteger("MAX_NR_OF_HISTORY", 64) + 3;
 
     public static final Setable<Root, Boolean>                                                                           STOPPED                 = Setable.of("stopped", false);
-    public static final Setable<Root, Set<Leaf>>                                                                         NATIVES                 = Setable.of("natives", Set.of());
+    public static final Setable<Root, Set<AbstractLeaf>>                                                                 INTEGRATIONS            = Setable.of("integrations", Set.of());
 
     private final Leaf                                                                                                   pre;
     private final Leaf                                                                                                   dummy;
@@ -117,7 +117,7 @@ public class Root extends Compound {
                             throw tmce;
                         }
                     }
-                    state = apply(schedule(state, state.get(Root.this, NATIVES), Priority.high));
+                    state = apply(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.high));
                     if (inQueue.isEmpty()) {
                         if (isStopped(state)) {
                             break;
@@ -195,18 +195,18 @@ public class Root extends Compound {
         }
     }
 
-    public void addNative(String id, TriConsumer<State, State, Boolean> diffHandler) {
-        Leaf.getCurrent().set(Root.this, NATIVES, Set::add, Leaf.of(id, Root.this, () -> {
-            diffHandler.accept(preState(), Leaf.getCurrent().pre(), true);
+    public void addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler) {
+        Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(id, Root.this, () -> {
+            diffHandler.accept(preState(), Leaf.getCurrent().state(), true);
         }));
     }
 
-    public Imperative addNative(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
+    public Imperative addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
         Imperative n = Imperative.of(id, emptyState, this, scheduler, diffHandler);
-        Leaf.getCurrent().set(Root.this, NATIVES, Set::add, Leaf.of(n, Root.this, () -> {
-            State pre = Leaf.getCurrent().pre();
+        Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(n, Root.this, () -> {
+            State pre = Leaf.getCurrent().state();
             boolean timeTraveling = isTimeTraveling();
-            n.run(() -> n.commit(pre, timeTraveling));
+            n.schedule(() -> n.commit(pre, timeTraveling));
         }));
         return n;
     }

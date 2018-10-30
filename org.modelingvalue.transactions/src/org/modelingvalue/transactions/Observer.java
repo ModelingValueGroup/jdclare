@@ -203,4 +203,18 @@ public class Observer extends Leaf {
 
     }
 
+    @Override
+    public void runNonObserving(Runnable action) {
+        if (mayChange) {
+            Set<Slot> s = setted.get();
+            Set<Slot> g = getted.get();
+            try {
+                super.runNonObserving(action);
+            } finally {
+                setted.set(s);
+                getted.set(g);
+            }
+        }
+    }
+
 }

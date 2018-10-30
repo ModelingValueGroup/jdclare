@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 import org.modelingvalue.collections.Set;
 
-public class ReadOnly extends Leaf {
+public class ReadOnly extends AbstractLeaf {
 
     public static ReadOnly of(Object id, Root root) {
         return new ReadOnly(id, root);
@@ -27,7 +27,7 @@ public class ReadOnly extends Leaf {
     private State[] states;
 
     private ReadOnly(Object id, Root root) {
-        super(id, root, null, Priority.high);
+        super(id, root, Priority.high);
     }
 
     @Override
@@ -51,6 +51,11 @@ public class ReadOnly extends Leaf {
         } finally {
             this.states = null;
         }
+    }
+
+    @Override
+    public State state() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -94,7 +99,7 @@ public class ReadOnly extends Leaf {
     }
 
     @Override
-    protected void trigger(Leaf leaf, Priority prio) {
+    protected void trigger(AbstractLeaf leaf, Priority prio) {
         // Do nothing
     }
 

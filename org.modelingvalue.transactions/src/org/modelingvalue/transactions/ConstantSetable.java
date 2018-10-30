@@ -35,18 +35,18 @@ public class ConstantSetable<O, T> extends Setable<O, T> {
         return new ConstantSetable<C, V>(id, def, deriver, null);
     }
 
-    public static <C, V> ConstantSetable<C, V> of(Object id, V def, Function<C, V> deriver, QuadConsumer<Leaf, C, V, V> changed) {
+    public static <C, V> ConstantSetable<C, V> of(Object id, V def, Function<C, V> deriver, QuadConsumer<AbstractLeaf, C, V, V> changed) {
         return new ConstantSetable<C, V>(id, def, deriver, changed);
     }
 
-    public static <C, V> ConstantSetable<C, V> of(Object id, Function<C, V> deriver, QuadConsumer<Leaf, C, V, V> changed) {
+    public static <C, V> ConstantSetable<C, V> of(Object id, Function<C, V> deriver, QuadConsumer<AbstractLeaf, C, V, V> changed) {
         return new ConstantSetable<C, V>(id, null, deriver, changed);
     }
 
     private final Function<O, T>            deriver;
     private final Setable<O, Identified<T>> delegate;
 
-    protected ConstantSetable(Object id, T def, Function<O, T> deriver, QuadConsumer<Leaf, O, T, T> changed) {
+    protected ConstantSetable(Object id, T def, Function<O, T> deriver, QuadConsumer<AbstractLeaf, O, T, T> changed) {
         super(id, def, null);
         delegate = new ValueHolder<O, Identified<T>>(id, //
                 changed != null ? ($, o, b, a) -> changed.accept($, o, b == null ? def : b.get(), //
@@ -108,7 +108,7 @@ public class ConstantSetable<O, T> extends Setable<O, T> {
 
     private final class ValueHolder<A, B> extends Setable<A, B> {
 
-        private ValueHolder(Object id, QuadConsumer<Leaf, A, B, B> changed) {
+        private ValueHolder(Object id, QuadConsumer<AbstractLeaf, A, B, B> changed) {
             super(id, null, changed);
         }
 
