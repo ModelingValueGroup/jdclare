@@ -34,6 +34,8 @@ public class Imperative extends AbstractLeaf {
     private final BiConsumer<State, State>   diffHandler;
     private State                            pre;
     private State                            state;
+    @SuppressWarnings("rawtypes")
+    private Set<Pair<Object, Setable>>       setted    = Set.of();
 
     private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, BiConsumer<State, State> diffHandler) {
         super(id, root, Priority.high);
@@ -51,31 +53,47 @@ public class Imperative extends AbstractLeaf {
         throw new UnsupportedOperationException();
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public void commit(State post, boolean timeTraveling) {
-        State finalPre = pre;
-        State now = state();
-        Long changeNr = finalPre.get(this, CHANGE_NR);
-        if (now != finalPre) {
+        extern2intern();
+        intern2extern(post, timeTraveling);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void extern2intern() {
+        if (pre != state) {
+            State finalPre = pre;
+            CHANGE_NR.set(Imperative.this, (n, i) -> n + i, 1);
+            State finalState = state;
+            pre = finalState;
             root().put(Pair.of(this, "toDClare"), () -> {
-                CHANGE_NR.set(Imperative.this, changeNr + 1);
-                finalPre.diff(now, o -> true, s -> true).forEach(s -> {
+                finalPre.diff(finalState, o -> true, s -> true).forEach(s -> {
                     Object o = s.getKey();
                     for (Entry<Setable, Pair<Object, Object>> d : s.getValue()) {
                         d.getKey().set(o, d.getValue().b());
                     }
                 });
             });
-            CHANGE_NR.set(this, changeNr + 1);
-            pre = state();
-        } else if (post.get(this, CHANGE_NR).equals(changeNr)) {
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void intern2extern(State post, boolean timeTraveling) {
+        if (pre != post) {
+            State finalState = state;
+            if (post.get(this, CHANGE_NR).equals(finalState.get(this, CHANGE_NR))) {
+                setted = Set.of();
+            } else {
+                for (Pair<Object, Setable> slot : setted) {
+                    post = post.set(slot.a(), slot.b(), finalState.get(slot.a(), slot.b()));
+                }
+            }
             state = post;
             if (!timeTraveling) {
-                pre = state();
+                pre = state;
             }
-            diffHandler.accept(finalPre, post);
+            diffHandler.accept(finalState, post);
             if (timeTraveling) {
-                pre = state();
+                pre = state;
             }
         }
     }
@@ -121,6 +139,7 @@ public class Imperative extends AbstractLeaf {
 
     private <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue, boolean first) {
         if (!Objects.equals(preValue, postValue)) {
+            setted = setted.add(Pair.of(object, property));
             if (first) {
                 root().dummy();
             }
