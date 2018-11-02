@@ -718,7 +718,11 @@ public final class DClare<U extends DUniverse> extends Root {
     }
 
     private static <O, V> Getable<O, V> getable(Method method) {
-        return getable(dProperty(method));
+        DProperty<DStruct, Object> property = dProperty(method);
+        if (property == null) {
+            throw new Error("Method " + method.getDeclaringClass().getSimpleName() + "::" + method.getName() + " is not a Property");
+        }
+        return getable(property);
     }
 
     private static <O, V> Setable<O, V> setable(Method method) {
