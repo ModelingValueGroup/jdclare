@@ -24,6 +24,7 @@ import java.awt.event.ComponentListener;
 
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Default;
+import org.modelingvalue.jdclare.Deferred;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DContainer.DContainerNative;
@@ -82,6 +83,7 @@ public interface DContainer extends DVisible {
             swing.setSize(post.width(), post.height());
         }
 
+        @Deferred
         public void preferredSize(DDimension pre, DDimension post) {
             if (post != null) {
                 swing.setPreferredSize(new Dimension(post.width(), post.height()));

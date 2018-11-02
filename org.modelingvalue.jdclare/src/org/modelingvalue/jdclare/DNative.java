@@ -32,10 +32,16 @@ public interface DNative<T extends DObject> {
             return new ChangeHandler<D, E>(handler);
         }
 
-        private final Method handler;
+        private final Method  handler;
+        private final boolean deferred;
 
         private ChangeHandler(Method handler) {
             this.handler = handler;
+            this.deferred = handler.isAnnotationPresent(Deferred.class);
+        }
+
+        public boolean deferred() {
+            return deferred;
         }
 
         public void handle(DNative<O> nat, V pre, V post) {

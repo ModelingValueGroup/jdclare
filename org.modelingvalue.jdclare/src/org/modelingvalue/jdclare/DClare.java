@@ -36,7 +36,6 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -58,6 +57,7 @@ import org.modelingvalue.collections.util.SerializableConsumer;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.SerializableRunnable;
 import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
 import org.modelingvalue.jdclare.java.FEqualize;
 import org.modelingvalue.jdclare.java.FStatement;
@@ -1285,13 +1285,14 @@ public final class DClare<U extends DUniverse> extends Root {
         }
     }
 
-    public static BiConsumer<State, State> callNativesOfClass(Class<? extends DObject> filterClass) {
-        return new BiConsumer<State, State>() {
+    public static TriConsumer<State, State, Boolean> callNativesOfClass(Class<? extends DObject> filterClass) {
+        return new TriConsumer<State, State, Boolean>() {
 
-            private final Concurrent<Map<Pair<DNative, ChangeHandler>, Pair<Object, Object>>> queue = Concurrent.of(Map.of());
+            private final Concurrent<Map<Pair<DNative, ChangeHandler>, Pair<Object, Object>>> deferred = Concurrent.of(Map.of());
+            private final Concurrent<Map<Pair<DNative, ChangeHandler>, Pair<Object, Object>>> queue    = Concurrent.of(Map.of());
 
             @Override
-            public void accept(State pre, State post) {
+            public void accept(State pre, State post, Boolean last) {
                 pre.diff(post, //
                         o -> filterClass.isInstance(o), p -> true).forEach(e0 -> {
                             Pair<Object, Object> npair = e0.getValue().get(NATIVE.getDelegate());
@@ -1325,11 +1326,20 @@ public final class DClare<U extends DUniverse> extends Root {
                             }
                         });
                 run(queue);
+                if (last) {
+                    run(deferred);
+                }
             }
 
             private void change(DNative no, ChangeHandler nch, Pair<Object, Object> val) {
                 Pair<DNative, ChangeHandler> key = Pair.of(no, nch);
-                queue.set(queue.get().put(key, val));
+                if (nch.deferred()) {
+                    Map<Pair<DNative, ChangeHandler>, Pair<Object, Object>> map = deferred.get();
+                    Pair<Object, Object> old = map.get(key);
+                    deferred.set(map.put(key, old != null ? Pair.of(old.a(), val.b()) : val));
+                } else {
+                    queue.set(queue.get().put(key, val));
+                }
             }
 
             private void run(Concurrent<Map<Pair<DNative, ChangeHandler>, Pair<Object, Object>>> todo) {

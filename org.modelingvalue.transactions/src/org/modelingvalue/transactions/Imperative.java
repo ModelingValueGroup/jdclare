@@ -14,30 +14,30 @@
 package org.modelingvalue.transactions;
 
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.TriConsumer;
 
 public class Imperative extends AbstractLeaf {
 
-    public static Imperative of(Object id, State init, Root root, Consumer<Runnable> scheduler, BiConsumer<State, State> diffHandler) {
+    public static Imperative of(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
         return new Imperative(id, init, root, scheduler, diffHandler);
     }
 
-    private static Setable<Imperative, Long> CHANGE_NR = Setable.of("CHANGE_NR", 0l);
+    private static Setable<Imperative, Long>         CHANGE_NR = Setable.of("CHANGE_NR", 0l);
 
-    private final Consumer<Runnable>         scheduler;
-    private final BiConsumer<State, State>   diffHandler;
-    private State                            pre;
-    private State                            state;
+    private final Consumer<Runnable>                 scheduler;
+    private final TriConsumer<State, State, Boolean> diffHandler;
+    private State                                    pre;
+    private State                                    state;
     @SuppressWarnings("rawtypes")
-    private Set<Pair<Object, Setable>>       setted    = Set.of();
+    private Set<Pair<Object, Setable>>               setted    = Set.of();
 
-    private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, BiConsumer<State, State> diffHandler) {
+    private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
         super(id, root, Priority.high);
         this.state = init;
         this.pre = state();
@@ -80,7 +80,8 @@ public class Imperative extends AbstractLeaf {
     private void intern2extern(State post, boolean timeTraveling) {
         if (pre != post) {
             State finalState = state;
-            if (post.get(this, CHANGE_NR).equals(finalState.get(this, CHANGE_NR))) {
+            boolean last = post.get(this, CHANGE_NR).equals(finalState.get(this, CHANGE_NR));
+            if (last) {
                 setted = Set.of();
             } else {
                 for (Pair<Object, Setable> slot : setted) {
@@ -91,7 +92,7 @@ public class Imperative extends AbstractLeaf {
             if (!timeTraveling) {
                 pre = state;
             }
-            diffHandler.accept(finalState, post);
+            diffHandler.accept(finalState, post, last);
             if (timeTraveling) {
                 pre = state;
             }
