@@ -93,7 +93,8 @@ EOF
         local mimeType="$(file -b --mime-type "$file")"
         local     name="$(basename "$file" | sed "s/\(.*\)\.\([^.]*\)/\1.$tag.\2/")"
         echo "      attaching: $file as $name ($mimeType)"
-        local  attJson="$(curl_ "$token" --header "Content-Type: $mimeType" -X POST -d @"$file" "$uploadUrl?name=$name")"
+        local  attJson="$(curl_ "$token" --header "Content-Type: $mimeType" -X POST --data-binary @"$file" "$uploadUrl?name=$name")"
+        echo "$attJson" >"$name.upload.json"
         local    state="$(jq --raw-output '.state' <<<"$attJson")"
         if [ "$state" == "uploaded" ]; then
             echo "        => ok"
@@ -101,7 +102,6 @@ EOF
             echo "        => oops, not correctly attached: $state"
             local hadError=true
         fi
-        echo "JSON: $attJson"
     done
     if [ "$hadError" == true ]; then
         echo "ERROR: some assets could not be attached" 1>&2
