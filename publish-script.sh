@@ -99,8 +99,9 @@ EOF
             echo "        => ok"
         else
             echo "        => oops, not correctly attached: $state"
-            hadError=true
+            local hadError=true
         fi
+        echo "JSON: $attJson"
     done
     if [ "$hadError" == true ]; then
         echo "ERROR: some assets could not be attached" 1>&2
