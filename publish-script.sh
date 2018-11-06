@@ -173,7 +173,7 @@ makeJavaDocJar() {
 }
 makeJarName() {
     local      name="$1"; shift
-    local variation="${1:}"
+    local variation="${1:-}"
 
     echo "out/artifacts/$name-SNAPSHOT$variation.jar"
 }
