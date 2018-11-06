@@ -6,6 +6,9 @@ set -ue
         OWNER="$(git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||' | sed 's|\([^/]*\)/\(.*\)|\1|')"
         REPOS="$(git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||' | sed 's|\([^/]*\)/\(.*\)|\2|')"
     REPOS_URL="$GITHUB_URL/repos/$OWNER/$REPOS"
+ ARTIFACT_DIR="out/artifacts"
+   OUR_DOMAIN="org.modelingvalue"
+  OUR_PRODUCT="dclare"
 ###############################################################################
 contains() {
     local find="$1"; shift
@@ -167,7 +170,7 @@ makeJavaDocJar() {
 
     mkdir tmp-src
     (cd tmp-src; jar xf "../$sjar")
-    javadoc -d tmp-doc -sourcepath tmp-src -subpackages org.modelingvalue
+    javadoc -d tmp-doc -sourcepath tmp-src -subpackages "$OUR_DOMAIN"
     jar cf "$djar" -C tmp-doc .
     rm -rf tmp-src tmp-doc
 }
@@ -175,7 +178,7 @@ makeJarName() {
     local      name="$1"; shift
     local variation="${1:-}"
 
-    echo "out/artifacts/$name-SNAPSHOT$variation.jar"
+    echo "$ARTIFACT_DIR/$name-SNAPSHOT$variation.jar"
 }
 makeJarNameSources() {
     makeJarName "$1" -sources
@@ -184,8 +187,88 @@ makeJarNameJavadoc() {
     makeJarName "$1" -javadoc
 }
 makeAllJavaDocJars() {
+    rm -f "$ARTIFACT_DIR"/*-javadoc.jar
     for n in "$@"; do
         makeJavaDocJar "$(makeJarNameSources $n)" "$(makeJarNameJavadoc $n)"
+    done
+}
+makePomFromGavs() {
+    local     version="$1"; shift
+    local        name="$1"; shift
+    local description="$1"; shift
+
+    local pom="$ARTIFACT_DIR/$name-SNAPSHOT.pom"
+    cat <<EOF >"$pom"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>$OUR_DOMAIN.$OUR_PRODUCT</groupId>
+    <artifactId>$name</artifactId>
+    <version>$version</version>
+    <packaging>jar</packaging>
+
+    <name>$OUR_PRODUCT $name</name>
+    <description>$description</description>
+    <url>http://www.dclare-lang.org</url>
+
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License v3.0</name>
+            <url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/ModelingValueGroup/jdclare.git</url>
+    </scm>
+
+    <dependencies>
+    $(for gav in "$@"; do
+        echo "===$gav==="
+        IFS=: read g a v <<<"$gav"
+        cat <<EOF2
+        <dependency>
+            <groupId>$g</groupId>
+            <artifactId>$a</artifactId>
+            <version>$v</version>
+        </dependency>
+EOF2
+    done)
+    </dependencies>
+</project>
+EOF
+    echo "generated $pom"
+}
+findAllGavs() {
+    local name="$1"; shift
+
+    for iml in "$OUR_DOMAIN".$name/*.iml "$OUR_DOMAIN".$name.*/*.iml; do
+        fgrep '"Maven: ' $iml | fgrep -v 'scope="TEST"' | sed 's/.*"Maven: //;s/".*//'
+    done | uniq
+}
+findDescription() {
+    local name="$1"; shift
+
+    for i in "$OUR_DOMAIN".$name "$OUR_DOMAIN".$name.*; do
+        cat "$i/description" 2>/dev/null || :
+    done
+}
+makePom() {
+    local version="$1"; shift
+    local    name="$1"; shift
+
+    makePomFromGavs "$version" "$name" "$(findDescription "$name")" $(findAllGavs "$name")
+}
+makeAllPoms() {
+    local version="$1"; shift
+
+    rm -f "$ARTIFACT_DIR"/*.pom
+    for name in "$@"; do
+        makePom "$version" "$name"
     done
 }
 

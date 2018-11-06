@@ -9,9 +9,10 @@ JARS=(collections transactions jdclare)
 
 . publish-script.sh
 
-makeAllJavaDocJars "${JARS[@]}"
+makeAllPoms "$version" "${JARS[@]}"
+makeAllJavaDocJars     "${JARS[@]}"
 
-if [ "$version" != "" ]; then
+if [ "$version" != "" -a "$version" != SNAPHOT ]; then
     publishJarsOnGitHub \
         "$version" \
         "$token" \
