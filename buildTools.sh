@@ -207,7 +207,7 @@ makePomFromGavs() {
     local        gavs=("$@")
 
     genDependencies() {
-        for gav in "${gavs[@]}"; do
+        for gav in "$@"; do
             IFS=: read g a v <<<"$gav"
             cat <<EOF
         <dependency>
@@ -250,7 +250,7 @@ EOF
     </scm>
 
     <dependencies>
-$(genDependencies)
+$(genDependencies "${gavs[@]}")
     </dependencies>
 </project>
 EOF
