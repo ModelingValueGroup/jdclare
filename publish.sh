@@ -5,14 +5,16 @@ version="$1"; shift
   token="$1"; shift
 isDraft="$1"; shift
 
-. publish-script.sh
-
 JARS=(collections transactions jdclare)
 
+. publish-script.sh
+
+makeAllJavaDocJars "${JARS[@]}"
+
 if [ "$version" != "" ]; then
-    publish \
+    publishJarsOnGitHub \
         "$version" \
         "$token" \
         "$isDraft" \
-        $(for n in "${JARS[@]}"; do echo "out/artifacts/$n.jar out/artifacts/$n-src.jar";done)
+        "${JARS[@]}"
 fi

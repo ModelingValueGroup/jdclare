@@ -1,9 +1,8 @@
 <component name="ArtifactManager">
-  <artifact type="jar" build-on-make="true" name="collections-src.jar">
+  <artifact type="jar" build-on-make="true" name="collections-SNAPSHOT.jar">
     <output-path>$PROJECT_DIR$/out/artifacts</output-path>
-    <root id="archive" name="collections-src.jar">
+    <root id="archive" name="collections-SNAPSHOT.jar">
       <element id="module-output" name="org.modelingvalue.collections" />
-      <element id="module-source" name="org.modelingvalue.collections" />
     </root>
   </artifact>
 </component>

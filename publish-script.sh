@@ -91,7 +91,7 @@ EOF
     local hadError=false
     for file in "${assets[@]}"; do
         local mimeType="$(file -b --mime-type "$file")"
-        local     name="$(basename "$file" | sed "s/\(.*\)\.\([^.]*\)/\1.$tag.\2/")"
+        local     name="$(basename "$file" | sed "s/SNAPSHOT/$tag/")"
         echo "      attaching: $file as $name ($mimeType)"
         local  attJson="$(curl_ "$token" --header "Content-Type: $mimeType" -X POST --data-binary @"$file" "$uploadUrl?name=$name")"
         echo "$attJson" >"$name.upload.json"
@@ -115,7 +115,21 @@ currentBranch() {
         git branch | grep \* | cut -d ' ' -f2
     fi
 }
-publish() {
+publishJarsOnGitHub() {
+    local version="$1"; shift
+    local   token="$1"; shift
+    local isDraft="$1"; shift
+    local   names=("$@")
+
+    local  assets=()
+    for n in "${names[@]}"; do
+        assets+=("$(makeJarName        $n)")
+        assets+=("$(makeJarNameSources $n)")
+        assets+=("$(makeJarNameJavadoc $n)")
+    done
+    publishOnGitHub "$version" "$token" "$isDraft" "${assets[@]}"
+}
+publishOnGitHub() {
     local version="$1"; shift
     local   token="$1"; shift
     local isDraft="$1"; shift
@@ -147,4 +161,32 @@ publish() {
     local branch="$(currentBranch)"
     publishTag "$version" "$token" "$isDraft" "$branch" "${assets[@]}"
 }
+makeJavaDocJar() {
+    local sjar="$1"; shift
+    local djar="$1"; shift
+
+    mkdir tmp-src
+    (cd tmp-src; jar xf "../$sjar")
+    javadoc -d tmp-doc -sourcepath tmp-src -subpackages org.modelingvalue
+    jar cf "$djar" -C tmp-doc .
+    rm -rf tmp-src tmp-doc
+}
+makeJarName() {
+    local      name="$1"; shift
+    local variation="${1:}"
+
+    echo "out/artifacts/$name-SNAPSHOT$variation.jar"
+}
+makeJarNameSources() {
+    makeJarName "$1" -sources
+}
+makeJarNameJavadoc() {
+    makeJarName "$1" -javadoc
+}
+makeAllJavaDocJars() {
+    for n in "$@"; do
+        makeJavaDocJar "$(makeJarNameSources $n)" "$(makeJarNameJavadoc $n)"
+    done
+}
+
 ###############################################################################

@@ -1,9 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" build-on-make="true" name="transactions.jar">
-    <output-path>$PROJECT_DIR$/out/artifacts</output-path>
-    <root id="archive" name="transactions.jar">
-      <element id="module-output" name="org.modelingvalue.transactions" />
-      <element id="module-output" name="org.modelingvalue.collections" />
-    </root>
-  </artifact>
-</component>
