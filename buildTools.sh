@@ -6,9 +6,6 @@ set -ue
         OWNER="$(git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||' | sed 's|\([^/]*\)/\(.*\)|\1|')"
         REPOS="$(git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||' | sed 's|\([^/]*\)/\(.*\)|\2|')"
     REPOS_URL="$GITHUB_URL/repos/$OWNER/$REPOS"
- ARTIFACT_DIR="out/artifacts"
-   OUR_DOMAIN="org.modelingvalue"
-  OUR_PRODUCT="dclare"
 ###############################################################################
 contains() {
     local find="$1"; shift
@@ -188,15 +185,41 @@ makeJarNameJavadoc() {
 }
 makeAllJavaDocJars() {
     rm -f "$ARTIFACT_DIR"/*-javadoc.jar
+    mkdir -p "$ARTIFACT_DIR"
     for n in "$@"; do
         makeJavaDocJar "$(makeJarNameSources $n)" "$(makeJarNameJavadoc $n)"
     done
+}
+makeAllPoms() {
+    local version="$1"; shift
+
+    rm -f "$ARTIFACT_DIR"/*.pom
+    mkdir -p "$ARTIFACT_DIR"
+    for name in "$@"; do
+        makePomFromGavs "$version" "$name" "$(findDescription "$name")" $(findAllGavsOf "$name")
+    done
+    makePomFromGavs "unused" "ALL" "unused" $(findAllGavs)
 }
 makePomFromGavs() {
     local     version="$1"; shift
     local        name="$1"; shift
     local description="$1"; shift
+    local        gavs=("$@")
 
+    genDependencies() {
+        for gav in "${gavs[@]}"; do
+            IFS=: read g a v <<<"$gav"
+            cat <<EOF
+        <dependency>
+            <groupId>$g</groupId>
+            <artifactId>$a</artifactId>
+            <version>$v</version>
+        </dependency>
+EOF
+        done
+    }
+
+    mkdir -p "$ARTIFACT_DIR"
     local pom="$ARTIFACT_DIR/$name-SNAPSHOT.pom"
     cat <<EOF >"$pom"
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -207,7 +230,7 @@ makePomFromGavs() {
 
     <groupId>$OUR_DOMAIN.$OUR_PRODUCT</groupId>
     <artifactId>$name</artifactId>
-    <version>$version</version>
+    <version>$([ "$version" == SNAPSHOT ] && echo "0.0.0-SNAPSHOT" || echo "$version")</version>
     <packaging>jar</packaging>
 
     <name>$OUR_PRODUCT $name</name>
@@ -227,28 +250,23 @@ makePomFromGavs() {
     </scm>
 
     <dependencies>
-    $(for gav in "$@"; do
-        echo "===$gav==="
-        IFS=: read g a v <<<"$gav"
-        cat <<EOF2
-        <dependency>
-            <groupId>$g</groupId>
-            <artifactId>$a</artifactId>
-            <version>$v</version>
-        </dependency>
-EOF2
-    done)
+$(genDependencies)
     </dependencies>
 </project>
 EOF
-    echo "generated $pom"
+    echo "    generated $pom"
 }
-findAllGavs() {
+findAllGavsOf() {
     local name="$1"; shift
 
     for iml in "$OUR_DOMAIN".$name/*.iml "$OUR_DOMAIN".$name.*/*.iml; do
         fgrep '"Maven: ' $iml | fgrep -v 'scope="TEST"' | sed 's/.*"Maven: //;s/".*//'
-    done | uniq
+    done | sort -u
+}
+findAllGavs() {
+    for iml in */*.iml; do
+        fgrep '"Maven: ' $iml | sed 's/.*"Maven: //;s/".*//'
+    done | sort -u
 }
 findDescription() {
     local name="$1"; shift
@@ -257,19 +275,40 @@ findDescription() {
         cat "$i/description" 2>/dev/null || :
     done
 }
-makePom() {
-    local version="$1"; shift
-    local    name="$1"; shift
-
-    makePomFromGavs "$version" "$name" "$(findDescription "$name")" $(findAllGavs "$name")
+genFileSets() {
+    ls -d out/test/* \
+        | while read d; do
+            echo "<fileset dir=\"$d\"><include name=\"**/*Test.*\"/><include name=\"**/*Tests.*\"/></fileset>"
+        done
 }
-makeAllPoms() {
-    local version="$1"; shift
+generateAntTestFile() {
+    cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="mvg-jdclare" default="all">
 
-    rm -f "$ARTIFACT_DIR"/*.pom
-    for name in "$@"; do
-        makePom "$version" "$name"
-    done
+    <path id="cp">
+        <path>
+            <pathelement location="\${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
+            <pathelement location="\${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
+        </path>
+        <dirset dir="out/production">
+            <include name="*"/>
+        </dirset>
+        <dirset dir="out/test">
+            <include name="*"/>
+        </dirset>
+    </path>
+
+    <target name="all">
+        <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="perTest" threads="8">
+            <classpath refid="cp"/>
+            <batchtest todir=".">
+$(genFileSets)
+                <formatter type="xml"/>
+            </batchtest>
+        </junit>
+    </target>
+</project>
+EOF
 }
-
 ###############################################################################

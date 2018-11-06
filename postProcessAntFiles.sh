@@ -9,7 +9,7 @@ sedi() {
 }
 
 for xml in build.xml */module_*.xml; do
-    echo "=====$xml"
+    echo "===== $xml"
     # unfortunately IntellJ generates absolute paths for some zipfileset:
     sedi 's|<zipfileset dir="/.*/jdclare/|<zipfileset dir="${basedir}/|' "$xml"
 

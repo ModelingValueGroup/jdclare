@@ -3,7 +3,10 @@
   <component name="BashSupportProjectSettings">
     <option name="globalVariables">
       <set>
+        <option value="ARTIFACT_DIR" />
         <option value="GIT_BRANCH" />
+        <option value="OUR_DOMAIN" />
+        <option value="OUR_PRODUCT" />
       </set>
     </option>
   </component>
