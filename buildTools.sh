@@ -300,7 +300,7 @@ generateAntTestFile() {
     </path>
 
     <target name="all">
-        <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="perTest" threads="8">
+        <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="once"><!-- fork="on" forkmode="perTest" threads="8" -->
             <classpath refid="cp"/>
             <batchtest todir=".">
 $(genFileSets)
