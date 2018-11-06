@@ -223,9 +223,9 @@
     <property name="temp.jar.path.collections-SNAPSHOT-sources.jar" value="${artifacts.temp.dir}/collections-SNAPSHOT-sources.jar"/>
     <property name="temp.jar.path.collections-SNAPSHOT.jar" value="${artifacts.temp.dir}/collections-SNAPSHOT.jar"/>
     <property name="temp.jar.path.jdclare-SNAPSHOT-sources.jar" value="${artifacts.temp.dir}/jdclare-SNAPSHOT-sources.jar"/>
-    <property name="temp.jar.path.jdclare.jar" value="${artifacts.temp.dir}/jdclare.jar"/>
-    <property name="temp.jar.path.transactions-src.jar" value="${artifacts.temp.dir}/transactions-src.jar"/>
-    <property name="temp.jar.path.transactions.jar" value="${artifacts.temp.dir}/transactions.jar"/>
+    <property name="temp.jar.path.jdclare-SNAPSHOT.jar" value="${artifacts.temp.dir}/jdclare-SNAPSHOT.jar"/>
+    <property name="temp.jar.path.transactions-SNAPSHOT-sources.jar" value="${artifacts.temp.dir}/transactions-SNAPSHOT-sources.jar"/>
+    <property name="temp.jar.path.transactions-SNAPSHOT.jar" value="${artifacts.temp.dir}/transactions-SNAPSHOT.jar"/>
   </target>
   
   <target name="artifact.collections-snapshot-sources.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections" description="Build &#39;collections-SNAPSHOT-sources.jar&#39; artifact">
@@ -264,34 +264,34 @@
   <target name="artifact.jdclare-snapshot.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.jdclare" description="Build &#39;jdclare-SNAPSHOT.jar&#39; artifact">
     <property name="artifact.temp.output.jdclare-snapshot.jar" value="${artifacts.temp.dir}/jdclare_SNAPSHOT_jar"/>
     <mkdir dir="${artifact.temp.output.jdclare-snapshot.jar}"/>
-    <jar destfile="${temp.jar.path.jdclare.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.jdclare-SNAPSHOT.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.jdclare.output.dir}"/>
     </jar>
-    <copy file="${temp.jar.path.jdclare.jar}" tofile="${artifact.temp.output.jdclare-snapshot.jar}/jdclare.jar"/>
+    <copy file="${temp.jar.path.jdclare-SNAPSHOT.jar}" tofile="${artifact.temp.output.jdclare-snapshot.jar}/jdclare-SNAPSHOT.jar"/>
   </target>
   
   <target name="artifact.transactions-snapshot-sources.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;transactions-SNAPSHOT-sources.jar&#39; artifact">
     <property name="artifact.temp.output.transactions-snapshot-sources.jar" value="${artifacts.temp.dir}/transactions_SNAPSHOT_sources_jar"/>
     <mkdir dir="${artifact.temp.output.transactions-snapshot-sources.jar}"/>
-    <jar destfile="${temp.jar.path.transactions-src.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.transactions-SNAPSHOT-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
       <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
       <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
     </jar>
-    <copy file="${temp.jar.path.transactions-src.jar}" tofile="${artifact.temp.output.transactions-snapshot-sources.jar}/transactions-src.jar"/>
+    <copy file="${temp.jar.path.transactions-SNAPSHOT-sources.jar}" tofile="${artifact.temp.output.transactions-snapshot-sources.jar}/transactions-SNAPSHOT-sources.jar"/>
   </target>
   
   <target name="artifact.transactions-snapshot.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;transactions-SNAPSHOT.jar&#39; artifact">
     <property name="artifact.temp.output.transactions-snapshot.jar" value="${artifacts.temp.dir}/transactions_SNAPSHOT_jar"/>
     <mkdir dir="${artifact.temp.output.transactions-snapshot.jar}"/>
-    <jar destfile="${temp.jar.path.transactions.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.transactions-SNAPSHOT.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
     </jar>
-    <copy file="${temp.jar.path.transactions.jar}" tofile="${artifact.temp.output.transactions-snapshot.jar}/transactions.jar"/>
+    <copy file="${temp.jar.path.transactions-SNAPSHOT.jar}" tofile="${artifact.temp.output.transactions-snapshot.jar}/transactions-SNAPSHOT.jar"/>
   </target>
   
   <target name="build.all.artifacts" depends="artifact.collections-snapshot-sources.jar, artifact.collections-snapshot.jar, artifact.jdclare-snapshot-sources.jar, artifact.jdclare-snapshot.jar, artifact.transactions-snapshot-sources.jar, artifact.transactions-snapshot.jar" description="Build all artifacts">
