@@ -7,11 +7,13 @@ mavenReposDir="$1"; shift
      runTests="$1"; shift
       release="$1"; shift
 ################################################################
+git clone 'https://github.com/ModelingValueGroup/tools.git'
+. tools/tools.sh
+################################################################
 export     ANT_OPTS="-Djdk.home.9.0=$jdkHome -Dpath.variable.maven_repository=$mavenReposDir"
 export   MAVEN_OPTS="-Dmaven.repo.local=$mavenReposDir -DoutputDirectory=out/dependency"
-export  OUR_PRODUCT="dclare"
 export   OUR_DOMAIN="org.modelingvalue"
-export ARTIFACT_DIR="out/artifacts"
+export  OUR_PRODUCT="dclare"
 ################################################################
 units=(
     collections
@@ -19,12 +21,16 @@ units=(
     jdclare
 )
 ################################################################
-. buildTools.sh
 mkdir -p log
 
 # make the poms with the dependencies:
 echo "...making poms"
-makeAllPoms "$release" "${units[@]}" >log/00-makePoms.log
+makeAllPoms \
+    "http://www.dclare-lang.org" \
+    "https://github.com/ModelingValueGroup/jdclare.git" \
+    "$release" \
+    "${units[@]}" \
+    >log/00-makePoms.log
 
 # get our dependencies from maven:
 echo "...getting dependencies from maven"
@@ -37,7 +43,7 @@ ant -f build.xml >log/02-build.log
 # if testing is requested: run the tests:
 if [ "$runTests" == true ]; then
     echo "...testing"
-    generateAntTestFile > test.xml
+    generateAntTestFile "mvg-jdclare" > test.xml
     ant -f test.xml >log/03-test.log
 else
     echo "...skipping tests"
