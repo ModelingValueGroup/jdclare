@@ -7,6 +7,7 @@ mavenReposDir="$1"; shift
      runTests="$1"; shift
       release="$1"; shift
 ################################################################
+rm -rf tools
 git clone 'https://github.com/ModelingValueGroup/tools.git'
 . tools/tools.sh
 ################################################################
