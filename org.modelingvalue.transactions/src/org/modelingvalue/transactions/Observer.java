@@ -175,7 +175,7 @@ public class Observer extends Leaf {
             count = current;
             changes = 1;
         } else if (++changes > Root.MAX_NR_OF_CHANGES) {
-            throw new TooManyChangesException("" + this + " " + changes);
+            throw new TooManyChangesException("" + root.preState().get(this::toString) + " " + changes);
         }
     }
 
