@@ -1,6 +1,9 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
+    <inspection_tool class="BashReplaceWithDoubleBrackets" enabled="false" level="INFO" enabled_by_default="false" />
+    <inspection_tool class="BashReplaceWithSubshell" enabled="true" level="INFO" enabled_by_default="true" />
+    <inspection_tool class="BashSimpleVarUsage" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="BashUnusedFunctionParams" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>
