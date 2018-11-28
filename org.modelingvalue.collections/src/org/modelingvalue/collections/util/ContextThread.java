@@ -109,7 +109,6 @@ public final class ContextThread extends ForkJoinWorkerThread {
         THE_POOL.counter.set(nr, 0);
         THE_POOL.maxReached = false;
         context = null;
-        System.err.println("Pool Thread Terminated, nr= " + nr);
         if (exception != null) {
             exception.printStackTrace();
         }

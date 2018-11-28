@@ -27,8 +27,6 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.ContextThread;
-import org.modelingvalue.collections.util.ContextThread.ContextPool;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.StringUtil;
@@ -37,8 +35,6 @@ import org.modelingvalue.collections.util.TriConsumer;
 public class State implements Serializable {
 
     private static final long                       serialVersionUID = -3468784705870374732L;
-
-    private static final ContextPool                POOL             = ContextThread.thePool();
 
     @SuppressWarnings("rawtypes")
     private static final Comparator<Entry>          COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
@@ -199,11 +195,11 @@ public class State implements Serializable {
     }
 
     public <R> R get(Supplier<R> supplier) {
-        return POOL.submit(() -> ReadOnly.of(Pair.of(this, "getOnState"), root).get(supplier, this)).join();
+        return ReadOnly.of(Pair.of(this, "getOnState"), root).get(supplier, this);
     }
 
     public void run(Runnable action) {
-        POOL.submit(() -> ReadOnly.of(Pair.of(this, "runOnState"), root).run(action, this)).join();
+        ReadOnly.of(Pair.of(this, "runOnState"), root).run(action, this);
     }
 
     public <T> Collection<T> getObjects(Class<T> filter) {
