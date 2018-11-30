@@ -27,10 +27,10 @@ public interface FibonacciUniverse extends DUniverse {
     }
 
     @Property
-    long nr();
+    int nr();
 
     @Property
-    default long fibonacci() {
+    default double fibonacci() {
         return dStruct(Fibonacci.class, nr()).fibonaci();
     }
 
@@ -46,9 +46,9 @@ public interface FibonacciUniverse extends DUniverse {
             set(this, DUniverse::stop, true);
         } else if (!input.isEmpty()) {
             try {
-                set(this, FibonacciUniverse::nr, Long.parseLong(input));
+                set(this, FibonacciUniverse::nr, Integer.parseInt(input));
             } catch (NumberFormatException nfe) {
-                set(this, DUniverse::error, IOString.ofln("Only a <long> or 'stop' allowed"));
+                set(this, DUniverse::error, IOString.ofln("Only a <int> or 'stop' allowed"));
             }
         }
         set(this, DUniverse::input, IOString.of(""));
