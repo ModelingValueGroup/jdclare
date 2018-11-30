@@ -219,8 +219,8 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings("rawtypes")
-    public Collection<Entry<Object, Map<Setable, Pair<Object, Object>>>> realDiff(State other) {
-        return diff(other, o -> true, s -> !s.isDerived());
+    public Collection<Entry<Object, Map<Setable, Pair<Object, Object>>>> diff(State other) {
+        return diff(other, o -> true, s -> true);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -237,15 +237,15 @@ public class State implements Serializable {
         }).notNull();
     }
 
-    public String realDiffString(State other) {
-        return diffString(other, o -> true, s -> !s.isDerived());
-    }
-
     @SuppressWarnings("rawtypes")
     public String diffString(State other, Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
         return get(() -> diff(other, objectFilter, setableFilter).reduce("", (s1, e1) -> s1 + "\n  " + StringUtil.toString(e1.getKey()) + //
                 " {" + e1.getValue().reduce("", (s2, e2) -> s2 + "\n      " + StringUtil.toString(e2.getKey()) + " =" + //
                         valueDiffString(e2.getValue().a(), e2.getValue().b()), (a2, b2) -> a2 + b2) + "}", (a1, b1) -> a1 + b1));
+    }
+
+    public String diffString(State other) {
+        return diffString(other, o -> true, s -> true);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

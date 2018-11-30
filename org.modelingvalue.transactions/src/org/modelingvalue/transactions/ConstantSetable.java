@@ -14,6 +14,7 @@
 package org.modelingvalue.transactions;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.modelingvalue.collections.List;
@@ -22,6 +23,7 @@ import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TraceTimer;
+import org.modelingvalue.collections.util.Triple;
 
 public class ConstantSetable<O, T> extends Setable<O, T> {
 
@@ -43,41 +45,71 @@ public class ConstantSetable<O, T> extends Setable<O, T> {
         return new ConstantSetable<C, V>(id, null, deriver, changed);
     }
 
-    private final Function<O, T>            deriver;
-    private final Setable<O, Identified<T>> delegate;
+    private final Function<O, T> deriver;
+    private final T              def;
 
     protected ConstantSetable(Object id, T def, Function<O, T> deriver, QuadConsumer<AbstractLeaf, O, T, T> changed) {
-        super(id, def, null);
-        delegate = new ValueHolder<O, Identified<T>>(id, //
-                changed != null ? ($, o, b, a) -> changed.accept($, o, b == null ? def : b.get(), //
-                        a == null ? def : a.get()) : null);
+        super(id, null, changed);
+        this.def = def;
         this.deriver = deriver;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public T set(O object, T value) {
-        if (deriver != null) {
-            throw new Error("Constant " + this + " is derived");
-        }
-        Identified<T> val = delegate.get(object);
-        if (val == null) {
-            delegate.set(object, Identified.of(object, value));
+    public <E> T set(O object, BiFunction<T, E, T> function, E element) {
+        AbstractLeaf leaf = AbstractLeaf.getCurrent();
+        Root root = leaf.root();
+        Identified<T> v = root.constantState.get().get(object, (Setable<O, Identified<T>>) this);
+        T value = function.apply(v != null ? v.get() : def, element);
+        if (v == null) {
+            Identified<T> id = Identified.of(object, value);
+            root.constantState.getAndUpdate(s -> s.set(object, (Setable<O, Identified<T>>) this, id));
+            changed(leaf, object, def, value);
             return def;
-        } else if (Objects.equals(val.get(), value)) {
-            return val.get();
+        } else if (Objects.equals(v.get(), value)) {
+            return v.get();
         } else {
             throw new Error("Constant " + this + " already set");
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public T set(O object, T value) {
+        if (deriver != null) {
+            throw new Error("Constant " + this + " is derived");
+        }
+        AbstractLeaf leaf = AbstractLeaf.getCurrent();
+        Root root = leaf.root();
+        Identified<T> v = root.constantState.get().get(object, (Setable<O, Identified<T>>) this);
+        if (v == null) {
+            Identified<T> id = Identified.of(object, value);
+            root.constantState.getAndUpdate(s -> s.set(object, (Setable<O, Identified<T>>) this, id));
+            changed(leaf, object, def, value);
+            return def;
+        } else if (Objects.equals(v.get(), value)) {
+            return v.get();
+        } else {
+            throw new Error("Constant " + this + " already set");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public T force(O object, T value) {
-        delegate.set(object, Identified.of(object, value));
+        AbstractLeaf leaf = AbstractLeaf.getCurrent();
+        Root root = leaf.root();
+        Identified<T> id = Identified.of(object, value);
+        root.constantState.getAndUpdate(s -> s.set(object, (Setable<O, Identified<T>>) this, id));
+        changed(leaf, object, def, value);
         return def;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T get(O object) {
-        Identified<T> val = delegate.get(object);
+        AbstractLeaf leaf = AbstractLeaf.getCurrent();
+        Root root = leaf.root();
+        Identified<T> val = root.constantState.get().get(object, (Setable<O, Identified<T>>) this);
         if (val == null) {
             if (deriver == null) {
                 throw new Error("Constant " + this + " not yet set");
@@ -86,7 +118,8 @@ public class ConstantSetable<O, T> extends Setable<O, T> {
                 TraceTimer.traceBegin("lazy");
                 try {
                     Identified<T> v = Identified.of(object, deriver.apply(object));
-                    delegate.set(object, v);
+                    root.constantState.getAndUpdate(s -> s.set(object, (Setable<O, Identified<T>>) this, v));
+                    changed(leaf, object, def, v.get());
                     return v;
                 } catch (ConstantSetableException lce) {
                     lce.addLazy(object, ConstantSetable.this);
@@ -102,19 +135,10 @@ public class ConstantSetable<O, T> extends Setable<O, T> {
 
     }
 
-    public Setable<O, Identified<T>> getDelegate() {
-        return delegate;
-    }
-
-    private final class ValueHolder<A, B> extends Setable<A, B> {
-
-        private ValueHolder(Object id, QuadConsumer<AbstractLeaf, A, B, B> changed) {
-            super(id, null, changed);
-        }
-
-        @Override
-        public boolean isDerived() {
-            return deriver != null;
+    @Override
+    protected void changed(AbstractLeaf leaf, O object, T preValue, T postValue) {
+        if (changed != null) {
+            Leaf.of(Triple.of(object, this, "changed"), leaf.parent(), () -> super.changed(leaf, object, preValue, postValue)).trigger();
         }
     }
 

@@ -17,6 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.Collection;
@@ -63,6 +64,7 @@ public class Root extends Compound {
     private List<State>                                                                                                  history                 = List.of();
     private List<State>                                                                                                  future                  = List.of();
     private State                                                                                                        preState;
+    protected AtomicReference<State>                                                                                     constantState           = new AtomicReference<>(emptyState);
     protected ConcurrentMap<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> tooManyChanges;
     protected Leaf                                                                                                       leaf;
     private long                                                                                                         count;

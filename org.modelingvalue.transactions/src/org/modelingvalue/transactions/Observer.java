@@ -85,9 +85,9 @@ public class Observer extends Leaf {
 
     @Override
     protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        if (mayChange || property.isDerived()) {
+        if (mayChange) {
             super.changed(object, property, preValue, postValue);
-        } else {
+        } else if (property instanceof Observed) {
             throw new NonDeterministicException("Second run change: " + StringUtil.toString(object) + "." + property + " = \n" + //
                     StringUtil.toString(preValue) + " -> \n" + StringUtil.toString(postValue));
         }

@@ -71,7 +71,4 @@ public class Setable<O, T> extends Getable<O, T> {
         }
     }
 
-    public boolean isDerived() {
-        return false;
-    }
 }

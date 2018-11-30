@@ -91,7 +91,6 @@ import org.modelingvalue.jdclare.types.DWildcardType;
 import org.modelingvalue.transactions.AbstractLeaf;
 import org.modelingvalue.transactions.Compound;
 import org.modelingvalue.transactions.ConstantSetable;
-import org.modelingvalue.transactions.ConstantSetable.Identified;
 import org.modelingvalue.transactions.Getable;
 import org.modelingvalue.transactions.Leaf;
 import org.modelingvalue.transactions.MandatoryObserved;
@@ -246,12 +245,14 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   if (i > 0) {
                                                                                                                       DPackage pp = DClare.PACKAGE.get(n.substring(0, i));
                                                                                                                       SPackage d = dclare(SPackage.class, pp, n.substring(i + 1));
-                                                                                                                      DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d);
+                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                  //
+                                                                                                                              () -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d)).trigger();
                                                                                                                       return d;
                                                                                                                   } else {
                                                                                                                       DUniverse universe = dUniverse();
                                                                                                                       SPackage d = dclare(SPackage.class, universe, n);
-                                                                                                                      DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d);
+                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                  //
+                                                                                                                              () -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d)).trigger();
                                                                                                                       return d;
                                                                                                                   }
                                                                                                               });
@@ -356,7 +357,8 @@ public final class DClare<U extends DUniverse> extends Root {
         } else {
             Package pack = c.getPackage();
             DPackage dPackage = PACKAGE.get(pack != null ? pack.getName() : "<default>");
-            DClare.<DClassContainer, Set<DClass>> setable(CLASSES).set(dPackage, Set::add, d);
+            Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(), //
+                    () -> DClare.<DClassContainer, Set<DClass>> setable(CLASSES).set(dPackage, Set::add, d)).trigger();
         }
     }
 
@@ -1295,9 +1297,8 @@ public final class DClare<U extends DUniverse> extends Root {
             public void accept(State pre, State post, Boolean last) {
                 pre.diff(post, //
                         o -> filterClass.isInstance(o), p -> true).forEach(e0 -> {
-                            Pair<Object, Object> npair = e0.getValue().get(NATIVE.getDelegate());
                             DObject dObject = (DObject) e0.getKey();
-                            DNative no = npair != null ? (npair.a() != null ? ((Identified<DNative>) npair.a()).get() : ((Identified<DNative>) npair.b()).get()) : dNative(dObject);
+                            DNative no = NATIVE.get(dObject);
                             Pair<Object, Object> tpair = e0.getValue().get(TRANSACTION);
                             if (tpair != null) {
                                 if (tpair.a() == null) {

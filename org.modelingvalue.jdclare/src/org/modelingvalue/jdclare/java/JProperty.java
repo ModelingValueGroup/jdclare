@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
@@ -33,6 +34,8 @@ import org.modelingvalue.jdclare.meta.DOppositeProperty;
 import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.meta.DStructClass;
 import org.modelingvalue.jdclare.types.DType;
+import org.modelingvalue.transactions.AbstractLeaf;
+import org.modelingvalue.transactions.Leaf;
 import org.modelingvalue.transactions.State;
 
 public interface JProperty<O extends DStruct, T> extends DProperty<O, T>, DStruct1<Method> {
@@ -110,7 +113,8 @@ public interface JProperty<O extends DStruct, T> extends DProperty<O, T>, DStruc
         } else if (!D_CONTAINMENT_PROPERTY.equals(method) && !D_PARENT.equals(method) && !D_CHILDREN.equals(method) && !D_OBJECT_CLASS.equals(method) && //
                 !containment() && !key() && DObject.class.isAssignableFrom(objectClass()) && DObject.class.isAssignableFrom(elementClass())) {
             DOppositeProperty<?, ?> oppos = dclare(DOppositeProperty.class, this);
-            DClare.set(this, DProperty::containedOpposite, oppos);
+            Leaf.of(Pair.of(this, "setOpposite"), AbstractLeaf.getCurrent().parent(), //
+                    () -> DClare.set(this, DProperty::containedOpposite, oppos)).trigger();
             return oppos;
         } else {
             return null;

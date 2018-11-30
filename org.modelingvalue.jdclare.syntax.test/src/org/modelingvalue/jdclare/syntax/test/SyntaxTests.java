@@ -39,7 +39,7 @@ public class SyntaxTests {
                 test(next);
             });
             if (prev != null && !prev.equals(next)) {
-                String diff = prev.realDiffString(next);
+                String diff = prev.diffString(next);
                 assertEquals("Diff: ", "", diff);
             }
             prev = next;

@@ -73,7 +73,7 @@ public class JDclareTests {
                 checkOrchestra(next);
             });
             if (prev != null && !prev.equals(next)) {
-                String diff = prev.realDiffString(next);
+                String diff = prev.diffString(next);
                 assertEquals("Diff: ", "", diff);
             }
             prev = next;
@@ -172,7 +172,7 @@ public class JDclareTests {
                 checkPriorities(next);
             });
             if (prev != null && !prev.equals(next)) {
-                String diff = prev.realDiffString(next);
+                String diff = prev.diffString(next);
                 assertEquals("Diff: ", "", diff);
             }
             prev = next;
