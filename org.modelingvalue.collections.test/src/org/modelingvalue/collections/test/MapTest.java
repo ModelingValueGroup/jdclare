@@ -112,8 +112,8 @@ public class MapTest {
         Map<String, String> map4 = Map.of(Entry.of("AA", "aaaa"));
         Map<String, String> map5 = Map.of(Entry.of("AA", "aabb"));
 
-        Map<String, String> map6 = map1.mergeAll(map2, (k, a, b) -> a + b);
-        Map<String, String> map7 = map1.mergeAll(map3, (k, a, b) -> a + b);
+        Map<String, String> map6 = map1.mergeAll(map2, (k, a, b) -> Entry.of(k, a.getValue() + b.getValue()));
+        Map<String, String> map7 = map1.mergeAll(map3, (k, a, b) -> Entry.of(k, a.getValue() + b.getValue()));
 
         System.err.println(map1);
         System.err.println(map2);

@@ -84,7 +84,7 @@ public class Constant<O, T> extends Setable<O, T> {
         return def;
     }
 
-    private T set(O object, T value, AbstractLeaf leaf, Root root, State prev, T val) throws NonDeterministicException {
+    private T set(O object, T value, AbstractLeaf leaf, Root root, State prev, T val) {
         if (val == EMPTY) {
             return set(root, leaf, prev, object, value);
         } else if (!Objects.equals(val, value)) {
@@ -114,26 +114,27 @@ public class Constant<O, T> extends Setable<O, T> {
         T val = prev.get(object, this);
         if (val == EMPTY) {
             if (deriver == null) {
-                throw new Error("Constant " + this + " not yet set");
-            }
-            try {
-                return CURRENT.get(this, () -> set(root, leaf, prev, object, deriver.apply(object)));
-            } catch (ConstantSetableException lce) {
-                if (!(lce.getCause() instanceof StackOverflowError) || CURRENT.get() != null) {
-                    lce.addLazy(object, Constant.this);
-                    throw lce;
-                } else {
-                    for (Pair<Object, Constant> lazy : lce.list) {
-                        if (equals(lazy.b()) && object.equals(lazy.a())) {
-                            Pair<Object, Constant> me = Pair.of(object, this);
-                            throw new NonDeterministicException("Circular constant definition: " + lce.list.sublist(lce.list.lastIndexOf(me), lce.list.size()).add(me));
+                throw new Error("Constant " + this + " is not set and not derived");
+            } else {
+                try {
+                    val = CURRENT.get(this, () -> set(root, leaf, prev, object, deriver.apply(object)));
+                } catch (ConstantSetableException lce) {
+                    if (!(lce.getCause() instanceof StackOverflowError) || CURRENT.get() != null) {
+                        lce.addLazy(object, Constant.this);
+                        throw lce;
+                    } else {
+                        for (Pair<Object, Constant> lazy : lce.list) {
+                            if (equals(lazy.b()) && object.equals(lazy.a())) {
+                                Pair<Object, Constant> me = Pair.of(object, this);
+                                throw new NonDeterministicException("Circular constant definition: " + lce.list.sublist(lce.list.lastIndexOf(me), lce.list.size()).add(me));
+                            }
+                            lazy.b().get(root, leaf, lazy.a());
                         }
-                        lazy.b().get(root, leaf, lazy.a());
+                        val = get(root, leaf, object);
                     }
-                    return get(root, leaf, object);
+                } catch (Throwable t) {
+                    throw new ConstantSetableException(object, Constant.this, t);
                 }
-            } catch (Throwable t) {
-                throw new ConstantSetableException(object, Constant.this, t);
             }
         }
         return val;
@@ -155,7 +156,7 @@ public class Constant<O, T> extends Setable<O, T> {
 
     @Override
     protected void changed(AbstractLeaf leaf, O object, T preValue, T postValue) {
-        if (changed != null) {
+        if (changed != null && !Objects.equals(preValue, postValue)) {
             Leaf.of(Triple.of(object, this, "changed"), leaf.parent(), () -> super.changed(leaf, object, preValue, postValue)).trigger();
         }
     }

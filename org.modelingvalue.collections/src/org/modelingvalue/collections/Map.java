@@ -42,9 +42,9 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     Map<K, V> put(K key, V value);
 
-    Map<K, V> merge(K key, V value, UnaryOperator<V> merger);
+    Map<K, V> merge(K key, V value, UnaryOperator<Entry<K, V>> merger);
 
-    Map<K, V> mergeAll(Map<? extends K, ? extends V> c, TriFunction<K, V, V, V> merger);
+    Map<K, V> mergeAll(Map<? extends K, ? extends V> c, TriFunction<K, Entry<K, V>, Entry<K, V>, Entry<K, V>> merger);
 
     Map<K, V> removeKey(K key);
 
@@ -59,7 +59,7 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     Collection<V> toValues();
 
     @SuppressWarnings("unchecked")
-    Map<K, V> merge(TriFunction<K, V, V[], V> merger, Map<K, V>... branches);
+    Map<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Map<K, V>... branches);
 
     @Override
     Map<K, V> remove(Object e);
@@ -67,6 +67,6 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     @Override
     Map<K, V> add(Entry<K, V> e);
 
-    Collection<Entry<K, Pair<V, V>>> diff(Map<K, V> other);
+    Collection<Entry<K, Pair<Entry<K, V>, Entry<K, V>>>> diff(Map<K, V> other);
 
 }

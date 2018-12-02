@@ -15,8 +15,10 @@ package org.modelingvalue.collections;
 
 import org.modelingvalue.collections.impl.EntryImpl;
 import org.modelingvalue.collections.struct.Struct;
+import org.modelingvalue.collections.util.Mergeable;
 
-public interface Entry<K, V> extends Struct {
+public interface Entry<K, V> extends Struct, Mergeable<Entry<K, V>> {
+
     K getKey();
 
     V getValue();

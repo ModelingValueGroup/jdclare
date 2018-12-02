@@ -14,6 +14,7 @@
 package org.modelingvalue.transactions;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
@@ -97,8 +98,8 @@ public class State implements Serializable {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     static <O, T> T get(Map<Setable, Object> props, Setable<O, T> property) {
-        T value = props == null ? null : (T) props.get(property);
-        return value == null ? property.getDefault() : value;
+        Entry entry = props == null ? null : props.getEntry(property);
+        return entry == null ? property.getDefault() : (T) entry.getValue();
     }
 
     @SuppressWarnings("rawtypes")
@@ -124,15 +125,30 @@ public class State implements Serializable {
         return in == null ? Map.<X, Y> of() : in;
     }
 
-    private static <X, Y> Map<X, Y>[] map(Map<X, Y>[] in) {
+    @SuppressWarnings("unchecked")
+    private static <X, Y> Map<X, Y>[] map(Entry<?, Map<X, Y>>[] in) {
+        Map<X, Y>[] r = new Map[in.length];
         for (int i = 0; i < in.length; i++) {
-            in[i] = map(in[i]);
+            r[i] = in[i] == null ? Map.<X, Y> of() : in[i].getValue();
         }
-        return in;
+        return r;
     }
 
-    private static <X, Y> Y val(Setable<X, Y> p, Y v) {
-        return v = v == null ? p.getDefault() : v;
+    private static <X, Y> Y val(Entry<X, Y> e) {
+        return e == null ? null : e.getValue();
+    }
+
+    private static <X, Y> Y val(Setable<X, Y> p, Entry<?, Y> e) {
+        return e == null ? p.getDefault() : e.getValue();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static <X, Y> Y[] val(Y b, Setable<X, Y> p, Entry<Setable, Y>[] in) {
+        Y[] r = b != null ? (Y[]) Array.newInstance(b.getClass(), in.length) : (Y[]) new Object[in.length];
+        for (int i = 0; i < in.length; i++) {
+            r[i] = in[i] == null ? p.getDefault() : in[i].getValue();
+        }
+        return r;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -141,17 +157,15 @@ public class State implements Serializable {
         for (int i = 0; i < maps.length; i++) {
             maps[i] = map(branches[i].map);
         }
-        Map<Object, Map<Setable, Object>> niw = map(map).merge((o, ps, pss) -> {
-            ps = map(ps);
-            pss = map(pss);
-            Map<Setable, Object> props = ps.merge((p, v, vs) -> {
-                v = val(p, v);
-                for (int i = 0; i < vs.length; i++) {
-                    vs[i] = val(p, vs[i]);
-                }
+        Map<Object, Map<Setable, Object>> niw = map(map).merge((o, eps, epss) -> {
+            Map<Setable, Object> ps = map(val(eps));
+            Map<Setable, Object>[] pss = map(epss);
+            Map<Setable, Object> props = ps.merge((p, ev, evs) -> {
+                Object v = val(p, ev);
+                Object[] vs = val(v, p, evs);
                 if (v instanceof Mergeable) {
                     Object result = ((Mergeable<Object>) v).merge(vs);
-                    return Objects.equals(result, p.getDefault()) ? null : result;
+                    return Objects.equals(result, p.getDefault()) ? null : Entry.of(p, result);
                 } else {
                     Object result = null;
                     for (int i = 0; i < vs.length; i++) {
@@ -168,12 +182,12 @@ public class State implements Serializable {
                         Object stv = v;
                         throw new ConcurrentModificationException(get(() -> o + "." + p + " = " + stv + " -> " + Arrays.toString(vs)));
                     } else {
-                        return result;
+                        return Entry.of(p, result);
                     }
                 }
             }, pss);
             change.accept(ps, map(props), pss);
-            return props == null || props.isEmpty() ? null : props;
+            return props == null || props.isEmpty() ? null : Entry.of(o, props);
         }, maps);
         return niw == null || niw.isEmpty() ? root.emptyState() : new State(root, niw);
 
@@ -226,8 +240,8 @@ public class State implements Serializable {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Collection<Entry<Object, Map<Setable, Pair<Object, Object>>>> diff(State other, Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
         return map(map).diff(other.map).filter(d1 -> objectFilter.test(d1.getKey())).map(d2 -> {
-            Map<Setable, Object> a = map(d2.getValue().a());
-            Map<Setable, Object> b = map(d2.getValue().b());
+            Map<Setable, Object> a = map(val(d2.getValue().a()));
+            Map<Setable, Object> b = map(val(d2.getValue().b()));
             Map<Setable, Pair<Object, Object>> diff = a.diff(b).filter(d3 -> setableFilter.test(d3.getKey())).toMap(e -> {
                 Object va = val(e.getKey(), e.getValue().a());
                 Object vb = val(e.getKey(), e.getValue().b());

@@ -13,7 +13,6 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.lang.reflect.Array;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Function;
@@ -96,29 +95,24 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Map<K, V> merge(K key, V val, UnaryOperator<V> merger) {
+    public Map<K, V> merge(K key, V val, UnaryOperator<Entry<K, V>> merger) {
         return create(merge(value, key(), Entry.of(key, val), key(), (e1, e2) -> mergeEntry((Entry) e1, (Entry) e2, key, merger)));
     }
 
-    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e1, Entry<K, V> e2, K key, UnaryOperator<V> merger) {
-        V v1 = e1 != null ? e1.getValue() : null;
-        V v2 = e2 != null ? e2.getValue() : null;
-        V result = merger.apply(v2);
-        return result == null ? null : Objects.equals(result, v1) ? e1 : Objects.equals(result, v2) ? e2 : Entry.of(key, result);
+    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e1, Entry<K, V> e2, K key, UnaryOperator<Entry<K, V>> merger) {
+        Entry<K, V> result = merger.apply(e2);
+        return result == null ? null : Objects.equals(result, e1) ? e1 : Objects.equals(result, e2) ? e2 : result;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Map<K, V> mergeAll(Map<? extends K, ? extends V> c, TriFunction<K, V, V, V> merger) {
+    public Map<K, V> mergeAll(Map<? extends K, ? extends V> c, TriFunction<K, Entry<K, V>, Entry<K, V>, Entry<K, V>> merger) {
         return create(merge(value, key(), ((MapImpl) c).value, key(), (e1, e2) -> mergeEntry((Entry) e1, (Entry) e2, merger)));
     }
 
-    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e1, Entry<K, V> e2, TriFunction<K, V, V, V> merger) {
-        K key = e1 != null ? e1.getKey() : e2.getKey();
-        V v1 = e1 != null ? e1.getValue() : null;
-        V v2 = e2 != null ? e2.getValue() : null;
-        V result = merger.apply(key, v1, v2);
-        return result == null ? null : Objects.equals(result, v1) ? e1 : Objects.equals(result, v2) ? e2 : Entry.of(key, result);
+    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e1, Entry<K, V> e2, TriFunction<K, Entry<K, V>, Entry<K, V>, Entry<K, V>> merger) {
+        Entry<K, V> result = merger.apply(e1 != null ? e1.getKey() : e2.getKey(), e1, e2);
+        return result == null ? null : Objects.equals(result, e1) ? e1 : Objects.equals(result, e2) ? e2 : result;
     }
 
     @Override
@@ -128,69 +122,47 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @SuppressWarnings("unchecked")
     @Override
-    public Map<K, V> merge(TriFunction<K, V, V[], V> merger, Map<K, V>... branches) {
+    public Map<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Map<K, V>... branches) {
         return create(visit(a -> Mergeables.merge(a[0], //
                 (e, es) -> mergeEntry((Entry<K, V>) e, merger, es), a, a.length), branches));
     }
 
     @Override
-    public Collection<Entry<K, Pair<V, V>>> diff(Map<K, V> toCompare) {
-        return compare(toCompare).<Entry<K, Pair<V, V>>> flatMap(a -> {
+    public Collection<Entry<K, Pair<Entry<K, V>, Entry<K, V>>>> diff(Map<K, V> toCompare) {
+        return compare(toCompare).<Entry<K, Pair<Entry<K, V>, Entry<K, V>>>> flatMap(a -> {
             if (a[0] == null) {
-                return a[1].map(e -> Entry.of(e.getKey(), Pair.of(null, a[1].get(e.getKey()))));
+                return a[1].map(e -> Entry.of(e.getKey(), Pair.of(null, a[1].getEntry(e.getKey()))));
             } else if (a[1] == null) {
-                return a[0].map(e -> Entry.of(e.getKey(), Pair.of(a[0].get(e.getKey()), null)));
+                return a[0].map(e -> Entry.of(e.getKey(), Pair.of(a[0].getEntry(e.getKey()), null)));
             } else {
-                return a[0].toKeys().toSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].get(k), a[1].get(k))));
+                return a[0].toKeys().toSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].getEntry(k), a[1].getEntry(k))));
             }
         });
     }
 
     @SuppressWarnings("unchecked")
-    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, V, V[], V> merger, Object[] es) {
-        V[] vs = null;
+    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Object[] es) {
+        Entry<K, V>[] vs = new Entry[es.length];
+        System.arraycopy(es, 0, vs, 0, es.length);
         K key = e != null ? e.getKey() : null;
-        V v = e != null ? e.getValue() : null;
-        Class<?> vc = null;
-        if (v != null) {
-            vc = v.getClass();
-            vs = (V[]) Array.newInstance(vc, es.length);
-        }
-        for (int i = 0; i < es.length; i++) {
-            if (es[i] != null) {
-                Entry<K, V> eb = (Entry<K, V>) es[i];
-                if (key == null) {
-                    key = eb.getKey();
-                }
-                V vb = eb.getValue();
-                if (vb != null) {
-                    Class<?> cb = vb.getClass();
-                    if (vs == null) {
-                        vc = cb;
-                        vs = (V[]) Array.newInstance(vc, es.length);
-                    } else if (!vc.isAssignableFrom(cb)) {
-                        vc = Object.class;
-                        V[] vsb = (V[]) new Object[es.length];
-                        System.arraycopy(vs, 0, vsb, 0, es.length);
-                        vs = vsb;
-                    }
-                    vs[i] = vb;
-                }
+        for (int i = 0; key == null && i < es.length; i++) {
+            if (vs[i] != null) {
+                key = vs[i].getKey();
             }
         }
-        V result = merger.apply(key, v, vs);
+        Entry<K, V> result = merger.apply(key, e, vs);
         if (result == null) {
             return null;
-        } else if (Objects.equals(result, v)) {
+        } else if (Objects.equals(result, e)) {
             return e;
         } else {
-            for (int i = 0; i < vs.length; i++) {
-                if (Objects.equals(result, vs[i])) {
+            for (int i = 0; i < es.length; i++) {
+                if (Objects.equals(result, es[i])) {
                     return (Entry<K, V>) es[i];
                 }
             }
         }
-        return Entry.of(key, result);
+        return result;
     }
 
     @Override
