@@ -24,7 +24,7 @@ import org.modelingvalue.jdclare.swing.InputDeviceData;
 
 public interface ClickMode extends CanvasMode {
 
-    @Property(optional)
+    @Property(constant)
     Consumer<DCanvas> action();
 
     @Rule

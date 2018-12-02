@@ -111,7 +111,7 @@ public interface JProperty<O extends DStruct, T> extends DProperty<O, T>, DStruc
         if (opposite != null) {
             return dProperty(opposite);
         } else if (!D_CONTAINMENT_PROPERTY.equals(method) && !D_PARENT.equals(method) && !D_CHILDREN.equals(method) && !D_OBJECT_CLASS.equals(method) && //
-                !containment() && !key() && DObject.class.isAssignableFrom(objectClass()) && DObject.class.isAssignableFrom(elementClass())) {
+                !containment() && !constant() && DObject.class.isAssignableFrom(objectClass()) && DObject.class.isAssignableFrom(elementClass())) {
             DOppositeProperty<?, ?> oppos = dclare(DOppositeProperty.class, this);
             Leaf.of(Pair.of(this, "setOpposite"), AbstractLeaf.getCurrent().parent(), //
                     () -> DClare.set(this, DProperty::containedOpposite, oppos)).trigger();

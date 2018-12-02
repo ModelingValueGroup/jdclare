@@ -130,6 +130,59 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
             return dclareUU(DCanvas.class, set(DCanvas::color, new Color(200, 255, 200)));
         }
 
+        @Rule()
+        default void init() {
+            rectangleMode();
+            circleMode();
+            lineMode();
+            selectionMode();
+        }
+
+        default ClickMode rectangleMode() {
+            return dclareUU(ClickMode.class, e -> {
+                set(e, ClickMode::action, z -> {
+                    InputDeviceData di = z.deviceInput();
+                    appendShape(dclareUU(DRectangle.class, set(DShape::position, di.mousePosition())));
+                    set(z, DCanvas::mode, selectionMode());
+                });
+            });
+        }
+
+        default ClickMode circleMode() {
+            return dclareUU(ClickMode.class, e -> {
+                set(e, ClickMode::action, z -> {
+                    InputDeviceData di = z.deviceInput();
+                    appendShape(dclareUU(DCircle.class, set(DShape::position, di.mousePosition())));
+                    set(z, DCanvas::mode, selectionMode());
+                });
+            });
+        }
+
+        default LineMode lineMode() {
+            return dclareUU(LineMode.class, e -> {
+                set(e, LineMode::action, sel -> {
+                    DShape one = sel.get(0);
+                    DShape two = sel.get(1);
+                    prependShape(dclareUU(DLine.class, //
+                            rule(DShape::position, l -> one.centre()), //
+                            rule(DLine::endPoint, l -> two.centre()), //
+                            rule("delete", l -> {
+                                if ((pre(one, DObject::dParent) != null && one.dParent() == null) || //
+                                (pre(two, DObject::dParent) != null && two.dParent() == null)) {
+                                    clear(l);
+                                }
+                            }) //
+                    ));
+                    set(canvas(), DCanvas::mode, selectionMode());
+                });
+            });
+        }
+
+        @Property(constant)
+        default SelectionMode selectionMode() {
+            return dclareUU(SelectionMode.class, DCanvas.SELECTION_MODE);
+        }
+
         @Override
         @Property(constant)
         default DComponent rigthComponent() {
@@ -138,49 +191,21 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
                 set(c, DToolbar::minimumSize, dclare(DDimension.class, 50, 100));
                 set(c, DToolbar::items, List.of(//
                         item("Select", "selection.png", (x) -> {
-                            set(canvas(), DCanvas::mode, dclareUU(SelectionMode.class, DCanvas.SELECTION_MODE));
+                            set(canvas(), DCanvas::mode, selectionMode());
                         }), //
                         item("Rectangle", "rectangle.png", (x) -> {
-                            set(canvas(), DCanvas::mode, dclareUU(ClickMode.class, (e) -> {
-                                set(e, ClickMode::action, (z) -> {
-                                    InputDeviceData di = z.deviceInput();
-                                    appendShape(dclareUU(DRectangle.class, set(DShape::position, di.mousePosition())));
-                                    set(z, DCanvas::mode, dclareUU(SelectionMode.class, DCanvas.SELECTION_MODE));
-                                });
-                            }));
+                            set(canvas(), DCanvas::mode, rectangleMode());
                         }), //
                         item("Circle", "circle.png", (x) -> {
-                            set(canvas(), DCanvas::mode, dclareUU(ClickMode.class, (e) -> {
-                                set(e, ClickMode::action, (z) -> {
-                                    InputDeviceData di = z.deviceInput();
-                                    appendShape(dclareUU(DCircle.class, set(DShape::position, di.mousePosition())));
-                                    set(z, DCanvas::mode, dclareUU(SelectionMode.class, DCanvas.SELECTION_MODE));
-                                });
-                            }));
+                            set(canvas(), DCanvas::mode, circleMode());
                         }), //
                         item("Line", "line.png", (x) -> {
-                            DCanvas canvas = (DCanvas) ((ScrollPane) leftComponent()).viewportView();
-                            set(canvas, DCanvas::mode, dclareUU(LineMode.class, (s) -> {
-                                set(s, LineMode::action, (sel) -> {
-                                    DShape one = sel.get(0);
-                                    DShape two = sel.get(1);
-                                    prependShape(dclareUU(DLine.class, //
-                                            rule(DShape::position, l -> one.centre()), //
-                                            rule(DLine::endPoint, l -> two.centre()), //
-                                            rule("delete", l -> {
-                                                if ((pre(one, DObject::dParent) != null && one.dParent() == null) || //
-                                                (pre(two, DObject::dParent) != null && two.dParent() == null)) {
-                                                    clear(l);
-                                                }
-                                            }) //
-                                    ));
-                                    set(canvas(), DCanvas::mode, dclareUU(SelectionMode.class, DCanvas.SELECTION_MODE));
-                                });
-                            }));
+                            set(canvas(), DCanvas::mode, lineMode());
                         }) //
                 ));
             });
         }
+
     }
 
     interface TrianglesEditor extends DiagramEditor {

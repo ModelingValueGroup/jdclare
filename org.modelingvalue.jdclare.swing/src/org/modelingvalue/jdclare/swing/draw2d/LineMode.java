@@ -30,7 +30,7 @@ public interface LineMode extends CanvasMode {
     @Property
     List<DShape> shapes();
 
-    @Property(optional)
+    @Property(constant)
     Consumer<List<DShape>> action();
 
     @Rule

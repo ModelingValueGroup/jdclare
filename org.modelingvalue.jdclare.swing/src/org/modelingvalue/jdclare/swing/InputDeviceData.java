@@ -45,4 +45,5 @@ public interface InputDeviceData extends DObject, DStruct1<DComponent> {
 
     @Property
     Set<Integer> pressedKeys();
+
 }
