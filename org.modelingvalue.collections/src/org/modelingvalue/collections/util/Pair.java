@@ -23,7 +23,7 @@ public class Pair<A, B> extends Struct2Impl<A, B> {
         return new Pair<X, Y>(a, b);
     }
 
-    private Pair(A a, B b) {
+    protected Pair(A a, B b) {
         super(a, b);
     }
 

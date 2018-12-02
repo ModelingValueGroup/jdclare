@@ -23,7 +23,7 @@ public class Quadruple<A, B, C, D> extends Struct4Impl<A, B, C, D> {
         return new Quadruple<X, Y, Z, Q>(a, b, c, d);
     }
 
-    private Quadruple(A a, B b, C c, D d) {
+    protected Quadruple(A a, B b, C c, D d) {
         super(a, b, c, d);
     }
 

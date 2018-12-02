@@ -15,6 +15,8 @@ package org.modelingvalue.jdclare.examples;
 
 import static org.modelingvalue.jdclare.DClare.*;
 
+import java.math.BigInteger;
+
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.IOString;
 import org.modelingvalue.jdclare.Property;
@@ -30,13 +32,13 @@ public interface FibonacciUniverse extends DUniverse {
     int nr();
 
     @Property
-    default double fibonacci() {
+    default BigInteger fibonacci() {
         return dStruct(Fibonacci.class, nr()).fibonaci();
     }
 
     @Override
     default IOString output() {
-        return IOString.of("nr=" + nr() + " fibonacci=" + fibonacci() + System.lineSeparator() + "> ");
+        return IOString.of("integer=" + nr() + " fibonacci(radix=36)=" + fibonacci().toString(Character.MAX_RADIX) + System.lineSeparator() + "> ");
     }
 
     @Rule
