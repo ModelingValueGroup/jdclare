@@ -68,8 +68,7 @@ public class Constant<O, T> extends Setable<O, T> {
         State prev = root.constantState.get();
         T val = prev.get(object, this);
         T value = function.apply(val == EMPTY ? def : val, element);
-        set(object, value, leaf, root, prev, val);
-        return def;
+        return set(object, value, leaf, root, prev, val);
     }
 
     @Override
@@ -85,11 +84,13 @@ public class Constant<O, T> extends Setable<O, T> {
         return def;
     }
 
-    private void set(O object, T value, AbstractLeaf leaf, Root root, State prev, T val) throws NonDeterministicException {
+    private T set(O object, T value, AbstractLeaf leaf, Root root, State prev, T val) throws NonDeterministicException {
         if (val == EMPTY) {
-            set(root, leaf, prev, object, value);
+            return set(root, leaf, prev, object, value);
         } else if (!Objects.equals(val, value)) {
             throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(val) + "!=" + StringUtil.toString(value));
+        } else {
+            return val;
         }
     }
 
