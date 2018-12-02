@@ -90,7 +90,7 @@ import org.modelingvalue.jdclare.types.DTypeParameterReference;
 import org.modelingvalue.jdclare.types.DWildcardType;
 import org.modelingvalue.transactions.AbstractLeaf;
 import org.modelingvalue.transactions.Compound;
-import org.modelingvalue.transactions.ConstantSetable;
+import org.modelingvalue.transactions.Constant;
 import org.modelingvalue.transactions.Getable;
 import org.modelingvalue.transactions.Leaf;
 import org.modelingvalue.transactions.MandatoryObserved;
@@ -162,7 +162,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static final Setable<Class<?>, Set<Method>>                          AUGMENTATIONS                = Setable.of("dAugmentations", Set.of());
 
-    private static final Getable<Class<? extends DStruct>, State>                CLASS_INIT                   = ConstantSetable.of("dCLassInit", c -> {
+    private static final Getable<Class<? extends DStruct>, State>                CLASS_INIT                   = Constant.of("dCLassInit", c -> {
                                                                                                                   if (c.isInterface()) {
                                                                                                                       return dClare().constraints(c);
                                                                                                                   } else {
@@ -170,13 +170,13 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   }
                                                                                                               });
 
-    private static final Getable<Class<?>, JClass>                               CLASS                        = ConstantSetable.of("dClass", c -> {
+    private static final Getable<Class<?>, JClass>                               CLASS                        = Constant.of("dClass", c -> {
                                                                                                                   JClass d = dclare(extend(c, JClass.class), c);
                                                                                                                   initFormalType(c, d);
                                                                                                                   return d;
                                                                                                               });
 
-    private static final ConstantSetable<Method, DProperty>                      PROPERTY                     = ConstantSetable.of("dProperty", (Method m) -> {
+    private static final Constant<Method, DProperty>                             PROPERTY                     = Constant.of("dProperty", (Method m) -> {
                                                                                                                   if (m.getReturnType() != Void.TYPE && !m.isSynthetic() && m.getParameterCount() == 0 &&                                     //
                                                                                                                   (ann(m, Property.class) != null || extend(m, JProperty.class) != JProperty.class)) {
                                                                                                                       dClass(m.getDeclaringClass());
@@ -186,18 +186,18 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   }
                                                                                                               });
 
-    private static final ConstantSetable<DProperty, Getable>                     GETABLE                      = ConstantSetable.of("dGetable", p -> {
+    private static final Constant<DProperty, Getable>                            GETABLE                      = Constant.of("dGetable", p -> {
                                                                                                                   Object d = p.key() ? null : p.defaultValue();
                                                                                                                   QuadConsumer<AbstractLeaf, DStruct, Object, Object> changed =                                                               //                                                          //
                                                                                                                           p.containment() ? ($, o, b, a) -> containment($, o, p, d, b, a) :                                                   //
                                                                                                                   p.opposite() != null ? ($, o, b, a) -> opposite($, p.opposite(), o, d, b, a) : null;
                                                                                                                   return p.key() ? new KeyGetable(p, p.keyNr(), changed) : p.constant() ?                                                     //
-                                                                                                                  ConstantSetable.of(p, d, p.derived() ? p.deriver() : null, changed) :                                                       //
+                                                                                                                  Constant.of(p, d, p.derived() ? p.deriver() : null, changed) :                                                              //
                                                                                                                   (p.mandatory() && (d == null || d instanceof ContainingCollection)) ?                                                       //
                                                                                                                   MandatoryObserved.of(p, d, changed) : Observed.of(p, d, changed);
                                                                                                               });
 
-    public static final Getable<Method, JRule>                                   RULE                         = ConstantSetable.of("dRule", (Method m) -> {
+    public static final Getable<Method, JRule>                                   RULE                         = Constant.of("dRule", (Method m) -> {
                                                                                                                   if (m.getParameterCount() == 0 && !m.isSynthetic() && (m.isDefault() || Modifier.isPrivate(m.getModifiers())) &&            //
                                                                                                                   (ann(m, Property.class) != null || ann(m, Rule.class) != null ||                                                            //
                                                                                                                   extend(m, JProperty.class) != JProperty.class || extend(m, JRule.class) != JRule.class) &&                                  //
@@ -208,7 +208,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   }
                                                                                                               });
 
-    public static final Getable<Pair<Method, List<Class>>, JFunction>            FUNCTION                     = ConstantSetable.of("dFunction", (Pair<Method, List<Class>> p) -> {
+    public static final Getable<Pair<Method, List<Class>>, JFunction>            FUNCTION                     = Constant.of("dFunction", (Pair<Method, List<Class>> p) -> {
                                                                                                                   Method m = p.a();
                                                                                                                   if (m.getReturnType() != Void.TYPE && !m.isSynthetic() && ann(m, Constraints.class) == null &&                              //
                                                                                                                   ann(m, Property.class) == null && extend(m, JProperty.class) == JProperty.class &&                                          //
@@ -219,7 +219,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   }
                                                                                                               });
 
-    private static final Getable<Pair<Method, List<Class>>, JConstraint>         CONSTRAINT                   = ConstantSetable.of("dConstraint", (Pair<Method, List<Class>> p) -> {
+    private static final Getable<Pair<Method, List<Class>>, JConstraint>         CONSTRAINT                   = Constant.of("dConstraint", (Pair<Method, List<Class>> p) -> {
                                                                                                                   Method m = p.a();
                                                                                                                   if (m.getReturnType() == Void.TYPE && !m.isSynthetic() && ann(m, Constraints.class) == null &&                              //
                                                                                                                   !m.isAnnotationPresent(Rule.class) && extend(m, JRule.class) == JRule.class &&                                              //
@@ -230,7 +230,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   }
                                                                                                               });
 
-    private static final Getable<Pair<Method, List<Class>>, SFunction>           STATIC_FUNCTION              = ConstantSetable.of("dStaticFunction", (Pair<Method, List<Class>> p) -> {
+    private static final Getable<Pair<Method, List<Class>>, SFunction>           STATIC_FUNCTION              = Constant.of("dStaticFunction", (Pair<Method, List<Class>> p) -> {
                                                                                                                   Method m = p.a();
                                                                                                                   if (m.getParameterCount() > 0 && m.getReturnType() != Void.TYPE &&                                                          //
                                                                                                                   (m.getModifiers() & Modifier.STATIC) != 0 && ann(m, Constraints.class) == null) {
@@ -240,7 +240,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   }
                                                                                                               });
 
-    private static final Getable<String, DPackage>                               PACKAGE                      = ConstantSetable.of("dPackage", n -> {
+    private static final Getable<String, DPackage>                               PACKAGE                      = Constant.of("dPackage", n -> {
                                                                                                                   int i = n.lastIndexOf('.');
                                                                                                                   if (i > 0) {
                                                                                                                       DPackage pp = DClare.PACKAGE.get(n.substring(0, i));
@@ -257,15 +257,15 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   }
                                                                                                               });
 
-    private static final Getable<Class<? extends DStruct>, Lookup>               NATIVE_LOOKUP                = ConstantSetable.of("nLookup", c -> {
+    private static final Getable<Class<? extends DStruct>, Lookup>               NATIVE_LOOKUP                = Constant.of("nLookup", c -> {
                                                                                                                   return dStruct((Class<? extends DStruct>) c).lookup();
                                                                                                               });
 
-    public static final Getable<Method, Handle>                                  HANDLE                       = ConstantSetable.of("nHandle", m -> {
+    public static final Getable<Method, Handle>                                  HANDLE                       = Constant.of("nHandle", m -> {
                                                                                                                   return new Handle(m);
                                                                                                               });
 
-    private static final Getable<Class<? extends DStruct>, Constructor<DNative>> NATIVE_CONSTRUCTOR           = ConstantSetable.of("dNativeConstructor", c -> {
+    private static final Getable<Class<? extends DStruct>, Constructor<DNative>> NATIVE_CONSTRUCTOR           = Constant.of("dNativeConstructor", c -> {
                                                                                                                   Native ann = ann(c, Native.class);
                                                                                                                   Constructor<DNative> constr = null;
                                                                                                                   if (ann != null) {
@@ -279,7 +279,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   return constr;
                                                                                                               });
 
-    private static final ConstantSetable<DObject, DNative>                       NATIVE                       = ConstantSetable.of("dNative", o -> {
+    private static final Constant<DObject, DNative>                              NATIVE                       = Constant.of("dNative", o -> {
                                                                                                                   DNative dNative = null;
                                                                                                                   Constructor<DNative> nativeConstructor = NATIVE_CONSTRUCTOR.get(jClass(o));
                                                                                                                   if (nativeConstructor != null) {
@@ -1449,10 +1449,10 @@ public final class DClare<U extends DUniverse> extends Root {
         return getable;
     }
 
-    private static ConstantSetable cyclicConstant(Method method) {
+    private static Constant cyclicConstant(Method method) {
         DProperty property = dclare(extend(method, JProperty.class), method);
         PROPERTY.force(method, property);
-        ConstantSetable setable = ConstantSetable.of(property, defaultValue(method, false), deriver(method));
+        Constant setable = Constant.of(property, defaultValue(method, false), deriver(method));
         GETABLE.force(property, setable);
         return setable;
     }

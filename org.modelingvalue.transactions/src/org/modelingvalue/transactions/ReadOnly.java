@@ -72,7 +72,7 @@ public class ReadOnly extends AbstractLeaf {
 
     @Override
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        if (ConstantSetable.CURRENT.get() == null) {
+        if (Constant.CURRENT.get() == null) {
             throw new NonDeterministicException("Change on '" + property + "' while NOT initializing constant");
         }
         T pre = get(object, property);
@@ -84,7 +84,7 @@ public class ReadOnly extends AbstractLeaf {
 
     @Override
     public <O, T> T set(O object, Setable<O, T> property, T post) {
-        if (ConstantSetable.CURRENT.get() == null) {
+        if (Constant.CURRENT.get() == null) {
             throw new NonDeterministicException("Change on '" + property + "' while NOT initializing constant");
         }
         T pre = get(object, property);

@@ -51,7 +51,7 @@ public abstract class AbstractLeaf extends Transaction {
 
     public <O, T> T get(O object, Getable<O, T> property) {
         if (property instanceof Observed) {
-            ConstantSetable<?, ?> lazyConstant = ConstantSetable.CURRENT.get();
+            Constant<?, ?> lazyConstant = Constant.CURRENT.get();
             if (lazyConstant != null) {
                 throw new NonDeterministicException("Reading changeable '" + property + "' while initializing constant '" + lazyConstant + "'");
             }

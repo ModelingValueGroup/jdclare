@@ -23,7 +23,7 @@ public class Triple<A, B, C> extends Struct3Impl<A, B, C> {
         return new Triple<X, Y, Z>(a, b, c);
     }
 
-    private Triple(A a, B b, C c) {
+    protected Triple(A a, B b, C c) {
         super(a, b, c);
     }
 
