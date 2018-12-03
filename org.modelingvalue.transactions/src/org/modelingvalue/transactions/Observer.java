@@ -18,7 +18,6 @@ import java.util.function.BiFunction;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.collections.util.Triple;
 
@@ -40,11 +39,10 @@ public class Observer extends Leaf {
         return new Observer(id, parent, action, initPrio);
     }
 
-    private Concurrent<Set<Slot>> getted    = Concurrent.of();
-    private Concurrent<Set<Slot>> setted    = Concurrent.of();
-    private long                  count     = -1;
+    private Concurrent<Set<Slot>> getted = Concurrent.of();
+    private Concurrent<Set<Slot>> setted = Concurrent.of();
+    private long                  count  = -1;
     private int                   changes;
-    private boolean               mayChange = true;
 
     public Observer(Object id, Compound parent, Runnable action, Priority initPrio) {
         super(id, parent, action, initPrio);
@@ -84,16 +82,6 @@ public class Observer extends Leaf {
     }
 
     @Override
-    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        if (mayChange) {
-            super.changed(object, property, preValue, postValue);
-        } else if (property instanceof Observed) {
-            throw new NonDeterministicException("Second run change: " + StringUtil.toString(object) + "." + property + " = \n" + //
-                    StringUtil.toString(preValue) + " -> \n" + StringUtil.toString(postValue));
-        }
-    }
-
-    @Override
     protected String traceId() {
         return "observerRun";
     }
@@ -106,26 +94,22 @@ public class Observer extends Leaf {
             setted.init(Set.of());
             State post = super.apply(pre);
             if (post != pre) {
+                count();
+                init(post);
                 getted.clear();
                 setted.clear();
-                count();
-                getted.init(Set.of());
-                setted.init(Set.of());
-                mayChange = false;
-                post = super.apply(post);
-                mayChange = true;
+                set(parent, Priority.low.triggered, Set::add, this);
+            } else {
+                init(pre);
+                setObserveds(setted.result(), getted.result());
             }
-            init(post);
-            setObserveds(setted.result(), getted.result());
             return result();
         } catch (EmptyMandatoryException soe) {
-            mayChange = true;
             clear();
             init(pre);
             setObserveds(setted.result(), getted.result());
             return result();
         } catch (StopObserverException soe) {
-            mayChange = true;
             init(result());
             getted.clear();
             setted.clear();
@@ -134,11 +118,6 @@ public class Observer extends Leaf {
         } finally {
             TraceTimer.traceEnd("observer");
         }
-    }
-
-    @Override
-    public boolean mayChange() {
-        return mayChange;
     }
 
     private void setObserveds(Set<Slot> sets, Set<Slot> gets) {
@@ -205,15 +184,13 @@ public class Observer extends Leaf {
 
     @Override
     public void runNonObserving(Runnable action) {
-        if (mayChange) {
-            Set<Slot> s = setted.get();
-            Set<Slot> g = getted.get();
-            try {
-                super.runNonObserving(action);
-            } finally {
-                setted.set(s);
-                getted.set(g);
-            }
+        Set<Slot> s = setted.get();
+        Set<Slot> g = getted.get();
+        try {
+            super.runNonObserving(action);
+        } finally {
+            setted.set(s);
+            getted.set(g);
         }
     }
 

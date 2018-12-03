@@ -112,10 +112,6 @@ public abstract class AbstractLeaf extends Transaction {
         CURRENT.set(t);
     }
 
-    public boolean mayChange() {
-        return true;
-    }
-
     public void runNonObserving(Runnable action) {
         action.run();
     }
