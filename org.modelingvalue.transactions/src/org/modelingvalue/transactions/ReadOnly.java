@@ -55,7 +55,7 @@ public class ReadOnly extends AbstractLeaf {
 
     @Override
     public State state() {
-        throw new UnsupportedOperationException();
+        return states[0];
     }
 
     @Override

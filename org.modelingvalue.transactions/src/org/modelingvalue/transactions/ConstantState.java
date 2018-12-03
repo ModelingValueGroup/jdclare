@@ -177,22 +177,23 @@ public class ConstantState {
     }
 
     public <O, V> V get(AbstractLeaf leaf, O object, Constant<O, V> constant) {
-        return getConstants(object).get(leaf, constant);
+        return getConstants(leaf, object).get(leaf, constant);
     }
 
     public <O, V> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, V value) {
-        return getConstants(object).set(leaf, constant, value);
+        return getConstants(leaf, object).set(leaf, constant, value);
     }
 
     public <O, V, E> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> deriver, E element) {
-        return getConstants(object).set(leaf, constant, deriver, element);
+        return getConstants(leaf, object).set(leaf, constant, deriver, element);
     }
 
     @SuppressWarnings("unchecked")
-    private <O> Constants<O> getConstants(O object) {
+    private <O> Constants<O> getConstants(AbstractLeaf leaf, O object) {
         QualifiedSet<Object, Constants> prev = state.get();
         Constants constants = prev.get(object);
         if (constants == null) {
+            object = leaf.state().canonical(object);
             constants = new Constants<O>(object, queue);
             QualifiedSet<Object, Constants> next = prev.add(constants);
             Constants<O> now;
@@ -222,7 +223,6 @@ public class ConstantState {
                 }
                 next = prev.removeKey(object);
             }
-            constants.clear();
         }
     }
 

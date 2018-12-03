@@ -69,6 +69,12 @@ public class State implements Serializable {
         }, value);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <O> O canonical(O object) {
+        Entry<Object, Map<Setable, Object>> entry = map == null ? null : map.getEntry(object);
+        return entry != null ? (O) entry.getKey() : object;
+    }
+
     @SuppressWarnings("rawtypes")
     public <O, T, E> State set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element, T[] oldNew) {
         Map<Setable, Object> props = properties(object);
