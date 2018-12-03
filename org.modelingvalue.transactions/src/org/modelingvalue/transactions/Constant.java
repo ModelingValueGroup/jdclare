@@ -17,21 +17,11 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.util.Context;
-import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
-import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.Triple;
 
 public class Constant<O, T> extends Setable<O, T> {
-
-    private static final Object                 EMPTY   = new Object() {
-                                                            @Override
-                                                            public String toString() {
-                                                                return "EMPTY";
-                                                            }
-                                                        };
 
     public static final Context<Constant<?, ?>> CURRENT = Context.of();
 
@@ -52,23 +42,21 @@ public class Constant<O, T> extends Setable<O, T> {
     }
 
     private final Function<O, T> deriver;
-    private final T              def;
 
-    @SuppressWarnings("unchecked")
     protected Constant(Object id, T def, Function<O, T> deriver, QuadConsumer<AbstractLeaf, O, T, T> changed) {
-        super(id, (T) EMPTY, changed);
-        this.def = def;
+        super(id, def, changed);
         this.deriver = deriver;
+    }
+
+    public Function<O, T> deriver() {
+        return deriver;
     }
 
     @Override
     public <E> T set(O object, BiFunction<T, E, T> function, E element) {
         AbstractLeaf leaf = AbstractLeaf.getCurrent();
-        Root root = leaf.root();
-        State prev = root.constantState.get();
-        T val = prev.get(object, this);
-        T value = function.apply(val == EMPTY ? def : val, element);
-        return set(object, value, leaf, root, prev, val);
+        ConstantState constants = leaf.root().constantState;
+        return constants.set(leaf, object, this, function, element);
     }
 
     @Override
@@ -77,100 +65,21 @@ public class Constant<O, T> extends Setable<O, T> {
             throw new Error("Constant " + this + " is derived");
         }
         AbstractLeaf leaf = AbstractLeaf.getCurrent();
-        Root root = leaf.root();
-        State prev = root.constantState.get();
-        T val = prev.get(object, this);
-        set(object, value, leaf, root, prev, val);
-        return def;
-    }
-
-    private T set(O object, T value, AbstractLeaf leaf, Root root, State prev, T val) {
-        if (val == EMPTY) {
-            return set(root, leaf, prev, object, value);
-        } else if (!Objects.equals(val, value)) {
-            throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(val) + "!=" + StringUtil.toString(value));
-        } else {
-            return val;
-        }
+        ConstantState constants = leaf.root().constantState;
+        return constants.set(leaf, object, this, value);
     }
 
     public T force(O object, T value) {
         AbstractLeaf leaf = AbstractLeaf.getCurrent();
-        Root root = leaf.root();
-        set(root, leaf, root.constantState.get(), object, value);
-        return def;
+        ConstantState constants = leaf.root().constantState;
+        return constants.set(leaf, object, this, value);
     }
 
     @Override
     public T get(O object) {
         AbstractLeaf leaf = AbstractLeaf.getCurrent();
-        Root root = leaf.root();
-        return get(root, leaf, object);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private T get(Root root, AbstractLeaf leaf, O object) throws Error {
-        State prev = root.constantState.get();
-        T val = prev.get(object, this);
-        if (val == EMPTY) {
-            if (deriver == null) {
-                throw new Error("Constant " + this + " is not set and not derived");
-            } else {
-                try {
-                    val = CURRENT.get(this, () -> set(root, leaf, prev, object, deriver.apply(object)));
-                } catch (ConstantSetableException lce) {
-                    if (!(lce.getCause() instanceof StackOverflowError) || CURRENT.get() != null) {
-                        lce.addLazy(object, Constant.this);
-                        throw lce;
-                    } else {
-                        for (Pair<Object, Constant> lazy : lce.list) {
-                            if (equals(lazy.b()) && object.equals(lazy.a())) {
-                                Pair<Object, Constant> me = Pair.of(object, this);
-                                throw new NonDeterministicException("Circular constant definition: " + lce.list.sublist(lce.list.lastIndexOf(me), lce.list.size()).add(me));
-                            }
-                            lazy.b().get(root, leaf, lazy.a());
-                        }
-                        val = get(root, leaf, object);
-                    }
-                } catch (Throwable t) {
-                    throw new ConstantSetableException(object, Constant.this, t);
-                }
-            }
-        }
-        return val;
-    }
-
-    private T set(Root root, AbstractLeaf leaf, State prev, O object, T value) {
-        State next = prev.set(object, this, value);
-        T val;
-        while (!root.constantState.compareAndSet(prev, next)) {
-            prev = root.constantState.get();
-            val = prev.get(object, this);
-            if (val != EMPTY) {
-                return val;
-            }
-            next = prev.set(object, this, value);
-        }
-        changed(leaf, object, def, value);
-        return value;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void clear(Root root, AbstractLeaf leaf, O object) {
-        State prev = root.constantState.get();
-        T val = prev.get(object, this);
-        if (val != EMPTY) {
-            State next = prev.set(object, this, (T) EMPTY);
-            while (!root.constantState.compareAndSet(prev, next)) {
-                prev = root.constantState.get();
-                val = prev.get(object, this);
-                if (val == EMPTY) {
-                    return;
-                }
-                next = prev.set(object, this, (T) EMPTY);
-            }
-            changed(leaf, object, val, def);
-        }
+        ConstantState constants = leaf.root().constantState;
+        return constants.get(leaf, object, this);
     }
 
     @Override
@@ -178,29 +87,6 @@ public class Constant<O, T> extends Setable<O, T> {
         if (changed != null && !Objects.equals(preValue, postValue)) {
             Leaf.of(Triple.of(object, this, "changed"), leaf.parent(), () -> super.changed(leaf, object, preValue, postValue)).trigger();
         }
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static final class ConstantSetableException extends RuntimeException {
-
-        private static final long            serialVersionUID = -6980064786088373917L;
-
-        private List<Pair<Object, Constant>> list             = List.of();
-
-        public ConstantSetableException(Object object, Constant lazy, Throwable cause) {
-            super(cause);
-            addLazy(object, lazy);
-        }
-
-        private void addLazy(Object object, Constant lazy) {
-            list = list.append(Pair.of(object, lazy));
-        }
-
-        @Override
-        public String getMessage() {
-            return "Exception while deriving Lazy Constants " + list;
-        }
-
     }
 
 }

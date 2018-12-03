@@ -67,13 +67,6 @@ public abstract class AbstractLeaf extends Transaction {
                 set(object, e.getKey(), e.getKey().getDefault());
             }
         }
-        Root root = root();
-        properties = root.constantState.get().properties(object);
-        if (properties != null) {
-            for (Entry<Setable, Object> e : properties) {
-                ((Constant) e.getKey()).clear(root, this, object);
-            }
-        }
     }
 
     public abstract <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element);
