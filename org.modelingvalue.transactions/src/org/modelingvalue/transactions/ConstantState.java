@@ -1,7 +1,7 @@
 package org.modelingvalue.transactions;
 
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -45,17 +45,21 @@ public class ConstantState {
         }
     }
 
-    private class Constants<O> extends SoftReference<O> {
+    private class Constants<O> extends WeakReference<O> {
 
         protected volatile Map<Constant<O, ?>, Object> constants;
+        private final int                              hash;
 
         public Constants(O object, ReferenceQueue<? super O> queue) {
             super(object, queue);
             UPDATOR.lazySet(this, Map.of());
+            hash = object.hashCode();
         }
 
+        @SuppressWarnings("unchecked")
         public O object() {
-            return get();
+            O o = get();
+            return o == null ? (O) this : o;
         }
 
         @SuppressWarnings("unchecked")
@@ -102,22 +106,17 @@ public class ConstantState {
 
         @Override
         public boolean equals(Object o) {
-            if (o instanceof Constants) {
-                Constants cs = (Constants) o;
-                return Objects.equals(object(), cs.object());
-            } else {
-                return false;
-            }
+            return o == this;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(object());
+            return hash;
         }
 
         @Override
         public String toString() {
-            return "Constants:" + object();
+            return "Constants:" + get();
         }
 
         @SuppressWarnings("unchecked")
@@ -224,7 +223,6 @@ public class ConstantState {
                 next = prev.removeKey(object);
             }
             constants.clear();
-            System.err.println("!!!!! " + object);
         }
     }
 
