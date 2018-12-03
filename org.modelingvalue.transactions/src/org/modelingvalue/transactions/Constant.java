@@ -142,9 +142,10 @@ public class Constant<O, T> extends Setable<O, T> {
 
     private T set(Root root, AbstractLeaf leaf, State prev, O object, T value) {
         State next = prev.set(object, this, value);
+        T val;
         while (!root.constantState.compareAndSet(prev, next)) {
             prev = root.constantState.get();
-            T val = prev.get(object, this);
+            val = prev.get(object, this);
             if (val != EMPTY) {
                 return val;
             }
@@ -152,6 +153,24 @@ public class Constant<O, T> extends Setable<O, T> {
         }
         changed(leaf, object, def, value);
         return value;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void clear(Root root, AbstractLeaf leaf, O object) {
+        State prev = root.constantState.get();
+        T val = prev.get(object, this);
+        if (val != EMPTY) {
+            State next = prev.set(object, this, (T) EMPTY);
+            while (!root.constantState.compareAndSet(prev, next)) {
+                prev = root.constantState.get();
+                val = prev.get(object, this);
+                if (val == EMPTY) {
+                    return;
+                }
+                next = prev.set(object, this, (T) EMPTY);
+            }
+            changed(leaf, object, val, def);
+        }
     }
 
     @Override

@@ -90,12 +90,6 @@ public class State implements Serializable {
         return map == null ? null : map.get(object);
     }
 
-    @SuppressWarnings("rawtypes")
-    public <O> State clear(O object) {
-        Map<Object, Map<Setable, Object>> niw = map == null ? null : map.removeKey(object);
-        return map == niw ? this : niw == null || niw.isEmpty() ? root.emptyState() : new State(root, niw);
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     static <O, T> T get(Map<Setable, Object> props, Setable<O, T> property) {
         Entry entry = props == null ? null : props.getEntry(property);
