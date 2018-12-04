@@ -16,16 +16,14 @@ import org.modelingvalue.collections.util.StringUtil;
 @SuppressWarnings("rawtypes")
 public class ConstantState {
 
-    private static final int                                         MAX_CONSTATS_DEPTH = Integer.getInteger("MAX_CONSTATS_DEPTH", 300);
+    private static final Object                                      NULL    = new Object() {
+                                                                                 @Override
+                                                                                 public String toString() {
+                                                                                     return "null";
+                                                                                 }
+                                                                             };
 
-    private static final Object                                      NULL               = new Object() {
-                                                                                            @Override
-                                                                                            public String toString() {
-                                                                                                return "null";
-                                                                                            }
-                                                                                        };
-
-    private static final AtomicReferenceFieldUpdater<Constants, Map> UPDATOR            = AtomicReferenceFieldUpdater.newUpdater(Constants.class, Map.class, "constants");
+    private static final AtomicReferenceFieldUpdater<Constants, Map> UPDATOR = AtomicReferenceFieldUpdater.newUpdater(Constants.class, Map.class, "constants");
 
     private static final class ConstantDepthOverflowException extends RuntimeException {
         private static final long            serialVersionUID = -6980064786088373917L;
@@ -139,9 +137,6 @@ public class ConstantState {
         @SuppressWarnings({"unchecked", "resource"})
         private <V> V derive(AbstractLeaf leaf, O object, Constant<O, V> constant) {
             int depth = Constant.DEPTH.get();
-            if (depth > MAX_CONSTATS_DEPTH) {
-                throw new ConstantDepthOverflowException(object, constant);
-            }
             List<Pair<Object, Constant>> list = List.of();
             while (true) {
                 try {
@@ -153,12 +148,14 @@ public class ConstantState {
                         ConstantState.this.get(leaf, lazy.a(), lazy.b());
                     }
                     return Constant.DEPTH.get(depth + 1, () -> constant.deriver().apply(object));
+                } catch (StackOverflowError soe) {
+                    throw new ConstantDepthOverflowException(object, constant);
                 } catch (ConstantDepthOverflowException lce) {
                     if (depth > 0) {
                         lce.addLazy(object, constant);
                         throw lce;
                     } else {
-                        list = lce.list;
+                        list = list.prependList(lce.list);
                     }
                 }
             }
