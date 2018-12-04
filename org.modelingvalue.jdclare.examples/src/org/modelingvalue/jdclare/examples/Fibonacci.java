@@ -1,5 +1,6 @@
 package org.modelingvalue.jdclare.examples;
 
+import static java.math.BigInteger.*;
 import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
@@ -15,8 +16,11 @@ public interface Fibonacci extends DStruct1<Integer> {
 
     @Property(constant)
     default BigInteger fibonaci() {
-        int nr = nr();
-        return nr == 0 ? BigInteger.ZERO : nr == 1 ? BigInteger.ONE : dStruct(Fibonacci.class, nr - 1).fibonaci().add(dStruct(Fibonacci.class, nr - 2).fibonaci());
+        return nr() == 0 ? ZERO : nr() == 1 ? ONE : of(nr() - 1).add(of(nr() - 2));
+    }
+
+    static BigInteger of(int nr) {
+        return dStruct(Fibonacci.class, nr).fibonaci();
     }
 
 }

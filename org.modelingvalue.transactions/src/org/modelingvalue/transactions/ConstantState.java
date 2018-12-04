@@ -16,22 +16,23 @@ import org.modelingvalue.collections.util.StringUtil;
 @SuppressWarnings("rawtypes")
 public class ConstantState {
 
-    private static final Object                                      NULL    = new Object() {
-                                                                                 @Override
-                                                                                 public String toString() {
-                                                                                     return "null";
-                                                                                 }
-                                                                             };
+    private static final int                                         MAX_CONSTATS_DEPTH = Integer.getInteger("MAX_CONSTATS_DEPTH", 300);
 
-    private static final AtomicReferenceFieldUpdater<Constants, Map> UPDATOR = AtomicReferenceFieldUpdater.newUpdater(Constants.class, Map.class, "constants");
+    private static final Object                                      NULL               = new Object() {
+                                                                                            @Override
+                                                                                            public String toString() {
+                                                                                                return "null";
+                                                                                            }
+                                                                                        };
 
-    private static final class ConstantSetableException extends RuntimeException {
+    private static final AtomicReferenceFieldUpdater<Constants, Map> UPDATOR            = AtomicReferenceFieldUpdater.newUpdater(Constants.class, Map.class, "constants");
+
+    private static final class ConstantDepthOverflowException extends RuntimeException {
         private static final long            serialVersionUID = -6980064786088373917L;
 
         private List<Pair<Object, Constant>> list             = List.of();
 
-        public ConstantSetableException(Object object, Constant lazy, Throwable cause) {
-            super(cause);
+        public ConstantDepthOverflowException(Object object, Constant lazy) {
             addLazy(object, lazy);
         }
 
@@ -41,7 +42,7 @@ public class ConstantState {
 
         @Override
         public String getMessage() {
-            return "Exception while deriving Lazy Constants " + list;
+            return "Depth overflow while deriving constants " + list;
         }
     }
 
@@ -135,26 +136,31 @@ public class ConstantState {
             return soll;
         }
 
-        @SuppressWarnings("unchecked")
-        private <V> V derive(AbstractLeaf leaf, O object, Constant<O, V> constant) throws NonDeterministicException {
-            try {
-                return Constant.CURRENT.get(constant, () -> constant.deriver().apply(object));
-            } catch (ConstantSetableException lce) {
-                if (!(lce.getCause() instanceof StackOverflowError) || Constant.CURRENT.get() != null) {
-                    lce.addLazy(object, constant);
-                    throw lce;
-                } else {
-                    for (Pair<Object, Constant> lazy : lce.list) {
+        @SuppressWarnings({"unchecked", "resource"})
+        private <V> V derive(AbstractLeaf leaf, O object, Constant<O, V> constant) {
+            int depth = Constant.DEPTH.get();
+            if (depth > MAX_CONSTATS_DEPTH) {
+                throw new ConstantDepthOverflowException(object, constant);
+            }
+            List<Pair<Object, Constant>> list = List.of();
+            while (true) {
+                try {
+                    for (Pair<Object, Constant> lazy : list) {
                         if (constant.equals(lazy.b()) && object.equals(lazy.a())) {
                             Pair<Object, Constant> me = Pair.of(object, constant);
-                            throw new NonDeterministicException("Circular constant definition: " + lce.list.sublist(lce.list.lastIndexOf(me), lce.list.size()).add(me));
+                            throw new NonDeterministicException("Circular constant definition: " + list.sublist(list.lastIndexOf(me), list.size()).add(me));
                         }
                         ConstantState.this.get(leaf, lazy.a(), lazy.b());
                     }
-                    return Constant.CURRENT.get(constant, () -> constant.deriver().apply(object));
+                    return Constant.DEPTH.get(depth + 1, () -> constant.deriver().apply(object));
+                } catch (ConstantDepthOverflowException lce) {
+                    if (depth > 0) {
+                        lce.addLazy(object, constant);
+                        throw lce;
+                    } else {
+                        list = lce.list;
+                    }
                 }
-            } catch (Throwable t) {
-                throw new ConstantSetableException(object, constant, t);
             }
         }
     }

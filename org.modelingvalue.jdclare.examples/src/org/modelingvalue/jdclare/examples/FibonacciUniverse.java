@@ -33,7 +33,7 @@ public interface FibonacciUniverse extends DUniverse {
 
     @Property
     default BigInteger fibonacci() {
-        return dStruct(Fibonacci.class, nr()).fibonaci();
+        return Fibonacci.of(nr());
     }
 
     @Override

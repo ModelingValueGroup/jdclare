@@ -23,7 +23,7 @@ import org.modelingvalue.collections.util.Triple;
 
 public class Constant<O, T> extends Setable<O, T> {
 
-    public static final Context<Constant<?, ?>> CURRENT = Context.of();
+    public static final Context<Integer> DEPTH = Context.of(0);
 
     public static <C, V> Constant<C, V> of(Object id, Function<C, V> deriver) {
         return new Constant<C, V>(id, null, deriver, null);

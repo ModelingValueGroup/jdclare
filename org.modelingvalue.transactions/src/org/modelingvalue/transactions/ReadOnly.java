@@ -72,25 +72,12 @@ public class ReadOnly extends AbstractLeaf {
 
     @Override
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        if (Constant.CURRENT.get() == null) {
-            throw new NonDeterministicException("Change on '" + property + "' while NOT initializing constant");
-        }
-        T pre = get(object, property);
-        T post = function.apply(pre, element);
-        states[0] = states[0].set(object, property, post);
-        changed(object, property, pre, post);
-        return pre;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <O, T> T set(O object, Setable<O, T> property, T post) {
-        if (Constant.CURRENT.get() == null) {
-            throw new NonDeterministicException("Change on '" + property + "' while NOT initializing constant");
-        }
-        T pre = get(object, property);
-        states[0] = states[0].set(object, property, post);
-        changed(object, property, pre, post);
-        return pre;
+        throw new UnsupportedOperationException();
     }
 
     @Override
