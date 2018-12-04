@@ -62,43 +62,43 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V get(AbstractLeaf leaf, Constant<O, V> constant) {
+        public <V> V get(AbstractLeaf leaf, O object, Constant<O, V> constant) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
                 if (constant.deriver() == null) {
                     throw new Error("Constant " + constant + " is not set and not derived");
                 } else {
-                    V soll = derive(leaf, object(), constant);
-                    ist = set(leaf, constant, prev, soll == null ? (V) NULL : soll);
+                    V soll = derive(leaf, object, constant);
+                    ist = set(leaf, object, constant, prev, soll == null ? (V) NULL : soll);
                 }
             }
             return ist == NULL ? null : ist;
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V set(AbstractLeaf leaf, Constant<O, V> constant, V soll) {
+        public <V> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, V soll) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
-                ist = set(leaf, constant, prev, soll == null ? (V) NULL : soll);
+                ist = set(leaf, object, constant, prev, soll == null ? (V) NULL : soll);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
-                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object()) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
+                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
             }
             return constant.getDefault();
         }
 
         @SuppressWarnings("unchecked")
-        public <V, E> V set(AbstractLeaf leaf, Constant<O, V> constant, BiFunction<V, E, V> function, E element) {
+        public <V, E> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> function, E element) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             V soll = function.apply(constant.getDefault(), element);
             if (ist == null) {
-                ist = set(leaf, constant, prev, soll == null ? (V) NULL : soll);
+                ist = set(leaf, object, constant, prev, soll == null ? (V) NULL : soll);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
-                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object()) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
+                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
             }
             return ist == NULL ? null : ist;
         }
@@ -119,7 +119,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        private <V> V set(AbstractLeaf leaf, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
+        private <V> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
             V ist;
             Map<Constant<O, ?>, Object> next = prev.put(constant, soll);
             while (!UPDATOR.compareAndSet(this, prev, next)) {
@@ -130,7 +130,7 @@ public class ConstantState {
                 }
                 next = prev.put(constant, soll);
             }
-            constant.changed(leaf, object(), constant.getDefault(), soll == NULL ? null : soll);
+            constant.changed(leaf, object, constant.getDefault(), soll == NULL ? null : soll);
             return soll;
         }
 
@@ -180,15 +180,15 @@ public class ConstantState {
     }
 
     public <O, V> V get(AbstractLeaf leaf, O object, Constant<O, V> constant) {
-        return getConstants(leaf, object).get(leaf, constant);
+        return getConstants(leaf, object).get(leaf, object, constant);
     }
 
     public <O, V> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, V value) {
-        return getConstants(leaf, object).set(leaf, constant, value);
+        return getConstants(leaf, object).set(leaf, object, constant, value);
     }
 
     public <O, V, E> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> deriver, E element) {
-        return getConstants(leaf, object).set(leaf, constant, deriver, element);
+        return getConstants(leaf, object).set(leaf, object, constant, deriver, element);
     }
 
     @SuppressWarnings("unchecked")
