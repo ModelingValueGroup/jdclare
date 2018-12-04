@@ -8,7 +8,7 @@ import java.math.BigInteger;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
 
-public interface Fibonacci extends DStruct1<Double> {
+public interface Fibonacci extends DStruct1<Integer> {
 
     @Property(key = 0)
     int nr();
