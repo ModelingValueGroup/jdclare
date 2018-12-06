@@ -59,6 +59,10 @@ public class Observed<O, T> extends Setable<O, T> {
         return observers[prio.nr];
     }
 
+    public Observers<O, T>[] observers() {
+        return observers;
+    }
+
     public static final class Observers<O, T> extends Setable<O, Set<Observer>> {
 
         private Observed<O, T> observed;

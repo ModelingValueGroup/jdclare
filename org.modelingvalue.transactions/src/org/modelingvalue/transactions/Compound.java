@@ -38,8 +38,10 @@ public class Compound extends Transaction {
         return new Compound(id, parent);
     }
 
-    private final Concurrent<Set<Observer>>[] triggered;
-    private final ReadOnly                    merger;
+    private final Concurrent<Set<Observer>>[]             triggered;
+    @SuppressWarnings("rawtypes")
+    private final Concurrent<Set<Pair<Object, Observed>>> conflicts;
+    private final ReadOnly                                merger;
 
     @SuppressWarnings("unchecked")
     protected Compound(Object id, Compound parent) {
@@ -48,6 +50,7 @@ public class Compound extends Transaction {
         for (int i = 0; i < triggered.length; i++) {
             triggered[i] = Concurrent.of();
         }
+        conflicts = Concurrent.of();
         merger = ReadOnly.of(Pair.of(this, "merger"), root());
         if (parent != null && parent.ancestorId(id)) {
             throw new Error("Cyclic Compound Transaction id " + id);
@@ -134,6 +137,7 @@ public class Compound extends Transaction {
                 for (int i = 0; i < triggered.length; i++) {
                     triggered[i].init(Set.of());
                 }
+                conflicts.init(Set.of());
                 State state = base.merge((ps, psm, psbs) -> {
                     for (Entry<Setable, Object> p : psm) {
                         if (p.getKey() instanceof Observers) {
@@ -155,9 +159,21 @@ public class Compound extends Transaction {
                             }
                         }
                     }
+                }, (o, p) -> {
+                    if (p instanceof Observed) {
+                        conflicts.change(c -> c.add(Pair.of(o, (Observed) p)));
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }, branches);
                 for (int i = 0; i < triggered.length; i++) {
                     state = trigger(state, triggered[i].result(), Priority.values()[i]);
+                }
+                for (Pair<Object, Observed> c : conflicts.result()) {
+                    for (Observers<Object, ?> obs : c.b().observers()) {
+                        state = trigger(state, state.get(c.a(), obs), obs.prio());
+                    }
                 }
                 return state;
             }, branches);

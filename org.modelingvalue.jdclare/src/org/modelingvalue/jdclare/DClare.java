@@ -927,8 +927,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     public static State getConstraints(Method method) {
         Set<Class> supers = supers(Set.of(method.getDeclaringClass(), elementClass(method.getGenericReturnType())));
-        return dClare().emptyState().merge((a, b, c) -> {
-        }, supers.map(s -> CLASS_INIT.get(s)).toArray(l -> new State[l]));
+        return dClare().emptyState().merge(null, null, supers.map(s -> CLASS_INIT.get(s)).toArray(l -> new State[l]));
     }
 
     @SuppressWarnings("unlikely-arg-type")
@@ -1423,7 +1422,7 @@ public final class DClare<U extends DUniverse> extends Root {
     private Set<JRule<?, ?>> jClassRules;
 
     private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, int maxInInQueue) {
-        super(dStruct(universeClass), maxInInQueue, null);
+        super(dStruct(universeClass), maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
         this.checkFatals = checkFatals ? Leaf.of("checkFatals", this, this::checkFatals) : null;
     }
 

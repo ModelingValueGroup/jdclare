@@ -152,7 +152,7 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public State merge(TriConsumer<Map<Setable, Object>, Map<Setable, Object>, Map<Setable, Object>[]> change, State... branches) {
+    public State merge(TriConsumer<Map<Setable, Object>, Map<Setable, Object>, Map<Setable, Object>[]> changeHandler, BiFunction<Object, Setable, Boolean> conflictHandler, State... branches) {
         Map<Object, Map<Setable, Object>>[] maps = new Map[branches.length];
         for (int i = 0; i < maps.length; i++) {
             maps[i] = map(branches[i].map);
@@ -167,26 +167,28 @@ public class State implements Serializable {
                     Object result = ((Mergeable<Object>) v).merge(vs);
                     return Objects.equals(result, p.getDefault()) ? null : Entry.of(p, result);
                 } else {
+                    boolean conflict = false;
                     Object result = null;
                     for (int i = 0; i < vs.length; i++) {
                         if (vs[i] != null) {
                             if (result != null) {
-                                result = null;
+                                conflict = true;
                                 break;
                             } else {
                                 result = vs[i];
                             }
                         }
                     }
-                    if (result == null) {
+                    if (conflict && (conflictHandler == null || !conflictHandler.apply(o, p))) {
                         Object stv = v;
                         throw new ConcurrentModificationException(get(() -> o + "." + p + " = " + stv + " -> " + Arrays.toString(vs)));
-                    } else {
-                        return Entry.of(p, result);
                     }
+                    return Entry.of(p, result);
                 }
             }, pss);
-            change.accept(ps, map(props), pss);
+            if (changeHandler != null) {
+                changeHandler.accept(ps, map(props), pss);
+            }
             return props == null || props.isEmpty() ? null : Entry.of(o, props);
         }, maps);
         return niw == null || niw.isEmpty() ? root.emptyState() : new State(root, niw);

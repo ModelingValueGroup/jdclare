@@ -34,22 +34,35 @@ import org.modelingvalue.collections.util.Triple;
 
 public class Root extends Compound {
 
-    public static final ContextPool POOL = ContextThread.thePool();
+    public static final ContextPool POOL                    = ContextThread.thePool();
 
-    public static Root of(Object id, int maxInInQueue) {
-        return new Root(id, maxInInQueue, null);
+    public static final int         MAX_IN_IN_QUEUE         = Integer.getInteger("MAX_IN_IN_QUEUE", 100);
+    public static final int         MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 128000);
+    public static final int         MAX_NR_OF_CHANGES       = Integer.getInteger("MAX_NR_OF_CHANGES", 32);
+    public static final int         MAX_NR_OF_HISTORY       = Integer.getInteger("MAX_NR_OF_HISTORY", 64) + 3;
+
+    public static Root of(Object id, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory) {
+        return new Root(id, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, null);
+    }
+
+    public static Root of(Object id, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
+        return new Root(id, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, cycle);
+    }
+
+    public static Root of(Object id) {
+        return new Root(id, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
     }
 
     public static Root of(Object id, int maxInInQueue, Consumer<Root> cycle) {
-        return new Root(id, maxInInQueue, cycle);
+        return new Root(id, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, cycle);
     }
 
-    static final int                                                                                                     MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 128000);
-    static final int                                                                                                     MAX_NR_OF_CHANGES       = Integer.getInteger("MAX_NR_OF_CHANGES", 32);
-    private static final int                                                                                             MAX_NR_OF_HISTORY       = Integer.getInteger("MAX_NR_OF_HISTORY", 64) + 3;
+    public static Root of(Object id, int maxInInQueue) {
+        return new Root(id, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+    }
 
-    public static final Setable<Root, Boolean>                                                                           STOPPED                 = Setable.of("stopped", false);
-    public static final Setable<Root, Set<AbstractLeaf>>                                                                 INTEGRATIONS            = Setable.of("integrations", Set.of());
+    public static final Setable<Root, Boolean>                                                                           STOPPED       = Setable.of("stopped", false);
+    public static final Setable<Root, Set<AbstractLeaf>>                                                                 INTEGRATIONS  = Setable.of("integrations", Set.of());
 
     private final Leaf                                                                                                   pre;
     private final Leaf                                                                                                   dummy;
@@ -59,19 +72,23 @@ public class Root extends Compound {
     private final BlockingQueue<Leaf>                                                                                    inQueue;
     private final BlockingQueue<State>                                                                                   resultQueue;
 
-    private final State                                                                                                  emptyState              = new State(this, null);
-    private List<State>                                                                                                  history                 = List.of();
-    private List<State>                                                                                                  future                  = List.of();
+    private final State                                                                                                  emptyState    = new State(this, null);
+    private List<State>                                                                                                  history       = List.of();
+    private List<State>                                                                                                  future        = List.of();
     private State                                                                                                        preState;
-    protected ConstantState                                                                                              constantState           = new ConstantState();
+    protected ConstantState                                                                                              constantState = new ConstantState();
     protected ConcurrentMap<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> tooManyChanges;
     protected Leaf                                                                                                       leaf;
     private long                                                                                                         count;
     private int                                                                                                          changes;
     private Throwable                                                                                                    error;
+    final int                                                                                                            maxTotalNrOfChanges;
+    final int                                                                                                            maxNrOfChanges;
 
-    protected Root(Object id, int maxInInQueue, Consumer<Root> cycle) {
+    protected Root(Object id, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
         super(id);
+        this.maxTotalNrOfChanges = maxTotalNrOfChanges;
+        this.maxNrOfChanges = maxNrOfChanges;
         inQueue = new LinkedBlockingQueue<>(maxInInQueue);
         resultQueue = new LinkedBlockingQueue<>(1);
         stop = Leaf.of("stop", this, () -> STOPPED.set(this, true));
@@ -106,7 +123,7 @@ public class Root extends Compound {
                     } else if (leaf != dummy) {
                         history = history.append(state);
                         future = List.of();
-                        if (history.size() > MAX_NR_OF_HISTORY) {
+                        if (history.size() > maxNrOfHistory) {
                             history = history.removeFirst();
                         }
                         try {
@@ -242,7 +259,7 @@ public class Root extends Compound {
     }
 
     public long count() {
-        if (changes++ > MAX_TOTAL_NR_OF_CHANGES) {
+        if (changes++ > maxTotalNrOfChanges) {
             throw new TooManyChangesException("Total changes: " + changes + ", running: " + Leaf.getCurrent());
         }
         return count;
@@ -255,12 +272,12 @@ public class Root extends Compound {
     private void reportTooLong(State state) {
         if (tooManyChanges != null) {
             state.run(() -> {
-                System.err.println("------------ MORE THEN " + MAX_NR_OF_CHANGES + " CHANGING RUNS OF 1 RULE IN 1 ROOT TRANSACTION -----------------------");
+                System.err.println("------------ MORE THEN " + maxNrOfChanges + " CHANGING RUNS OF 1 RULE IN 1 ROOT TRANSACTION -----------------------");
                 Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> map = //
                         Collection.of(tooManyChanges.entrySet()).toMap(e -> Entry.of(e.getKey(), e.getValue()));
                 boolean[] isCause = new boolean[1];
                 boolean found = false;
-                for (int i = 0; !found && i < MAX_NR_OF_CHANGES; i++) {
+                for (int i = 0; !found && i < maxNrOfChanges; i++) {
                     for (Pair<Observer, Integer> run : map.toKeys()) {
                         if (run.b() == i) {
                             isCause[0] = false;
@@ -281,7 +298,7 @@ public class Root extends Compound {
             Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> map, boolean[] isCause) {
         Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>> writes = map.get(run);
         map = map.removeKey(run);
-        boolean found = run.a().changes() > MAX_NR_OF_CHANGES;
+        boolean found = run.a().changes() > maxNrOfChanges;
         if (writes != null) {
             for (Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>> write : writes) {
                 isCause[0] = false;
