@@ -260,7 +260,7 @@ public class Root extends Compound {
 
     public long count() {
         if (changes++ > maxTotalNrOfChanges) {
-            throw new TooManyChangesException("Total changes: " + changes + ", running: " + Leaf.getCurrent());
+            throw new TooManyChangesException("Total Changes: " + changes + ", running: " + preState().get(AbstractLeaf.getCurrent()::toString));
         }
         return count;
     }
