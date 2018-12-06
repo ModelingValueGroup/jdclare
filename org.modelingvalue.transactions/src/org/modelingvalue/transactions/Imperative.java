@@ -99,8 +99,9 @@ public class Imperative extends AbstractLeaf {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Object observed, Object post) {
+    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object post) {
         // Do nothing
     }
 

@@ -131,16 +131,17 @@ public class Observer extends Leaf {
         });
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Object observed, Object value) {
+    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object value) {
         super.trigger(leafs, prio, object, observed, value);
         Root root = root();
         if (root.tooManyChanges()) {
             Pair<Observer, Integer> self = Pair.of(this, changes());
-            Triple<Object, Object, Object> change = Triple.of(object, observed, value);
+            Triple<Object, Observed, Object> change = Triple.of(object, observed, value);
             for (Observer triggered : leafs) {
                 if (!equals(triggered)) {
-                    Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>> a = Pair.of(Pair.of(triggered, triggered.changes()), change);
+                    Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>> a = Pair.of(Pair.of(triggered, triggered.changes()), change);
                     root.tooManyChanges.compute(self, (o, t) -> t != null ? t.add(a) : Set.of(a));
                 }
             }

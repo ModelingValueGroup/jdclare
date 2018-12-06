@@ -80,8 +80,9 @@ public class ReadOnly extends AbstractLeaf {
         throw new UnsupportedOperationException();
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Object observed, Object post) {
+    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object post) {
         // Do nothing
     }
 

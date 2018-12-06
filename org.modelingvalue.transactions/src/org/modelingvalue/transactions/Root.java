@@ -61,29 +61,30 @@ public class Root extends Compound {
         return new Root(id, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
     }
 
-    public static final Setable<Root, Boolean>                                                                           STOPPED       = Setable.of("stopped", false);
-    public static final Setable<Root, Set<AbstractLeaf>>                                                                 INTEGRATIONS  = Setable.of("integrations", Set.of());
+    public static final Setable<Root, Boolean>                                                                             STOPPED       = Setable.of("stopped", false);
+    public static final Setable<Root, Set<AbstractLeaf>>                                                                   INTEGRATIONS  = Setable.of("integrations", Set.of());
 
-    private final Leaf                                                                                                   pre;
-    private final Leaf                                                                                                   dummy;
-    private final Leaf                                                                                                   stop;
-    private final Leaf                                                                                                   backward;
-    private final Leaf                                                                                                   forward;
-    private final BlockingQueue<Leaf>                                                                                    inQueue;
-    private final BlockingQueue<State>                                                                                   resultQueue;
+    private final Leaf                                                                                                     pre;
+    private final Leaf                                                                                                     dummy;
+    private final Leaf                                                                                                     stop;
+    private final Leaf                                                                                                     backward;
+    private final Leaf                                                                                                     forward;
+    private final BlockingQueue<Leaf>                                                                                      inQueue;
+    private final BlockingQueue<State>                                                                                     resultQueue;
 
-    private final State                                                                                                  emptyState    = new State(this, null);
-    private List<State>                                                                                                  history       = List.of();
-    private List<State>                                                                                                  future        = List.of();
-    private State                                                                                                        preState;
-    protected ConstantState                                                                                              constantState = new ConstantState();
-    protected ConcurrentMap<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> tooManyChanges;
-    protected Leaf                                                                                                       leaf;
-    private long                                                                                                         count;
-    private int                                                                                                          changes;
-    private Throwable                                                                                                    error;
-    final int                                                                                                            maxTotalNrOfChanges;
-    final int                                                                                                            maxNrOfChanges;
+    private final State                                                                                                    emptyState    = new State(this, null);
+    private List<State>                                                                                                    history       = List.of();
+    private List<State>                                                                                                    future        = List.of();
+    private State                                                                                                          preState;
+    protected ConstantState                                                                                                constantState = new ConstantState();
+    @SuppressWarnings("rawtypes")
+    protected ConcurrentMap<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>>> tooManyChanges;
+    protected Leaf                                                                                                         leaf;
+    private long                                                                                                           count;
+    private int                                                                                                            changes;
+    private Throwable                                                                                                      error;
+    final int                                                                                                              maxTotalNrOfChanges;
+    final int                                                                                                              maxNrOfChanges;
 
     protected Root(Object id, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
         super(id);
@@ -269,11 +270,12 @@ public class Root extends Compound {
         return tooManyChanges != null;
     }
 
+    @SuppressWarnings("rawtypes")
     private void reportTooLong(State state) {
         if (tooManyChanges != null) {
             state.run(() -> {
                 System.err.println("------------ MORE THEN " + maxNrOfChanges + " CHANGING RUNS OF 1 RULE IN 1 ROOT TRANSACTION -----------------------");
-                Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> map = //
+                Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>>> map = //
                         Collection.of(tooManyChanges.entrySet()).toMap(e -> Entry.of(e.getKey(), e.getValue()));
                 boolean[] isCause = new boolean[1];
                 boolean found = false;
@@ -294,13 +296,14 @@ public class Root extends Compound {
         }
     }
 
-    private Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> filterCauses(Pair<Observer, Integer> run, //
-            Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> map, boolean[] isCause) {
-        Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>> writes = map.get(run);
+    @SuppressWarnings("rawtypes")
+    private Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>>> filterCauses(Pair<Observer, Integer> run, //
+            Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>>> map, boolean[] isCause) {
+        Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>> writes = map.get(run);
         map = map.removeKey(run);
         boolean found = run.a().changes() > maxNrOfChanges;
         if (writes != null) {
-            for (Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>> write : writes) {
+            for (Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>> write : writes) {
                 isCause[0] = false;
                 map = filterCauses(write.a(), map, isCause);
                 if (isCause[0]) {
@@ -318,18 +321,19 @@ public class Root extends Compound {
         }
     }
 
-    private void print(String prefix, Pair<Observer, Integer> run, Triple<Object, Object, Object> trigger, //
-            Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>>> map) {
+    @SuppressWarnings("rawtypes")
+    private void print(String prefix, Pair<Observer, Integer> run, Triple<Object, Observed, Object> trigger, //
+            Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>>> map) {
         if (trigger != null) {
             System.err.println(prefix + StringUtil.toString(trigger.a()) + "." + StringUtil.toString(trigger.b()) + "=" + StringUtil.toString(trigger.c()));
         }
-        Set<Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>>> writes = map.get(run);
+        Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>> writes = map.get(run);
         if (writes != null || !prefix.isEmpty()) {
             System.err.println(prefix + "-> " + StringUtil.toString(run.a()).substring(9) + " (" + (run.b() + 1) + ")");
         }
         if (writes != null) {
             map = map.removeKey(run);
-            for (Pair<Pair<Observer, Integer>, Triple<Object, Object, Object>> write : writes) {
+            for (Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>> write : writes) {
                 print(prefix + "    ", write.a(), write.b(), map);
             }
         }

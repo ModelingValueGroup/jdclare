@@ -70,7 +70,8 @@ public abstract class AbstractLeaf extends Transaction {
 
     public abstract <O, T> T set(O object, Setable<O, T> property, T post);
 
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Object observed, Object post) {
+    @SuppressWarnings("rawtypes")
+    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object post) {
         for (Observer leaf : leafs) {
             trigger(leaf, prio);
         }
