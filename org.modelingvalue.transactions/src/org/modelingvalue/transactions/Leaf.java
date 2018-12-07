@@ -19,6 +19,7 @@ import java.util.function.BiFunction;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
@@ -118,7 +119,7 @@ public class Leaf extends AbstractLeaf {
         T pre = bra == null ? prePre : (T) bra.getValue();
         if (!Objects.equals(pre, post)) {
             if (bra != null) {
-                post = (T) Leaf.merge(slot, prePre, pre, post);
+                post = (T) merge(slot, prePre, pre, post);
             }
             setted.set(map.put(slot, post));
             changed(object, property, pre, post);
@@ -136,7 +137,7 @@ public class Leaf extends AbstractLeaf {
                     Object post = e.getValue();
                     Entry<Pair<Object, Setable>, Object> bra = base.getEntry(slot);
                     if (bra != null && !Objects.equals(bra.getValue(), post)) {
-                        post = Leaf.merge(slot, Leaf.this.state().get(slot.a(), slot.b()), bra.getValue(), post);
+                        post = Leaf.this.merge(slot, Leaf.this.state().get(slot.a(), slot.b()), bra.getValue(), post);
                     }
                     base = base.put(slot, post);
                 }
@@ -146,13 +147,16 @@ public class Leaf extends AbstractLeaf {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Object merge(Pair<Object, Setable> slot, Object prePre, Object pre, Object post) {
+    private Object merge(Pair<Object, Setable> slot, Object prePre, Object pre, Object post) {
         if (pre == null) {
             return post;
         } else if (post == null) {
             return pre;
         } else if (prePre instanceof Mergeable) {
             return ((Mergeable) prePre).merge2(pre, post);
+        } else if (slot.b() instanceof Observed && this instanceof Observer) {
+            set(parent, Priority.low.triggered, Set::add, this);
+            return post;
         } else {
             throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);
         }
