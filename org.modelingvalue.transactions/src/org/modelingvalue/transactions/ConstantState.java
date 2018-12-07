@@ -1,6 +1,8 @@
 package org.modelingvalue.transactions;
 
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -10,11 +12,14 @@ import java.util.function.BiFunction;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.QualifiedSet;
+import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.StringUtil;
 
 @SuppressWarnings("rawtypes")
 public class ConstantState {
+
+    private static final Context<Boolean>                            WEAK    = Context.of(false);
 
     private static final Object                                      NULL    = new Object() {
                                                                                  @Override
@@ -44,20 +49,47 @@ public class ConstantState {
         }
     }
 
-    private class Constants<O> extends WeakReference<O> {
+    private static interface Ref<O> {
+        Constants<O> constants();
+    }
+
+    private class Constants<O> {
+
+        private class WeakRef extends WeakReference<O> implements Ref<O> {
+            private WeakRef(O referent, ReferenceQueue<? super O> queue) {
+                super(referent, queue);
+            }
+
+            @Override
+            public Constants<O> constants() {
+                return Constants.this;
+            }
+        }
+
+        private class SoftRef extends SoftReference<O> implements Ref<O> {
+            private SoftRef(O referent, ReferenceQueue<? super O> queue) {
+                super(referent, queue);
+            }
+
+            @Override
+            public Constants<O> constants() {
+                return Constants.this;
+            }
+        }
 
         protected volatile Map<Constant<O, ?>, Object> constants;
         private final int                              hash;
+        private final Reference<O>                     ref;
 
-        public Constants(O object, ReferenceQueue<? super O> queue) {
-            super(object, queue);
+        public Constants(O object, boolean weak, ReferenceQueue<? super O> queue) {
+            ref = weak ? new WeakRef(object, queue) : new SoftRef(object, queue);
             UPDATOR.lazySet(this, Map.of());
             hash = object.hashCode();
         }
 
         @SuppressWarnings("unchecked")
         public O object() {
-            O o = get();
+            O o = ref.get();
             return o == null ? (O) this : o;
         }
 
@@ -115,7 +147,7 @@ public class ConstantState {
 
         @Override
         public String toString() {
-            return "Constants:" + get();
+            return "Constants:" + ref.get();
         }
 
         @SuppressWarnings("unchecked")
@@ -140,12 +172,20 @@ public class ConstantState {
             List<Pair<Object, Constant>> list = List.of();
             while (true) {
                 try {
-                    for (Pair<Object, Constant> lazy : list) {
-                        if (constant.equals(lazy.b()) && object.equals(lazy.a())) {
-                            Pair<Object, Constant> me = Pair.of(object, constant);
-                            throw new NonDeterministicException("Circular constant definition: " + list.sublist(list.lastIndexOf(me), list.size()).add(me));
+                    if (!list.isEmpty()) {
+                        boolean weak = WEAK.get();
+                        WEAK.set(true);
+                        try {
+                            for (Pair<Object, Constant> lazy : list) {
+                                if (constant.equals(lazy.b()) && object.equals(lazy.a())) {
+                                    Pair<Object, Constant> me = Pair.of(object, constant);
+                                    throw new NonDeterministicException("Circular constant definition: " + list.sublist(list.lastIndexOf(me), list.size()).add(me));
+                                }
+                                ConstantState.this.get(leaf, lazy.a(), lazy.b());
+                            }
+                        } finally {
+                            WEAK.set(weak);
                         }
-                        ConstantState.this.get(leaf, lazy.a(), lazy.b());
                     }
                     return Constant.DEPTH.get(depth + 1, () -> constant.deriver().apply(object));
                 } catch (StackOverflowError soe) {
@@ -169,7 +209,7 @@ public class ConstantState {
         Thread remover = new Thread(() -> {
             try {
                 while (true) {
-                    removeConstants((Constants) queue.remove());
+                    removeConstants(((Ref<?>) queue.remove()).constants());
                 }
             } catch (InterruptedException e) {
                 throw new Error(e);
@@ -197,14 +237,14 @@ public class ConstantState {
         Constants constants = prev.get(object);
         if (constants == null) {
             object = leaf.state().canonical(object);
-            constants = new Constants<O>(object, queue);
+            constants = new Constants<O>(object, WEAK.get(), queue);
             QualifiedSet<Object, Constants> next = prev.add(constants);
             Constants<O> now;
             while (!state.compareAndSet(prev, next)) {
                 prev = state.get();
                 now = prev.get(object);
                 if (now != null) {
-                    constants.clear();
+                    constants.ref.clear();
                     return now;
                 }
                 next = prev.add(constants);
