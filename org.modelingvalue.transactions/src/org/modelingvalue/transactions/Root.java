@@ -42,23 +42,43 @@ public class Root extends Compound {
     public static final int         MAX_NR_OF_HISTORY       = Integer.getInteger("MAX_NR_OF_HISTORY", 64) + 3;
 
     public static Root of(Object id, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory) {
-        return new Root(id, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, null);
+        return new Root(id, null, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, null);
     }
 
     public static Root of(Object id, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
-        return new Root(id, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, cycle);
+        return new Root(id, null, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, cycle);
     }
 
     public static Root of(Object id) {
-        return new Root(id, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        return new Root(id, null, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
     }
 
     public static Root of(Object id, int maxInInQueue, Consumer<Root> cycle) {
-        return new Root(id, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, cycle);
+        return new Root(id, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, cycle);
     }
 
     public static Root of(Object id, int maxInInQueue) {
-        return new Root(id, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        return new Root(id, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+    }
+
+    public static Root of(Object id, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory) {
+        return new Root(id, start, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, null);
+    }
+
+    public static Root of(Object id, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
+        return new Root(id, start, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, cycle);
+    }
+
+    public static Root of(Object id, State start) {
+        return new Root(id, start, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+    }
+
+    public static Root of(Object id, State start, int maxInInQueue, Consumer<Root> cycle) {
+        return new Root(id, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, cycle);
+    }
+
+    public static Root of(Object id, State start, int maxInInQueue) {
+        return new Root(id, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
     }
 
     public static final Setable<Root, Boolean>                                                                             STOPPED       = Setable.of("stopped", false);
@@ -86,7 +106,7 @@ public class Root extends Compound {
     final int                                                                                                              maxTotalNrOfChanges;
     final int                                                                                                              maxNrOfChanges;
 
-    protected Root(Object id, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
+    protected Root(Object id, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
         super(id);
         this.maxTotalNrOfChanges = maxTotalNrOfChanges;
         this.maxNrOfChanges = maxNrOfChanges;
@@ -101,7 +121,7 @@ public class Root extends Compound {
         });
         pre = cycle != null ? Leaf.of("cycle", this, () -> cycle.accept(this)) : null;
         POOL.execute(() -> {
-            State state = emptyState;
+            State state = start != null ? new State(this, start.map) : emptyState;
             while (true) {
                 TraceTimer.traceBegin("root");
                 try {
@@ -221,7 +241,7 @@ public class Root extends Compound {
     }
 
     public Imperative addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
-        Imperative n = Imperative.of(id, emptyState, this, scheduler, diffHandler);
+        Imperative n = Imperative.of(id, preState, this, scheduler, diffHandler);
         Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(n, Root.this, () -> {
             State pre = Leaf.getCurrent().state();
             boolean timeTraveling = isTimeTraveling();
@@ -251,7 +271,7 @@ public class Root extends Compound {
         put(dummy);
     }
 
-    protected State preState() {
+    public State preState() {
         return preState;
     }
 

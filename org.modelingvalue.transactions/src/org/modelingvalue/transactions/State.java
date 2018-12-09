@@ -21,6 +21,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -35,14 +36,14 @@ import org.modelingvalue.collections.util.TriConsumer;
 
 public class State implements Serializable {
 
-    private static final long                       serialVersionUID = -3468784705870374732L;
+    private static final long               serialVersionUID = -3468784705870374732L;
 
     @SuppressWarnings("rawtypes")
-    private static final Comparator<Entry>          COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
+    private static final Comparator<Entry>  COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
 
     @SuppressWarnings("rawtypes")
-    private final Map<Object, Map<Setable, Object>> map;
-    private final Root                              root;
+    final Map<Object, Map<Setable, Object>> map;
+    private final Root                      root;
 
     @SuppressWarnings("rawtypes")
     State(Root root, Map<Object, Map<Setable, Object>> map) {
@@ -232,6 +233,18 @@ public class State implements Serializable {
 
     public boolean isEmpty() {
         return map == null;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public Collection<Entry<Object, Collection<Entry<Setable, Object>>>> filter(Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
+        return map == null ? Map.of() : map.filter(e1 -> objectFilter.test(e1.getKey())).map(e1 -> Entry.of(e1.getKey(), e1.getValue().filter(e2 -> setableFilter.test(e2.getKey()))));
+    }
+
+    @SuppressWarnings("rawtypes")
+    public State copy(Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
+        return map == null ? new State(null, null) : new State(null, map.filter(e1 -> //
+        objectFilter.test(e1.getKey())).map(e1 -> Entry.of(e1.getKey(), e1.getValue().filter(e2 -> setableFilter.test(e2.getKey())))).//
+                toMap(e0 -> Entry.of(e0.getKey(), e0.getValue().toMap(Function.identity()))));
     }
 
     @SuppressWarnings("rawtypes")

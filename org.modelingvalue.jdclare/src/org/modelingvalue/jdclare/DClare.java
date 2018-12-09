@@ -1422,7 +1422,7 @@ public final class DClare<U extends DUniverse> extends Root {
     private Set<JRule<?, ?>> jClassRules;
 
     private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, int maxInInQueue) {
-        super(dStruct(universeClass), maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        super(dStruct(universeClass), null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
         this.checkFatals = checkFatals ? Leaf.of("checkFatals", this, this::checkFatals) : null;
     }
 
