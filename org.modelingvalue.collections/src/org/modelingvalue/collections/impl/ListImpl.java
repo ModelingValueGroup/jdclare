@@ -323,7 +323,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             }
         } else {
             Object[] es = coll.toArray();
-            value = es.length == 1 ? es[0] : es;
+            value = es.length == 1 ? es[0] : ListMultivalue.of(es);
         }
     }
 
