@@ -107,7 +107,6 @@ public final class ContextThread extends ForkJoinWorkerThread {
     @Override
     protected void onTermination(Throwable exception) {
         THE_POOL.counter.set(nr, 0);
-        THE_POOL.maxReached = false;
         context = null;
         if (exception != null) {
             exception.printStackTrace();
@@ -117,11 +116,10 @@ public final class ContextThread extends ForkJoinWorkerThread {
 
     public static final class ContextPool extends ForkJoinPool {
 
-        private final AtomicIntegerArray counter    = new AtomicIntegerArray(POOL_SIZE);
+        private final AtomicIntegerArray counter  = new AtomicIntegerArray(POOL_SIZE);
 
-        private final int[]              activity   = new int[POOL_SIZE];
-        private boolean                  maxReached = false;
-        private int                      running    = -1;
+        private final int[]              activity = new int[POOL_SIZE];
+        private int                      running  = -1;
 
         private ContextPool(int parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, boolean asyncMode) {
             super(parallelism, factory, handler, asyncMode);
@@ -146,15 +144,12 @@ public final class ContextThread extends ForkJoinWorkerThread {
         @Override
         public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
             ContextPool contextPool = (ContextPool) pool;
-            if (!contextPool.maxReached) {
-                for (int i = 0; i < POOL_SIZE; i++) {
-                    if (contextPool.counter.compareAndSet(i, 0, 1)) {
-                        return new ContextThread(pool, i);
-                    }
+            for (int i = 0; i < POOL_SIZE; i++) {
+                if (contextPool.counter.compareAndSet(i, 0, 1)) {
+                    return new ContextThread(pool, i);
                 }
-                contextPool.maxReached = true;
             }
-            return null;
+            return ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
         }
 
     }
