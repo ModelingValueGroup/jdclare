@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -198,8 +197,7 @@ public class State implements Serializable {
 
     @Override
     public String toString() {
-        Optional<Root> findAny = getObjects(Root.class).findAny();
-        return "State" + findAny.map(r -> "[" + r.getClass().getSimpleName() + properties(r).toString().substring(3) + "]").orElse("[]");
+        return "State" + "[" + root.getClass().getSimpleName() + properties(root).toString().substring(3) + "]";
     }
 
     public String asString() {
@@ -242,7 +240,7 @@ public class State implements Serializable {
 
     @SuppressWarnings("rawtypes")
     public State copy(Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
-        return map == null ? new State(null, null) : new State(null, map.filter(e1 -> //
+        return map == null ? root.emptyState() : new State(root, map.filter(e1 -> //
         objectFilter.test(e1.getKey())).map(e1 -> Entry.of(e1.getKey(), e1.getValue().filter(e2 -> setableFilter.test(e2.getKey())))).//
                 toMap(e0 -> Entry.of(e0.getKey(), e0.getValue().toMap(Function.identity()))));
     }
