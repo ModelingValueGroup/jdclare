@@ -14,6 +14,7 @@ import org.modelingvalue.jdclare.test.BirdUniverse.WhiteCondorUniverse;
 
 public class BirdTest {
 	
+	
 	    //@Test
 	    public void ConcurrentModificationException1() {
 		  try {
