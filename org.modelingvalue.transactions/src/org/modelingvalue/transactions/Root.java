@@ -306,7 +306,7 @@ public class Root extends Compound {
                             map = filterCauses(run, map, isCause);
                             if (isCause[0]) {
                                 found = true;
-                                print("", run, null, map);
+                                print("", run, null, map, 0);
                             }
                         }
                     }
@@ -343,19 +343,23 @@ public class Root extends Compound {
 
     @SuppressWarnings("rawtypes")
     private void print(String prefix, Pair<Observer, Integer> run, Triple<Object, Observed, Object> trigger, //
-            Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>>> map) {
-        if (trigger != null) {
-            System.err.println(prefix + StringUtil.toString(trigger.a()) + "." + StringUtil.toString(trigger.b()) + "=" + StringUtil.toString(trigger.c()));
-        }
-        Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>> writes = map.get(run);
-        if (writes != null || !prefix.isEmpty()) {
-            System.err.println(prefix + "-> " + StringUtil.toString(run.a()).substring(9) + " (" + (run.b() + 1) + ")");
-        }
-        if (writes != null) {
-            map = map.removeKey(run);
-            for (Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>> write : writes) {
-                print(prefix + "    ", write.a(), write.b(), map);
+            Map<Pair<Observer, Integer>, Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>>> map, int depth) {
+        if (depth < maxNrOfChanges * 2) {
+            if (trigger != null) {
+                System.err.println(prefix + StringUtil.toString(trigger.a()) + "." + StringUtil.toString(trigger.b()) + "=" + StringUtil.toString(trigger.c()));
             }
+            Set<Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>>> writes = map.get(run);
+            if (writes != null || !prefix.isEmpty()) {
+                System.err.println(prefix + "-> " + StringUtil.toString(run.a()).substring(9) + " (" + (run.b() + 1) + ")");
+            }
+            if (writes != null) {
+                map = map.removeKey(run);
+                for (Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>> write : writes) {
+                    print(prefix + "    ", write.a(), write.b(), map, depth + 1);
+                }
+            }
+        } else {
+            System.err.println(prefix + "......");
         }
     }
 
