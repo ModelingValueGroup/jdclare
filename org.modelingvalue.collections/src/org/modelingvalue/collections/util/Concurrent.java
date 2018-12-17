@@ -20,8 +20,6 @@ import java.util.function.UnaryOperator;
 
 public class Concurrent<T> {
 
-    private static final int THREAD_MAX = Integer.getInteger("THREAD_MAX", 16);
-
     public static <V> Concurrent<V> of(V value) {
         return new Concurrent<V>(value);
     }
@@ -30,8 +28,16 @@ public class Concurrent<T> {
         return new Concurrent<V>();
     }
 
-    private T   pre;
-    private T[] states;
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private final ThreadLocal<T> threadLocal = new ThreadLocal() {
+                                                 @Override
+                                                 protected Object initialValue() {
+                                                     return pre;
+                                                 }
+                                             };
+
+    private T                    pre;
+    private T[]                  states;
 
     private Concurrent(T value) {
         init(value);
@@ -45,12 +51,23 @@ public class Concurrent<T> {
             throw new ConcurrentModificationException();
         }
         int i = ContextThread.getNr();
-        T value = oper.apply(states[i]);
-        if (states[i] != value) {
-            states[i] = value;
-            return true;
+        if (i < 0) {
+            T t = threadLocal.get();
+            T value = oper.apply(t);
+            if (t != value) {
+                threadLocal.set(value);
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            return false;
+            T value = oper.apply(states[i]);
+            if (states[i] != value) {
+                states[i] = value;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -59,7 +76,7 @@ public class Concurrent<T> {
             throw new ConcurrentModificationException();
         }
         int i = ContextThread.getNr();
-        return states[i];
+        return i < 0 ? threadLocal.get() : states[i];
     }
 
     public boolean set(T value) {
@@ -67,11 +84,20 @@ public class Concurrent<T> {
             throw new ConcurrentModificationException();
         }
         int i = ContextThread.getNr();
-        if (states[i] != value) {
-            states[i] = value;
-            return true;
+        if (i < 0) {
+            if (threadLocal.get() != value) {
+                threadLocal.set(value);
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            return false;
+            if (states[i] != value) {
+                states[i] = value;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -82,7 +108,7 @@ public class Concurrent<T> {
         }
         pre = value;
         if (states == null) {
-            states = (T[]) Array.newInstance(value.getClass(), THREAD_MAX);
+            states = (T[]) Array.newInstance(value.getClass(), ContextThread.POOL_SIZE);
         }
         Arrays.fill(states, value);
     }

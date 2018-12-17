@@ -69,7 +69,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
         if (currentThread instanceof ContextThread) {
             return ((ContextThread) currentThread).nr;
         } else {
-            return 0;
+            return -1;
         }
     }
 
@@ -149,6 +149,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
                     return new ContextThread(pool, i);
                 }
             }
+            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, considder increasing POOL_SIZE (" + POOL_SIZE + ")");
             return ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
         }
 

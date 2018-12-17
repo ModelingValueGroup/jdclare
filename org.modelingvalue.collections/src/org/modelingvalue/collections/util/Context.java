@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 public class Context<T> {
 
-    private static final int           MAX_NR_OF_CONTEXT = Integer.getInteger("MAX_NR_OF_CONTEXT", 32);
+    private static final int           MAX_NR_OF_CONTEXT = Integer.getInteger("MAX_NR_OF_CONTEXT", 64);
 
     private final static AtomicInteger COUNT             = new AtomicInteger(0);
 
