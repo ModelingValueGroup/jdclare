@@ -115,6 +115,11 @@ public class Observer extends Leaf {
             setted.clear();
             setObserveds(Set.of(), Set.of());
             return result();
+        } catch (TooManyChangesException tmce) {
+            clear();
+            getted.clear();
+            setted.clear();
+            throw tmce;
         } finally {
             TraceTimer.traceEnd("observer");
         }
