@@ -89,7 +89,7 @@ public class Root extends Compound {
     private final Leaf                                                                                                     stop;
     private final Leaf                                                                                                     backward;
     private final Leaf                                                                                                     forward;
-    private final BlockingQueue<Leaf>                                                                                      inQueue;
+    protected final BlockingQueue<Leaf>                                                                                    inQueue;
     private final BlockingQueue<State>                                                                                     resultQueue;
 
     private final State                                                                                                    emptyState    = new State(this, null);

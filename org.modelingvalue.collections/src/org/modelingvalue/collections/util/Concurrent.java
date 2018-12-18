@@ -28,16 +28,8 @@ public class Concurrent<T> {
         return new Concurrent<V>();
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private final ThreadLocal<T> threadLocal = new ThreadLocal() {
-                                                 @Override
-                                                 protected Object initialValue() {
-                                                     return pre;
-                                                 }
-                                             };
-
-    private T                    pre;
-    private T[]                  states;
+    private T   pre;
+    private T[] states;
 
     private Concurrent(T value) {
         init(value);
@@ -52,13 +44,15 @@ public class Concurrent<T> {
         }
         int i = ContextThread.getNr();
         if (i < 0) {
-            T t = threadLocal.get();
-            T value = oper.apply(t);
-            if (t != value) {
-                threadLocal.set(value);
-                return true;
-            } else {
-                return false;
+            synchronized (states) {
+                T t = states[ContextThread.POOL_SIZE];
+                T value = oper.apply(t);
+                if (t != value) {
+                    states[ContextThread.POOL_SIZE] = value;
+                    return true;
+                } else {
+                    return false;
+                }
             }
         } else {
             T value = oper.apply(states[i]);
@@ -76,20 +70,29 @@ public class Concurrent<T> {
             throw new ConcurrentModificationException();
         }
         int i = ContextThread.getNr();
-        return i < 0 ? threadLocal.get() : states[i];
+        return i < 0 ? states[ContextThread.POOL_SIZE] : states[i];
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public boolean set(T value) {
         if (pre == null) {
             throw new ConcurrentModificationException();
         }
         int i = ContextThread.getNr();
         if (i < 0) {
-            if (threadLocal.get() != value) {
-                threadLocal.set(value);
-                return true;
-            } else {
-                return false;
+            synchronized (states) {
+                if (states[ContextThread.POOL_SIZE] != value) {
+                    if (pre == states[ContextThread.POOL_SIZE]) {
+                        states[ContextThread.POOL_SIZE] = value;
+                    } else if (pre instanceof Mergeable) {
+                        states[ContextThread.POOL_SIZE] = (T) ((Mergeable) pre).merge2(states[ContextThread.POOL_SIZE], value);
+                    } else {
+                        throw new ConcurrentModificationException();
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
             }
         } else {
             if (states[i] != value) {
@@ -108,7 +111,7 @@ public class Concurrent<T> {
         }
         pre = value;
         if (states == null) {
-            states = (T[]) Array.newInstance(value.getClass(), ContextThread.POOL_SIZE);
+            states = (T[]) Array.newInstance(value.getClass(), ContextThread.POOL_SIZE + 1);
         }
         Arrays.fill(states, value);
     }
