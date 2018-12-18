@@ -300,13 +300,18 @@ public class Root extends Compound {
                 boolean[] isCause = new boolean[1];
                 boolean found = false;
                 for (int i = 0; !found && i < maxNrOfChanges; i++) {
+                    int ii = 0;
                     for (Pair<Observer, Integer> run : map.toKeys()) {
                         if (run.b() == i) {
                             isCause[0] = false;
                             map = filterCauses(run, map, isCause);
                             if (isCause[0]) {
-                                found = true;
-                                print("", run, null, map, 0);
+                                if (ii++ < maxNrOfChanges) {
+                                    found = true;
+                                    print("", run, null, map, 0);
+                                } else {
+                                    break;
+                                }
                             }
                         }
                     }
@@ -314,6 +319,7 @@ public class Root extends Compound {
                 System.err.println("-----------------------------------------------------------------------------------------------");
             });
         }
+
     }
 
     @SuppressWarnings("rawtypes")
