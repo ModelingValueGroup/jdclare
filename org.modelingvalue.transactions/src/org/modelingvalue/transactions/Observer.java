@@ -116,6 +116,10 @@ public class Observer extends Leaf {
             setObserveds(Set.of(), Set.of());
             return result();
         } finally {
+            setted.clear();
+            preState = null;
+            getted.clear();
+            setted.clear();
             TraceTimer.traceEnd("observer");
         }
     }
