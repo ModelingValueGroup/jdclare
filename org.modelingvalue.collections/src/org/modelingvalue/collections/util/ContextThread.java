@@ -25,10 +25,8 @@ public final class ContextThread extends ForkJoinWorkerThread {
     public static final ForkJoinWorkerThreadFactory FACTORY   = new ContextThreadFactory();
     public static final int                         POOL_SIZE = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
 
-    private static final ContextPool                THE_POOL  = new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
-
-    public static ContextPool thePool() {
-        return THE_POOL;
+    public static ContextPool createPool() {
+        return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
     }
 
     private final static ThreadLocal<Object[]> CONTEXT = new ThreadLocal<Object[]>();
@@ -74,7 +72,12 @@ public final class ContextThread extends ForkJoinWorkerThread {
     }
 
     public static int nrOfRunningThreads() {
-        return THE_POOL.runningThreads();
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof ContextThread) {
+            return ((ContextThread) currentThread).getPool().runningThreads();
+        } else {
+            return POOL_SIZE;
+        }
     }
 
     private final int nr;
@@ -92,9 +95,10 @@ public final class ContextThread extends ForkJoinWorkerThread {
     private void setCtx(Object[] context, int delta) {
         this.context = context;
         if (delta != 0) {
-            THE_POOL.activity[nr] += delta;
-            if (THE_POOL.activity[nr] == 0 || THE_POOL.activity[nr] == 1) {
-                THE_POOL.running = -1;
+            ContextPool pool = getPool();
+            pool.activity[nr] += delta;
+            if (pool.activity[nr] == 0 || pool.activity[nr] == 1) {
+                pool.running = -1;
             }
         }
     }
@@ -106,7 +110,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
 
     @Override
     protected void onTermination(Throwable exception) {
-        THE_POOL.counter.set(nr, 0);
+        getPool().counter.set(nr, 0);
         context = null;
         if (exception != null) {
             exception.printStackTrace();

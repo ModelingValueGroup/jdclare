@@ -61,7 +61,7 @@ public class SetTest {
     @SuppressWarnings("serial")
     @Test
     public void bigTest() throws Exception {
-        ContextThread.thePool().invoke(new RecursiveAction() {
+        ContextThread.createPool().invoke(new RecursiveAction() {
             @Override
             protected void compute() {
                 Object ctx = new Object();

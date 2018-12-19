@@ -49,6 +49,8 @@ import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.ContextThread.ContextPool;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 import org.modelingvalue.collections.util.SerializableBiConsumer;
@@ -105,6 +107,8 @@ import org.modelingvalue.transactions.Transaction;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class DClare<U extends DUniverse> extends Root {
+
+    private static final ContextPool                                             THE_POOL                     = ContextThread.createPool();
 
     private static final String                                                  D_START_CONSTANT_CONTAINMENT = "dStartConstantContainment";
     private static final String                                                  D_START_OBSERVERS            = "dStartObservers";
@@ -1422,7 +1426,7 @@ public final class DClare<U extends DUniverse> extends Root {
     private Set<JRule<?, ?>> jClassRules;
 
     private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, int maxInInQueue) {
-        super(dStruct(universeClass), null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        super(dStruct(universeClass), THE_POOL, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
         this.checkFatals = checkFatals ? Leaf.of("checkFatals", this, this::checkFatals) : null;
     }
 
