@@ -6,7 +6,6 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNamed;
-import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.Property;
@@ -14,10 +13,17 @@ import org.modelingvalue.jdclare.Rule;
 
 public interface BirdUniverse extends DUniverse {
 
+    @Property(containment)
+    Set<Bird> birds();
+
     // Conflicting Rules Error
-    interface Bird extends DStruct1<String>, DNamed {
+    interface Bird extends DStruct2<BirdUniverse, String>, DNamed {
         @Property(key = 0)
-        String type();
+        BirdUniverse universe();
+
+        @Override
+        @Property(key = 1)
+        String name();
 
         @Property
         String color();
@@ -27,14 +33,24 @@ public interface BirdUniverse extends DUniverse {
 
         @Property(containment)
         Set<Wing> wings();
+
+        @Rule
+        default void multiply() {
+            if ("yellow".equals(color())) {
+                Bird condor = dclare(Bird.class, universe(), Integer.toString(Integer.parseInt(name()) + 1));
+                set(universe(), BirdUniverse::birds, (s, b) -> s.add(b), condor);
+                set(condor, Bird::color, "yellow");
+            }
+        }
     }
 
     interface Wing extends DStruct2<Bird, String>, DNamed {
         @Property(key = 0)
         Bird bird();
 
+        @Override
         @Property(key = 1)
-        String id();
+        String name();
 
         @Property
         default int span() {
@@ -44,7 +60,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Rule
     default void setCondorColor() {
-        Bird condor = dclare(Bird.class, "Condor");
+        Bird condor = dclare(Bird.class, this, "Condor");
         if ("white".equals(condor.color())) {
             set(condor, Bird::wingColor, "orange");
             set(condor, Bird::wingColor, "purple");
@@ -53,7 +69,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Rule
     default void setCondorColor1() {
-        Bird condor = dclare(Bird.class, "Condor");
+        Bird condor = dclare(Bird.class, this, "Condor");
         if ("red".equals(condor.color())) {
             set(condor, Bird::wingColor, "orange");
         }
@@ -61,7 +77,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Rule
     default void setCondorColor2() {
-        Bird condor = dclare(Bird.class, "Condor");
+        Bird condor = dclare(Bird.class, this, "Condor");
         if ("red".equals(condor.color())) {
             set(condor, Bird::wingColor, "purple");
         }
@@ -69,7 +85,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Rule
     default void addWing() {
-        Bird condor = dclare(Bird.class, "Condor");
+        Bird condor = dclare(Bird.class, this, "Condor");
         if ("green".equals(condor.color())) {
             Wing wing = dclare(Wing.class, condor, "Left");
             set(condor, Bird::wings, Set::add, wing);
@@ -78,7 +94,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Rule
     default void removeWing() {
-        Bird condor = dclare(Bird.class, "Condor");
+        Bird condor = dclare(Bird.class, this, "Condor");
         if ("green".equals(condor.color())) {
             Wing wing = dclare(Wing.class, condor, "Left");
             set(condor, Bird::wings, Set::remove, wing);
@@ -87,7 +103,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Rule
     default void addAndRemoveWing() {
-        Bird condor = dclare(Bird.class, "Condor");
+        Bird condor = dclare(Bird.class, this, "Condor");
         if ("blue".equals(condor.color())) {
             Wing wing = dclare(Wing.class, condor, "Left");
             set(condor, Bird::wings, Set::remove, wing);
@@ -97,7 +113,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Rule
     default void increaseSpan() {
-        Bird condor = dclare(Bird.class, "Condor");
+        Bird condor = dclare(Bird.class, this, "Condor");
         if ("black".equals(condor.color())) {
             Wing wing = dclare(Wing.class, condor, "Left");
             int span = wing.span();
@@ -119,7 +135,8 @@ public interface BirdUniverse extends DUniverse {
         @Override
         default void init() {
             BirdUniverse.super.init();
-            Bird condor = dclare(Bird.class, "Condor");
+            Bird condor = dclare(Bird.class, this, "Condor");
+            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
             set(condor, Bird::color, "red");
         }
 
@@ -130,7 +147,8 @@ public interface BirdUniverse extends DUniverse {
         @Override
         default void init() {
             BirdUniverse.super.init();
-            Bird condor = dclare(Bird.class, "Condor");
+            Bird condor = dclare(Bird.class, this, "Condor");
+            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
             set(condor, Bird::color, "green");
         }
     }
@@ -140,7 +158,8 @@ public interface BirdUniverse extends DUniverse {
         @Override
         default void init() {
             BirdUniverse.super.init();
-            Bird condor = dclare(Bird.class, "Condor");
+            Bird condor = dclare(Bird.class, this, "Condor");
+            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
             set(condor, Bird::color, "blue");
         }
     }
@@ -150,7 +169,8 @@ public interface BirdUniverse extends DUniverse {
         @Override
         default void init() {
             BirdUniverse.super.init();
-            Bird condor = dclare(Bird.class, "Condor");
+            Bird condor = dclare(Bird.class, this, "Condor");
+            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
             set(condor, Bird::color, "white");
         }
     }
@@ -160,8 +180,20 @@ public interface BirdUniverse extends DUniverse {
         @Override
         default void init() {
             BirdUniverse.super.init();
-            Bird condor = dclare(Bird.class, "Condor");
+            Bird condor = dclare(Bird.class, this, "Condor");
+            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
             set(condor, Bird::color, "black");
+        }
+    }
+
+    public interface YellowCondorUniverse extends BirdUniverse {
+
+        @Override
+        default void init() {
+            BirdUniverse.super.init();
+            Bird condor = dclare(Bird.class, this, "0");
+            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
+            set(condor, Bird::color, "yellow");
         }
     }
 }

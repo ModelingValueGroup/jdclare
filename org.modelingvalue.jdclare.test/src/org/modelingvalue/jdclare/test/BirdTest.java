@@ -11,6 +11,7 @@ import org.modelingvalue.jdclare.test.BirdUniverse.BlueCondorUniverse;
 import org.modelingvalue.jdclare.test.BirdUniverse.GreenCondorUniverse;
 import org.modelingvalue.jdclare.test.BirdUniverse.RedCondorUniverse;
 import org.modelingvalue.jdclare.test.BirdUniverse.WhiteCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.YellowCondorUniverse;
 
 public class BirdTest {
 
@@ -67,6 +68,18 @@ public class BirdTest {
         try {
             DClare<BlueCondorUniverse> bleuCondor = of(BlueCondorUniverse.class);
             bleuCondor.run();
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
+        }
+    }
+
+    @Test
+    public void TooManyChangesException6() {
+        try {
+            DClare<YellowCondorUniverse> yellowCondor = of(YellowCondorUniverse.class);
+            yellowCondor.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
