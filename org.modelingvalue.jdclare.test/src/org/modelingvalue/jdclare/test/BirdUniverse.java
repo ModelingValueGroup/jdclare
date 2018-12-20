@@ -18,8 +18,8 @@ public interface BirdUniverse extends DUniverse {
     @Property(containment)
     Set<Bird> birds();
 
-    // Conflicting Rules Error
     interface Bird extends DStruct2<DObject, String>, DNamed {
+
         @Property(key = 0)
         DObject parent();
 
@@ -208,7 +208,7 @@ public interface BirdUniverse extends DUniverse {
         @Override
         default void init() {
             BirdUniverse.super.init();
-            Bird condor = dclare(Bird.class, this, "Condor");
+            Bird condor = dclare(Bird.class, this, "0");
             set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
             set(condor, Bird::color, "yellow");
         }
