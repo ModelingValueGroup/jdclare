@@ -13,11 +13,13 @@
 
 package org.modelingvalue.jdclare.syntax;
 
+import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct1;
+import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 
@@ -28,12 +30,51 @@ public interface Parser<S extends Grammar, R extends Node> extends DStruct1<Text
 
     @Property
     default Set<NodeParser> roots() {
-        return parsers().filter(p -> p.root() && p.matched()).toSet();
+        return lines().flatMap(LineParser::roots).toSet();
     }
 
     @Property(containment)
-    default Set<NodeParser> parsers() {
-        return text().tokenizer().terminals().flatMap(NodeParser::parsers).toSet();
+    default Set<LineParser> lines() {
+        return text().tokenizer().lines().map(l -> dclare(LineParser.class, this, l)).toSet();
+    }
+
+    interface LineParser extends DStruct2<Parser<?, ?>, Line>, DObject {
+        @Property(key = 0)
+        Parser<?, ?> parser();
+
+        @Property(key = 1)
+        Line line();
+
+        @Property(containment)
+        default Set<TokenParser> tokens() {
+            return line().tokens().map(t -> dclare(TokenParser.class, this, t)).toSet();
+        }
+
+        @Property
+        default Set<NodeParser> roots() {
+            return tokens().flatMap(TokenParser::roots).toSet();
+        }
+
+        interface TokenParser extends DStruct2<LineParser, Token>, DObject {
+
+            @Property(key = 0)
+            LineParser lineParser();
+
+            @Property(key = 1)
+            Token token();
+
+            @Property(containment)
+            default Set<NodeParser> parsers() {
+                return token().terminals().flatMap(NodeParser::parsers).toSet();
+            }
+
+            @Property
+            default Set<NodeParser> roots() {
+                return parsers().filter(p -> p.root() && p.matched()).toSet();
+            }
+
+        }
+
     }
 
 }

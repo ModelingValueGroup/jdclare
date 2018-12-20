@@ -96,7 +96,6 @@ public class Observer extends Leaf {
                 init(post);
                 getted.clear();
                 setted.clear();
-                set(parent, Priority.low.triggered, Set::add, this);
             } else {
                 init(pre);
                 setObserveds(setted.result(), getted.result());
@@ -133,16 +132,23 @@ public class Observer extends Leaf {
         });
     }
 
+    @Override
+    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
+        super.changed(object, property, preValue, postValue);
+        set(parent, Priority.low.triggered, Set::add, this);
+    }
+
     private void countChanges() {
         Root root = root();
-        long current = root.countChanges();
-        if (current > count) {
-            count = current;
+        int totalChanges = root.countTotalChanges();
+        long runCount = root.runCount();
+        if (runCount > count) {
+            count = runCount;
             changes = 1;
         } else if (changes++ > root.maxNrOfChanges * 2) {
             throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
-        } else if (-current > root.maxTotalNrOfChanges + 2 * root.maxNrOfChanges) {
-            throw new TooManyChangesException("Total changes: " + changes + ", running: " + root.preState().get(this::toString));
+        } else if (totalChanges > root.maxTotalNrOfChanges + 2 * root.maxNrOfChanges) {
+            throw new TooManyChangesException("Total changes: " + totalChanges + ", running: " + root.preState().get(this::toString));
         }
     }
 
@@ -151,14 +157,10 @@ public class Observer extends Leaf {
     protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object pre, Object post) {
         super.trigger(leafs, prio, object, observed, pre, post);
         Root root = root();
-        long current = root.countChanges();
-        if (changes++ > root.maxNrOfChanges || -current > root.maxTotalNrOfChanges) {
-            System.err.println("ERROR: Too many changes: " + (current < 0 ? -current : changes) + "\n       Running: " + root.preState().get(() -> this + "\n       Change: " + object + "." + observed + "=" + pre + " -> " + post + "\n       Triggers: " + leafs.toString().substring(3)));
+        int totalChanges = root.totalChanges();
+        if (changes > root.maxNrOfChanges || totalChanges > root.maxTotalNrOfChanges) {
+            System.err.println("ERROR: Too many changes: " + (totalChanges > root.maxTotalNrOfChanges ? totalChanges : changes) + "\n       Running: " + root.preState().get(() -> this + "\n       Change: " + object + "." + observed + "=" + pre + " -> " + post + "\n       Triggers: " + leafs.toString().substring(3)));
         }
-    }
-
-    public int changes() {
-        return changes;
     }
 
     private static final class Observerds extends Setable<Observer, Set<Slot>> {
