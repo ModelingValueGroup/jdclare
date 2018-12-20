@@ -46,7 +46,7 @@ public class Observed<O, T> extends Setable<O, T> {
             for (Observers<O, T> observ : observers) {
                 Set<Observer> triggered = $.get(o, observ);
                 if (!triggered.isEmpty()) {
-                    $.trigger(triggered, observ.prio(), o, this, n);
+                    $.trigger(triggered, observ.prio(), o, this, p, n);
                 }
             }
         };

@@ -17,9 +17,7 @@ import java.util.function.BiFunction;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
-import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
-import org.modelingvalue.collections.util.Triple;
 
 public class Observer extends Leaf {
 
@@ -94,7 +92,7 @@ public class Observer extends Leaf {
             setted.init(Set.of());
             State post = super.apply(pre);
             if (post != pre) {
-                count();
+                countChanges();
                 init(post);
                 getted.clear();
                 setted.clear();
@@ -135,31 +133,29 @@ public class Observer extends Leaf {
         });
     }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object value) {
-        super.trigger(leafs, prio, object, observed, value);
+    private void countChanges() {
         Root root = root();
-        if (root.tooManyChanges()) {
-            Pair<Observer, Integer> self = Pair.of(this, changes());
-            Triple<Object, Observed, Object> change = Triple.of(object, observed, value);
-            for (Observer triggered : leafs) {
-                if (!equals(triggered)) {
-                    Pair<Pair<Observer, Integer>, Triple<Object, Observed, Object>> a = Pair.of(Pair.of(triggered, triggered.changes()), change);
-                    root.tooManyChanges.compute(self, (o, t) -> t != null ? t.add(a) : Set.of(a));
-                }
+        long current = root.countChanges();
+        if (current > count) {
+            count = current;
+            changes = 1;
+        } else {
+            if (changes++ > root.maxNrOfChanges * 2) {
+                throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
+            } else if (-current > root.maxTotalNrOfChanges + 2 * root.maxNrOfChanges) {
+                throw new TooManyChangesException("Total changes: " + changes + ", running: " + root.preState().get(this::toString));
             }
         }
     }
 
-    private void count() {
+    @Override
+    @SuppressWarnings("rawtypes")
+    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object pre, Object post) {
+        super.trigger(leafs, prio, object, observed, pre, post);
         Root root = root();
-        long current = root.count();
-        if (current > count) {
-            count = current;
-            changes = 1;
-        } else if (++changes > root.maxNrOfChanges) {
-            throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
+        long current = root.countChanges();
+        if (changes++ > root.maxNrOfChanges || -current > root.maxTotalNrOfChanges) {
+            System.err.println("ERROR: Too many changes: " + (current < 0 ? -current : changes) + "\n       Running: " + root.preState().get(() -> this + "\n       Change: " + object + "." + observed + "=" + pre + " -> " + post + "\n       Triggers: " + leafs.toString().substring(3)));
         }
     }
 

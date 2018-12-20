@@ -82,7 +82,7 @@ public class ReadOnly extends AbstractLeaf {
 
     @SuppressWarnings("rawtypes")
     @Override
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object post) {
+    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object pre, Object post) {
         // Do nothing
     }
 
