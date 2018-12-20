@@ -1562,7 +1562,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     @Override
     public boolean isStopped(State state) {
-        return tooManyChanges() || state.get(universe(), stopSetable);
+        return state.get(universe(), stopSetable);
     }
 
     @Override
