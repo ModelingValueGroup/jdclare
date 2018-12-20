@@ -17,23 +17,16 @@ import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.Rule;
-import org.modelingvalue.jdclare.syntax.parser.TerminalParser;
 import org.modelingvalue.jdclare.syntax.regex.DMatch;
 
 public interface Tokenizer<S extends Grammar> extends DStruct1<Text<S, ?>>, DObject {
 
     @Property(key = 0)
     Text<S, ?> text();
-
-    @Property
-    default Set<TerminalParser> terminals() {
-        return lines().flatMap(Line::terminals).toSet();
-    }
 
     @Property
     default List<DMatch> matches() {

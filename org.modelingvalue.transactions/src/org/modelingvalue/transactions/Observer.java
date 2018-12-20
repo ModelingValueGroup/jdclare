@@ -96,7 +96,6 @@ public class Observer extends Leaf {
                 init(post);
                 getted.clear();
                 setted.clear();
-                set(parent, Priority.low.triggered, Set::add, this);
             } else {
                 init(pre);
                 setObserveds(setted.result(), getted.result());
@@ -131,6 +130,12 @@ public class Observer extends Leaf {
                 OBSERVEDS[1].set(this, gets.removeAll(sets));
             }
         });
+    }
+
+    @Override
+    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
+        super.changed(object, property, preValue, postValue);
+        set(parent, Priority.low.triggered, Set::add, this);
     }
 
     private void countChanges() {
