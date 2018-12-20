@@ -6,12 +6,12 @@ import static org.modelingvalue.jdclare.DClare.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.modelingvalue.jdclare.DClare;
-import org.modelingvalue.jdclare.test.BirdUniverse.Bird.BlackCondorUniverse;
-import org.modelingvalue.jdclare.test.BirdUniverse.Bird.BlueCondorUniverse;
-import org.modelingvalue.jdclare.test.BirdUniverse.Bird.GreenCondorUniverse;
-import org.modelingvalue.jdclare.test.BirdUniverse.Bird.RedCondorUniverse;
-import org.modelingvalue.jdclare.test.BirdUniverse.Bird.WhiteCondorUniverse;
-import org.modelingvalue.jdclare.test.BirdUniverse.Bird.YellowCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.BlackCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.BlueCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.GreenCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.RedCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.WhiteCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.YellowCondorUniverse;
 
 public class BirdTest {
 
