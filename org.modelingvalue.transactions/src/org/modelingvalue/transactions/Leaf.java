@@ -35,10 +35,10 @@ public class Leaf extends AbstractLeaf {
         return new Leaf(id, parent, action, initPrio);
     }
 
-    private final Runnable                                   action;
+    private final Runnable                                 action;
     @SuppressWarnings("rawtypes")
-    protected Concurrent<Map<Pair<Object, Setable>, Object>> setted = new Setted();
-    protected State                                          preState;
+    private Concurrent<Map<Pair<Object, Setable>, Object>> setted = new Setted();
+    private State                                          preState;
 
     protected Leaf(Object id, Compound parent, Runnable action, Priority initPrio) {
         super(id, parent, initPrio);
@@ -62,9 +62,6 @@ public class Leaf extends AbstractLeaf {
     }
 
     protected void clear() {
-        if (preState == null) {
-            throw new ConcurrentModificationException();
-        }
         setted.clear();
         preState = null;
     }
@@ -77,6 +74,10 @@ public class Leaf extends AbstractLeaf {
         }
         preState = null;
         return result;
+    }
+
+    protected boolean isChanged() {
+        return setted.isChanged();
     }
 
     @Override

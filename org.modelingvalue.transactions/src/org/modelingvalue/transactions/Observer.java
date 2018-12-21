@@ -102,6 +102,9 @@ public class Observer extends Leaf {
             }
             return result();
         } catch (EmptyMandatoryException soe) {
+            if (isChanged()) {
+                countChanges();
+            }
             clear();
             init(pre);
             setObserveds(setted.result(), getted.result());
@@ -113,8 +116,7 @@ public class Observer extends Leaf {
             setObserveds(Set.of(), Set.of());
             return result();
         } finally {
-            setted.clear();
-            preState = null;
+            clear();
             getted.clear();
             setted.clear();
             TraceTimer.traceEnd("observer");
@@ -132,12 +134,6 @@ public class Observer extends Leaf {
         });
     }
 
-    @Override
-    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        super.changed(object, property, preValue, postValue);
-        set(parent, Priority.low.triggered, Set::add, this);
-    }
-
     private void countChanges() {
         Root root = root();
         int totalChanges = root.countTotalChanges();
@@ -147,9 +143,15 @@ public class Observer extends Leaf {
             changes = 1;
         } else if (changes++ > root.maxNrOfChanges * 2) {
             throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
-        } else if (totalChanges > root.maxTotalNrOfChanges + 2 * root.maxNrOfChanges) {
+        } else if (totalChanges > root.maxTotalNrOfChanges + root.maxNrOfChanges) {
             throw new TooManyChangesException("Total changes: " + totalChanges + ", running: " + root.preState().get(this::toString));
         }
+    }
+
+    @Override
+    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
+        super.changed(object, property, preValue, postValue);
+        set(parent, Priority.low.triggered, Set::add, this);
     }
 
     @Override

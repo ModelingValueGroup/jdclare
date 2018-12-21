@@ -75,7 +75,7 @@ public class BirdTest {
         }
     }
 
-    // @Test
+    @Test
     public void TooManyChangesException6() {
         try {
             DClare<YellowCondorUniverse> yellowCondor = of(YellowCondorUniverse.class);

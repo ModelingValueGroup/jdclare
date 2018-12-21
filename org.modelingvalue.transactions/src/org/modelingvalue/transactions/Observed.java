@@ -39,15 +39,12 @@ public class Observed<O, T> extends Setable<O, T> {
 
     private Observed(Object id, T def, Observers<O, T>[] observers, QuadConsumer<AbstractLeaf, O, T, T> changed) {
         super(id, def, null);
-        this.changed = ($, o, p, n) -> {
+        this.changed = (l, o, p, n) -> {
             if (changed != null) {
-                changed.accept($, o, p, n);
+                changed.accept(l, o, p, n);
             }
             for (Observers<O, T> observ : observers) {
-                Set<Observer> triggered = $.get(o, observ);
-                if (!triggered.isEmpty()) {
-                    $.trigger(triggered, observ.prio(), o, this, p, n);
-                }
+                l.trigger(l.get(o, observ), observ.prio(), o, this, p, n);
             }
         };
         this.observers = observers;

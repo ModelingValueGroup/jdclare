@@ -140,6 +140,15 @@ public class Concurrent<T> {
         }
     }
 
+    public boolean isChanged() {
+        for (int i = 0; i < states.length; i++) {
+            if (states[i] != pre) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @SuppressWarnings("unchecked")
     protected T merge(T base, T[] branches) {
         if (base instanceof Mergeable) {
