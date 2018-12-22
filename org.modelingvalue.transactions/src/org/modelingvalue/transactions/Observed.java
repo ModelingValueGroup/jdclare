@@ -44,7 +44,11 @@ public class Observed<O, T> extends Setable<O, T> {
                 changed.accept(l, o, p, n);
             }
             for (Observers<O, T> observ : observers) {
-                l.trigger(l.get(o, observ), observ.prio(), o, this, p, n);
+                for (Observer obs : l.get(o, observ)) {
+                    if (!l.equals(obs)) {
+                        l.trigger(l.commonAncestor(obs), obs, observ.prio(), o, this, p, n);
+                    }
+                }
             }
         };
         this.observers = observers;

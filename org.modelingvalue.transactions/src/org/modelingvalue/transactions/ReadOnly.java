@@ -16,8 +16,6 @@ package org.modelingvalue.transactions;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import org.modelingvalue.collections.Set;
-
 public class ReadOnly extends AbstractLeaf {
 
     public static ReadOnly of(Object id, Root root) {
@@ -82,12 +80,7 @@ public class ReadOnly extends AbstractLeaf {
 
     @SuppressWarnings("rawtypes")
     @Override
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object pre, Object post) {
-        // Do nothing
-    }
-
-    @Override
-    protected void trigger(AbstractLeaf leaf, Priority prio) {
+    protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
         // Do nothing
     }
 

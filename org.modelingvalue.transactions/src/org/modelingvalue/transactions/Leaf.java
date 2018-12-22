@@ -19,7 +19,6 @@ import java.util.function.BiFunction;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
@@ -156,7 +155,7 @@ public class Leaf extends AbstractLeaf {
         } else if (prePre instanceof Mergeable) {
             return ((Mergeable) prePre).merge2(pre, post);
         } else if (slot.b() instanceof Observed && this instanceof Observer) {
-            set(parent, Priority.low.triggered, Set::add, this);
+            trigger(parent, this, Priority.low, slot.a(), slot.b(), pre, post);
             return post;
         } else {
             throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);

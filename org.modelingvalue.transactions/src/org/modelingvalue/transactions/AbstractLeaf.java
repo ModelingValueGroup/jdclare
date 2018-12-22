@@ -39,7 +39,8 @@ public abstract class AbstractLeaf extends Transaction {
     }
 
     public void trigger() {
-        getCurrent().trigger(this, initPrio());
+        AbstractLeaf leaf = getCurrent();
+        leaf.trigger(leaf.commonAncestor(this), this, initPrio, null, null, null, null);
     }
 
     public abstract State state();
@@ -71,16 +72,8 @@ public abstract class AbstractLeaf extends Transaction {
     public abstract <O, T> T set(O object, Setable<O, T> property, T post);
 
     @SuppressWarnings("rawtypes")
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object pre, Object post) {
-        for (Observer leaf : leafs) {
-            trigger(leaf, prio);
-        }
-    }
-
-    protected void trigger(AbstractLeaf leaf, Priority prio) {
-        if (!equals(leaf)) {
-            set(commonAncestor(leaf), prio.triggered, Set::add, leaf);
-        }
+    protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
+        set(common, prio.triggered, Set::add, leaf);
     }
 
     protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {

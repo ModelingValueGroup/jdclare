@@ -168,11 +168,11 @@ public class Compound extends Transaction {
                     }
                 }, branches);
                 for (int i = 0; i < triggered.length; i++) {
-                    state = trigger(state, triggered[i].result(), Priority.values()[i]);
+                    state = trigger(state, triggered[i].result(), Priority.values()[i], null, null, null, null);
                 }
                 for (Pair<Object, Observed> c : conflicts.result()) {
                     for (Observers<Object, ?> obs : c.b().observers()) {
-                        state = trigger(state, state.get(c.a(), obs), obs.prio());
+                        state = trigger(state, state.get(c.a(), obs), obs.prio(), c.a(), c.b(), null, null);
                     }
                 }
                 return state;
@@ -182,9 +182,12 @@ public class Compound extends Transaction {
         }
     }
 
-    protected State trigger(State state, Set<Observer> leafs, Priority prio) {
+    @SuppressWarnings("rawtypes")
+    protected State trigger(State state, Set<Observer> leafs, Priority prio, Object object, Setable setable, Object pre, Object post) {
+        Root root = root();
         for (Observer leaf : leafs) {
             state = state.set(commonAncestor(leaf), prio.triggered, Set::add, leaf);
+            leaf.reportTooManyChanges(root, this, prio, object, setable, pre, post);
         }
         return state;
     }

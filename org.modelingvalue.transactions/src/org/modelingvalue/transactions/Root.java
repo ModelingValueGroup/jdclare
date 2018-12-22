@@ -267,6 +267,9 @@ public class Root extends Compound {
     }
 
     public int totalChanges() {
+        if (error != null) {
+            throw new Error(error);
+        }
         return changes;
     }
 

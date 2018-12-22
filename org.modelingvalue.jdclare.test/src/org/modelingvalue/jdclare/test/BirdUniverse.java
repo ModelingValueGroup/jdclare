@@ -40,9 +40,9 @@ public interface BirdUniverse extends DUniverse {
 
         @Rule
         default void multiply() {
-            if ("yellow".equals(color()) && children().isEmpty() && name().length() < 300) {
-                for (int i = 0; i < 20; i++) {
-                    Bird son = dclare(Bird.class, this, name() + "Son" + i);
+            if ("yellow".equals(color()) && children().isEmpty() && name().length() < 7) {
+                for (int i = 0; i < 7; i++) {
+                    Bird son = dclare(Bird.class, this, name() + i);
                     set(this, Bird::children, (s, b) -> s.add(b), son);
                     set(son, Bird::color, "yellow");
                 }

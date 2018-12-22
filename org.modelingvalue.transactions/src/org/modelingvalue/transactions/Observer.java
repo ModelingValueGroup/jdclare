@@ -151,17 +151,23 @@ public class Observer extends Leaf {
     @Override
     protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
         super.changed(object, property, preValue, postValue);
-        set(parent, Priority.low.triggered, Set::add, this);
+        trigger(parent, this, Priority.low, object, property, preValue, postValue);
     }
 
     @Override
     @SuppressWarnings("rawtypes")
-    protected void trigger(Set<Observer> leafs, Priority prio, Object object, Observed observed, Object pre, Object post) {
-        super.trigger(leafs, prio, object, observed, pre, post);
-        Root root = root();
+    protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
+        super.trigger(common, leaf, prio, object, setable, pre, post);
+        if (leaf instanceof Observer) {
+            ((Observer) leaf).reportTooManyChanges(common.root(), this, prio, object, setable, pre, post);
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected void reportTooManyChanges(Root root, Transaction running, Priority prio, Object object, Setable setable, Object pre, Object post) {
         int totalChanges = root.totalChanges();
         if (changes > root.maxNrOfChanges || totalChanges > root.maxTotalNrOfChanges) {
-            System.err.println("ERROR: Too many changes: " + (totalChanges > root.maxTotalNrOfChanges ? totalChanges : changes) + "\n       Running: " + root.preState().get(() -> this + "\n       Change: " + object + "." + observed + "=" + pre + " -> " + post + "\n       Triggers: " + leafs.toString().substring(3)));
+            System.err.println("ERROR: Too many changes: " + (totalChanges > root.maxTotalNrOfChanges ? totalChanges : changes) + "\n       Running: " + root.preState().get(() -> running + "\n       Change: " + object + "." + setable + "=" + pre + " -> " + post + "\n       Triggers: " + this));
         }
     }
 
