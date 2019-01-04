@@ -137,7 +137,7 @@ public interface TextEditorPane extends DTextPane<TokenTextElement>, DStruct1<WB
         @Override
         default List<MenuItem> items() {
             return List.of(dclare(MenuItem.class, this, "hallo", DClare.id(e -> {
-                System.err.println("!!!!!!!!!!!!!!!!!!" + element().token());
+                System.err.println("POPUP MENU CALLED FOR: " + element().token());
             }, this)));
 
         }

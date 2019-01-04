@@ -58,7 +58,7 @@ public class TransactionsTests {
                 for (int il = 0; il < 8; il++) {
                     Observer.of("L" + il, o, () -> {
                         long time = TIME_MILLIS.get(root);
-                        System.err.println("!!!! " + time);
+                        System.err.println("TIME: " + time);
                         if (time - begin > 1000) {
                             STOPPED.set(root, true);
                         }
