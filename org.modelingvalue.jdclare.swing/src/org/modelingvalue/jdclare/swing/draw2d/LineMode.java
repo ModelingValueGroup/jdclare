@@ -17,7 +17,7 @@ import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.modelingvalue.collections.List;
 import org.modelingvalue.jdclare.DClare;
@@ -31,10 +31,12 @@ public interface LineMode extends CanvasMode {
     List<DShape> shapes();
 
     @Property(constant)
-    Consumer<List<DShape>> action();
+    BiConsumer<DCanvas, List<DShape>> action();
 
     @Rule
     default void mode() {
+        DCanvas c = dAncestor(DCanvas.class);
+
         if (shapes().isEmpty()) {
             DShape s = findClickedShape();
             DClare.set(this, LineMode::shapes, List::add, s);
@@ -44,7 +46,7 @@ public interface LineMode extends CanvasMode {
         } else {
             DShape s = findClickedShape();
             if (s != null && !shapes().contains(s)) {
-                action().accept(shapes().add(s));
+                action().accept(c, shapes().add(s));
                 DClare.set(shapes().get(0), DShape::highlighted, false);
             }
         }

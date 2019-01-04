@@ -130,14 +130,7 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
             return dclareUU(DCanvas.class, set(DCanvas::color, new Color(200, 255, 200)));
         }
 
-        @Rule()
-        default void init() {
-            rectangleMode();
-            circleMode();
-            lineMode();
-            selectionMode();
-        }
-
+        @Property(constant)
         default ClickMode rectangleMode() {
             return dclareUU(ClickMode.class, e -> {
                 set(e, ClickMode::action, z -> {
@@ -148,19 +141,21 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
             });
         }
 
+        @Property(constant)
         default ClickMode circleMode() {
             return dclareUU(ClickMode.class, e -> {
-                set(e, ClickMode::action, z -> {
-                    InputDeviceData di = z.deviceInput();
+                set(e, ClickMode::action, c -> {
+                    InputDeviceData di = c.deviceInput();
                     appendShape(dclareUU(DCircle.class, set(DShape::position, di.mousePosition())));
-                    set(z, DCanvas::mode, selectionMode());
+                    set(c, DCanvas::mode, selectionMode());
                 });
             });
         }
 
+        @Property(constant)
         default LineMode lineMode() {
             return dclareUU(LineMode.class, e -> {
-                set(e, LineMode::action, sel -> {
+                set(e, LineMode::action, (c, sel) -> {
                     DShape one = sel.get(0);
                     DShape two = sel.get(1);
                     prependShape(dclareUU(DLine.class, //
@@ -173,7 +168,7 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
                                 }
                             }) //
                     ));
-                    set(canvas(), DCanvas::mode, selectionMode());
+                    set(c, DCanvas::mode, selectionMode());
                 });
             });
         }

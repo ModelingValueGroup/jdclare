@@ -13,6 +13,7 @@
 
 package org.modelingvalue.jdclare.swing;
 
+import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.awt.Image;
@@ -58,7 +59,8 @@ public interface DButton extends DComponent {
             swing.setBorder(new EmptyBorder(2, 2, 2, 2));
             swing.addActionListener(x -> {
                 swing.setSelected(!swing.isSelected());
-                visible.action().accept(x);
+                Consumer<ActionEvent> action = visible.action();
+                dClare().put(action, () -> action.accept(x));
                 DClare.set(visible, DButton::selected, swing.isSelected());
             });
             updateImageAndText(visible.imageLink() != null ? visible.imageLink().image() : null, visible.text());
