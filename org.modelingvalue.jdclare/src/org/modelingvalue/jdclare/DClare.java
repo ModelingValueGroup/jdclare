@@ -496,7 +496,7 @@ public final class DClare<U extends DUniverse> extends Root {
     public static <O extends DObject, V> void rule(O dObject, String name, Consumer<O> rule) {
         Setable<DObject, Set<DRule>> ors = setable(D_OBJECT_RULES);
         ors.set((DObject) dObject, Set::add, dclare(ORule.class, dObject, name, //
-                set(ORule::statement, dclare(FStatement.class, name, id(rule)))));
+                set(ORule::statement, dclare(FStatement.class, name, id(rule, dObject, name)))));
     }
 
     public static <O extends DObject, V> void set(O dObject, SerializableFunction<O, V> property, V value) {

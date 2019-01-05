@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.List;
+import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DComponent;
@@ -93,27 +94,30 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
 
     @Property(constant)
     default ClickMode circleMode() {
-        return dclareUU(ClickMode.class, e -> {
-            set(e, ClickMode::action, c -> {
-                InputDeviceData di = c.deviceInput();
-                appendShape(dclareUU(DCircle.class, set(DShape::position, di.mousePosition())));
-                set(c, DCanvas::mode, selectionMode());
-            });
-        });
+        return dclareUU(ClickMode.class, set(ClickMode::action, c -> {
+            InputDeviceData di = c.deviceInput();
+            appendShape(dclareUU(DCircle.class, set(DShape::position, di.mousePosition())));
+            set(c, DCanvas::mode, selectionMode());
+        }));
     }
 
     @Property(constant)
     default LineMode lineMode() {
-        return dclareUU(LineMode.class, e -> {
-            set(e, LineMode::action, (c, sel) -> {
-                DShape one = sel.get(0);
-                DShape two = sel.get(1);
-                prependShape(dclareUU(DLine.class, //
-                        rule(DShape::position, l -> one.centre()), //
-                        rule(DLine::endPoint, l -> two.centre())));
-                set(c, DCanvas::mode, selectionMode());
-            });
-        });
+        return dclareUU(LineMode.class, set(LineMode::action, (c, sel) -> {
+            DShape one = sel.get(0);
+            DShape two = sel.get(1);
+            prependShape(dclareUU(DLine.class, //
+                    rule(DShape::position, l -> one.centre()), //
+                    rule(DLine::endPoint, l -> two.centre()), //
+                    rule("delete", l -> {
+                        if ((pre(one, DObject::dParent) != null && one.dParent() == null) || //
+                        (pre(two, DObject::dParent) != null && two.dParent() == null)) {
+                            clear(l);
+                        }
+                    }) //
+            ));
+            set(c, DCanvas::mode, selectionMode());
+        }));
     }
 
     @Property(constant)
@@ -124,21 +128,20 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
     @Override
     @Property(constant)
     default DComponent rigthComponent() {
-        return dclareUU(DToolbar.class, (c) -> {
-            set(c, DToolbar::preferredSize, dclare(DDimension.class, 40, 100));
-            set(c, DToolbar::minimumSize, dclare(DDimension.class, 50, 100));
-            set(c, DToolbar::items, List.of(//
-                    item("Select", "selection.png", (x) -> {
-                        set(canvas(), DCanvas::mode, selectionMode());
-                    }), //
-                    item("Circle", "circle.png", (x) -> {
-                        set(canvas(), DCanvas::mode, circleMode());
-                    }), //
-                    item("Line", "line.png", (x) -> {
-                        set(canvas(), DCanvas::mode, lineMode());
-                    }) //
-            ));
-        });
+        return dclareUU(DToolbar.class, //
+                set(DToolbar::preferredSize, dclare(DDimension.class, 40, 100)), //
+                set(DToolbar::minimumSize, dclare(DDimension.class, 50, 100)), //
+                set(DToolbar::items, List.of(//
+                        item("Select", "selection.png", (x) -> {
+                            set(canvas(), DCanvas::mode, selectionMode());
+                        }), //
+                        item("Circle", "circle.png", (x) -> {
+                            set(canvas(), DCanvas::mode, circleMode());
+                        }), //
+                        item("Line", "line.png", (x) -> {
+                            set(canvas(), DCanvas::mode, lineMode());
+                        }) //
+                )));
     }
 
 }
