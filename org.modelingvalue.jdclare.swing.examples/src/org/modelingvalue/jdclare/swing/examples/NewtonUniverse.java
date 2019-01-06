@@ -37,6 +37,7 @@ public interface NewtonUniverse extends GuiUniverse {
     default void init() {
         GuiUniverse.super.init();
         set(this, GuiUniverse::frames, Set.of(dclare(NewtonFrame.class, this)));
+
     }
 
     interface NewtonFrame extends Frame, DStruct1<NewtonUniverse> {

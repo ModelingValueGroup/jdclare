@@ -263,7 +263,13 @@ public class Root extends Compound {
     }
 
     public int countTotalChanges() {
-        return changes++;
+        if (changes > maxTotalNrOfChanges) {
+            synchronized (this) {
+                return changes++;
+            }
+        } else {
+            return changes++;
+        }
     }
 
     public int totalChanges() {

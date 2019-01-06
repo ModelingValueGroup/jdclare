@@ -65,6 +65,15 @@ public class Observed<O, T> extends Setable<O, T> {
         return observers;
     }
 
+    public int getNrOfObservers(O object) {
+        AbstractLeaf leaf = AbstractLeaf.getCurrent();
+        int nr = 0;
+        for (Observers<O, T> observ : observers) {
+            nr += leaf.get(object, observ).size();
+        }
+        return nr;
+    }
+
     public static final class Observers<O, T> extends Setable<O, Set<Observer>> {
 
         private Observed<O, T> observed;

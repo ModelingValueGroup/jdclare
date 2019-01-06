@@ -38,6 +38,11 @@ public interface DUniverse extends DPackageContainer, DStruct0 {
         return dclare(IOString.class, 0, "");
     }
 
+    @Property({hidden, containment, constant})
+    default DClock clock() {
+        return dclare(DClock.class);
+    }
+
     @Property(hidden)
     boolean stop();
 

@@ -31,10 +31,13 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -108,6 +111,8 @@ import org.modelingvalue.transactions.Transaction;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class DClare<U extends DUniverse> extends Root {
 
+    private static final int                                                     ANIMATE_DELAY_TIME           = Integer.getInteger("ANIMATE_DELAY_TIME", 50);
+
     private static final ContextPool                                             THE_POOL                     = ContextThread.createPool();
 
     private static final String                                                  D_START_CONSTANT_CONTAINMENT = "dStartConstantContainment";
@@ -143,6 +148,8 @@ public final class DClare<U extends DUniverse> extends Root {
     private static final Method                                                  GET_KEY                      = method(DStruct::getKey);
     private static final Method                                                  GET_KEY_SIZE                 = method(DStruct::getKeySize);
     private static final Method                                                  LOOKUP                       = method(DStruct::lookup);
+
+    private static final Method                                                  PASSED_SECONDS               = method(DClock::passSeconds);
 
     public static final Setable<DClare<?>, Integer>                              ROOT_RUN_NR                  = Setable.of("dRootRunNr", 0);
 
@@ -297,15 +304,19 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                               });
 
     public static <U extends DUniverse> DClare<U> of(Class<U> universeClass) {
-        return new DClare<U>(universeClass, true, 100);
+        return new DClare<U>(universeClass, true, Clock.systemDefaultZone(), 100);
+    }
+
+    public static <U extends DUniverse> DClare<U> of(Class<U> universeClass, Clock clock) {
+        return new DClare<U>(universeClass, true, clock, 100);
     }
 
     public static <U extends DUniverse> DClare<U> of(Class<U> universeClass, boolean checkFatals) {
-        return new DClare<U>(universeClass, checkFatals, 100);
+        return new DClare<U>(universeClass, checkFatals, Clock.systemDefaultZone(), 100);
     }
 
     public static <U extends DUniverse> DClare<U> of(Class<U> universeClass, boolean checkFatals, int maxInInQueue) {
-        return new DClare<U>(universeClass, checkFatals, maxInInQueue);
+        return new DClare<U>(universeClass, checkFatals, Clock.systemDefaultZone(), maxInInQueue);
     }
 
     @SafeVarargs
@@ -566,6 +577,11 @@ public final class DClare<U extends DUniverse> extends Root {
         } else {
             return method;
         }
+    }
+
+    public static <O extends DStruct, V> int getNrOfObservers(O dObject, DProperty<O, V> property) {
+        Getable<O, V> getable = getable(property.actualize(dObject.dStructClass()));
+        return getable instanceof Observed ? ((Observed) getable).getNrOfObservers(dObject) : 0;
     }
 
     public static <O extends DStruct, V> V get(O dObject, DProperty<O, V> property) {
@@ -1362,12 +1378,52 @@ public final class DClare<U extends DUniverse> extends Root {
 
     // Instance part
 
-    @Override
-    protected boolean isTimeTraveling() {
-        return super.isTimeTraveling() || leaf == bootstrap;
+    private final Leaf                  setTime      = Leaf.of("setTime", this, this::setTime);
+    private final Leaf                  animate      = Leaf.of("animate", this, this::animate);
+    private final Leaf                  clearOrphans = Leaf.of("clearOrphans", this, this::clearOrphans);
+    private final Leaf                  printOutput  = Leaf.of("printOutput", this, this::printOutput);
+    private final Leaf                  restart      = Leaf.of("restart", this, this::restart);
+    private final Leaf                  checkFatals;
+
+    private final Clock                 clock;
+
+    private Set<JRule<?, ?>>            jClassRules;
+    private Setable<DUniverse, Boolean> stopSetable;
+    private Thread                      inputReader;
+    private Timer                       timer;
+
+    private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, Clock clock, int maxInInQueue) {
+        super(dStruct(universeClass), THE_POOL, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        this.checkFatals = checkFatals ? Leaf.of("checkFatals", this, this::checkFatals) : null;
+        this.clock = clock;
     }
 
-    private final Leaf clearOrphans = Leaf.of("clearOrphans", this, this::clearOrphans);
+    public Clock getClock() {
+        return clock;
+    }
+
+    private void restart() {
+        // do nothing
+    }
+
+    private void setTime() {
+        set(dUniverse().clock(), DClock::time, clock.instant());
+    }
+
+    private void animate() {
+        DClock clock = dUniverse().clock();
+        if (dProperty(PASSED_SECONDS).getNrOfObservers(clock) > 1) {
+            if (timer == null) {
+                timer = new Timer(true);
+            }
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    put(restart);
+                }
+            }, ANIMATE_DELAY_TIME);
+        }
+    }
 
     private void clearOrphans() {
         if (!isTimeTraveling()) {
@@ -1380,16 +1436,12 @@ public final class DClare<U extends DUniverse> extends Root {
         }
     }
 
-    private final Leaf checkFatals;
-
     private void checkFatals() {
         Set<DProblem> fatals = universe().dAllProblems().filter(p -> p.severity() == DSeverity.fatal).toSet();
         if (!fatals.isEmpty()) {
             throw new Error("Fatal problems: " + fatals.toString().substring(3));
         }
     }
-
-    private final Leaf printOutput = Leaf.of("printOutput", this, this::printOutput);
 
     private void printOutput() {
         int runNr = ROOT_RUN_NR.set(this, Integer::sum, 1);
@@ -1404,8 +1456,6 @@ public final class DClare<U extends DUniverse> extends Root {
             System.err.flush();
         }
     }
-
-    private Thread inputReader;
 
     private synchronized void readInput() {
         if (inputReader == null) {
@@ -1423,11 +1473,9 @@ public final class DClare<U extends DUniverse> extends Root {
         }
     }
 
-    private Set<JRule<?, ?>> jClassRules;
-
-    private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, int maxInInQueue) {
-        super(dStruct(universeClass), THE_POOL, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
-        this.checkFatals = checkFatals ? Leaf.of("checkFatals", this, this::checkFatals) : null;
+    @Override
+    protected boolean isTimeTraveling() {
+        return super.isTimeTraveling() || leaf == bootstrap;
     }
 
     public State run() {
@@ -1515,6 +1563,11 @@ public final class DClare<U extends DUniverse> extends Root {
     }
 
     @Override
+    protected State pre(State pre) {
+        return stopSetable != null ? apply(schedule(pre, setTime, Priority.first)) : pre;
+    }
+
+    @Override
     protected State post(State pre) {
         State post = apply(schedule(pre, clearOrphans, Priority.low));
         while (!pre.equals(post)) {
@@ -1524,7 +1577,8 @@ public final class DClare<U extends DUniverse> extends Root {
         if (checkFatals != null) {
             post = schedule(post, checkFatals, Priority.low);
         }
-        return apply(schedule(post, printOutput, Priority.low));
+        post = schedule(post, printOutput, Priority.low);
+        return isStopped(post) ? post : apply(schedule(post, animate, Priority.low));
     }
 
     public void addAugmentation(Class<?>... augmentations) {
@@ -1558,8 +1612,6 @@ public final class DClare<U extends DUniverse> extends Root {
 
     }
 
-    private Setable<DUniverse, Boolean> stopSetable;
-
     @Override
     public boolean isStopped(State state) {
         return state.get(universe(), stopSetable);
@@ -1567,6 +1619,9 @@ public final class DClare<U extends DUniverse> extends Root {
 
     @Override
     public void stop() {
+        if (timer != null) {
+            timer.cancel();
+        }
         put(Leaf.of("stop", this, () -> stopSetable.set(universe(), true)));
     }
 

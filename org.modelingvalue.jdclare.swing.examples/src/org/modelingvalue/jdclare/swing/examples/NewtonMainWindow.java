@@ -32,7 +32,6 @@ import org.modelingvalue.jdclare.swing.ScrollPane;
 import org.modelingvalue.jdclare.swing.SplitPane;
 import org.modelingvalue.jdclare.swing.draw2d.ClickMode;
 import org.modelingvalue.jdclare.swing.draw2d.DCanvas;
-import org.modelingvalue.jdclare.swing.draw2d.DCircle;
 import org.modelingvalue.jdclare.swing.draw2d.DDimension;
 import org.modelingvalue.jdclare.swing.draw2d.DImage;
 import org.modelingvalue.jdclare.swing.draw2d.DLine;
@@ -96,7 +95,7 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
     default ClickMode circleMode() {
         return dclareUU(ClickMode.class, set(ClickMode::action, c -> {
             InputDeviceData di = c.deviceInput();
-            appendShape(dclareUU(DCircle.class, set(DShape::position, di.mousePosition())));
+            appendShape(dclareUU(NewtonCircle.class, set(DShape::position, di.mousePosition())));
             set(c, DCanvas::mode, selectionMode());
         }));
     }
@@ -106,7 +105,7 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
         return dclareUU(LineMode.class, set(LineMode::action, (c, sel) -> {
             DShape one = sel.get(0);
             DShape two = sel.get(1);
-            prependShape(dclareUU(DLine.class, //
+            prependShape(dclareUU(NewtonLine.class, //
                     rule(DShape::position, l -> one.centre()), //
                     rule(DLine::endPoint, l -> two.centre()), //
                     rule("delete", l -> {

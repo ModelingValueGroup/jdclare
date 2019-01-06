@@ -40,11 +40,18 @@ public interface DFilled extends DShape {
     default DPoint position() {
         DPoint dragging = dragging();
         return dragging != null ? (canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE) ? //
-                dragStartPosition() : dragging.plus(canvas().deviceInput().mousePosition())) : position();
+                dragStartPosition() : dragging.plus(canvas().deviceInput().mousePosition())) : nonDraggingPosition();
+    }
+
+    default DPoint nonDraggingPosition() {
+        return position();
     }
 
     @Property(optional)
     DPoint dragStartPosition();
+
+    @Property(optional)
+    DPoint dragStopPosition();
 
     @Property(optional)
     default DPoint dragging() {
@@ -52,9 +59,11 @@ public interface DFilled extends DShape {
         InputDeviceData di = canvas.deviceInput();
         if (di.isLeftMouseDown() && !pre(di, InputDeviceData::isLeftMouseDown) && hit(di.mousePosition())) {
             set(this, DFilled::dragStartPosition, position());
+            set(this, DFilled::dragStopPosition, null);
             return position().minus(di.mousePosition());
-        } else if (!di.isLeftMouseDown() || di.pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
+        } else if (dragging() != null && (!di.isLeftMouseDown() || di.pressedKeys().contains(KeyEvent.VK_ESCAPE))) {
             set(this, DFilled::dragStartPosition, null);
+            set(this, DFilled::dragStopPosition, position());
             return null;
         } else {
             return dragging();

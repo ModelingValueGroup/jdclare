@@ -88,6 +88,10 @@ public interface DProperty<O extends DStruct, V> extends DFeature<O, V> {
         return DClare.get(object, this);
     }
 
+    default int getNrOfObservers(O object) {
+        return DClare.getNrOfObservers(object, this);
+    }
+
     default Collection<?> getCollection(O object) {
         return DClare.getCollection(object, this);
     }

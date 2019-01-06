@@ -16,6 +16,9 @@ package org.modelingvalue.jdclare.test;
 import static org.junit.Assert.*;
 import static org.modelingvalue.jdclare.DClare.*;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -31,8 +34,9 @@ import org.modelingvalue.transactions.State;
 
 public class JDclareTests {
 
-    private static final int     MANY_TIMES = 100;
-    private static final boolean DUMP       = Boolean.getBoolean("DUMP");
+    private static final int     MANY_TIMES  = 100;
+    private static final boolean DUMP        = Boolean.getBoolean("DUMP");
+    private static final Clock   FIXED_CLOCK = Clock.fixed(Instant.EPOCH, ZoneId.systemDefault());
 
     @Test
     public void manyUniverse() {
@@ -66,7 +70,7 @@ public class JDclareTests {
     public void manyOrchestra() {
         State prev = null;
         for (int i = 0; i < MANY_TIMES; i++) {
-            DClare<Orchestra> dClare = of(Orchestra.class);
+            DClare<Orchestra> dClare = of(Orchestra.class, FIXED_CLOCK);
             State next = dClare.run();
             next.run(() -> {
                 check(next);
@@ -165,7 +169,7 @@ public class JDclareTests {
     public void manyPriorities() {
         State prev = null;
         for (int i = 0; i < MANY_TIMES; i++) {
-            DClare<PrioUniverse> dClare = of(PrioUniverse.class);
+            DClare<PrioUniverse> dClare = of(PrioUniverse.class, FIXED_CLOCK);
             State next = dClare.run();
             next.run(() -> {
                 check(next);
