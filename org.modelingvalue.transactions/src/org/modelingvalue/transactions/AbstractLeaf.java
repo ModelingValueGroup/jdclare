@@ -57,6 +57,10 @@ public abstract class AbstractLeaf extends Transaction {
         return state().get(object, property);
     }
 
+    public <O, T> T pre(O object, Getable<O, T> property) {
+        return root().preState().get(object, property);
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     public <O> void clear(O object) {
         Map<Setable, Object> properties = state().properties(object);

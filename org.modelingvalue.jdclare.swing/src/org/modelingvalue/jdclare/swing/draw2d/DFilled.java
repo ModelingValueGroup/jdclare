@@ -38,33 +38,29 @@ public interface DFilled extends DShape {
 
     @Override
     default DPoint position() {
-        DPoint dragging = dragging();
-        return dragging != null ? (canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE) ? //
-                dragStartPosition() : dragging.plus(canvas().deviceInput().mousePosition())) : nonDraggingPosition();
+        InputDeviceData di = canvas().deviceInput();
+        return dragging() ? (di.pressedKeys().contains(KeyEvent.VK_ESCAPE) ? //
+                dragStartPosition() : dragStartPosition().plus(di.mousePosition().minus(dragStartMousePosition()))) : position();
     }
 
-    default DPoint nonDraggingPosition() {
-        return position();
-    }
+    @Property(optional)
+    DPoint dragStartMousePosition();
 
     @Property(optional)
     DPoint dragStartPosition();
 
-    @Property(optional)
-    DPoint dragStopPosition();
-
-    @Property(optional)
-    default DPoint dragging() {
+    @Property()
+    default boolean dragging() {
         DCanvas canvas = canvas();
         InputDeviceData di = canvas.deviceInput();
         if (di.isLeftMouseDown() && !pre(di, InputDeviceData::isLeftMouseDown) && hit(di.mousePosition())) {
             set(this, DFilled::dragStartPosition, position());
-            set(this, DFilled::dragStopPosition, null);
-            return position().minus(di.mousePosition());
-        } else if (dragging() != null && (!di.isLeftMouseDown() || di.pressedKeys().contains(KeyEvent.VK_ESCAPE))) {
+            set(this, DFilled::dragStartMousePosition, di.mousePosition());
+            return true;
+        } else if (dragging() && (!di.isLeftMouseDown() || di.pressedKeys().contains(KeyEvent.VK_ESCAPE))) {
             set(this, DFilled::dragStartPosition, null);
-            set(this, DFilled::dragStopPosition, position());
-            return null;
+            set(this, DFilled::dragStartMousePosition, null);
+            return false;
         } else {
             return dragging();
         }

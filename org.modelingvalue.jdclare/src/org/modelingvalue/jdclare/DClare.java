@@ -111,7 +111,7 @@ import org.modelingvalue.transactions.Transaction;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class DClare<U extends DUniverse> extends Root {
 
-    private static final int                                                     ANIMATE_DELAY_TIME           = Integer.getInteger("ANIMATE_DELAY_TIME", 50);
+    private static final int                                                     ANIMATE_DELAY_TIME           = Integer.getInteger("ANIMATE_DELAY_TIME", 10);
 
     private static final ContextPool                                             THE_POOL                     = ContextThread.createPool();
 
@@ -523,7 +523,7 @@ public final class DClare<U extends DUniverse> extends Root {
     }
 
     public static <O extends DStruct, V> V pre(O dObject, SerializableFunction<O, V> property) {
-        return (V) dClare().preState().get(dObject, getable(method(dObject, property)));
+        return (V) getable(method(dObject, property)).pre(dObject);
     }
 
     public static <O extends DObject, D extends DObject, V> Set<D> opposite(O dObject, Class<D> cls, SerializableFunction<D, V> property) {
@@ -1411,17 +1411,19 @@ public final class DClare<U extends DUniverse> extends Root {
     }
 
     private void animate() {
-        DClock clock = dUniverse().clock();
-        if (dProperty(PASSED_SECONDS).getNrOfObservers(clock) > 1) {
-            if (timer == null) {
-                timer = new Timer(true);
-            }
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    put(restart);
+        if (inQueue.isEmpty()) {
+            DClock clock = dUniverse().clock();
+            if (dProperty(PASSED_SECONDS).getNrOfObservers(clock) > 1) {
+                if (timer == null) {
+                    timer = new Timer(true);
                 }
-            }, ANIMATE_DELAY_TIME);
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        put(restart);
+                    }
+                }, ANIMATE_DELAY_TIME);
+            }
         }
     }
 

@@ -278,7 +278,7 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
             DTriangle t = dclareUU(DTriangle.class, uuid(), //
                     rule(DTriangle::position, x -> {
                         DFilled f = rectangle();
-                        if (f.dragging() != null) {
+                        if (f.dragging()) {
                             DPoint delta = f.position().minus(pre(f, DShape::position));
                             DPoint p = pre(x, DShape::position);
                             return p.plus(delta);

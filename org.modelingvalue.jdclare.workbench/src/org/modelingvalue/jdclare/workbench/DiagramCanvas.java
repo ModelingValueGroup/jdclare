@@ -171,7 +171,7 @@ public interface DiagramCanvas extends DStruct1<WBUniverse>, DCanvas {
 
         @Override
         default DPoint position() {
-            return dragging() != null ? position() : dclare(DPoint.class, order() * 130 + 10, level() * 110 + 10);
+            return dragging() ? position() : dclare(DPoint.class, order() * 130 + 10, level() * 110 + 10);
         }
 
     }

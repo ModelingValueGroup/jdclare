@@ -64,7 +64,7 @@ public abstract class Getable<O, T> {
     }
 
     public T pre(O object) {
-        return currentLeaf(object).root().preState().get(object, this);
+        return currentLeaf(object).pre(object, this);
     }
 
     protected AbstractLeaf currentLeaf(O object) {
