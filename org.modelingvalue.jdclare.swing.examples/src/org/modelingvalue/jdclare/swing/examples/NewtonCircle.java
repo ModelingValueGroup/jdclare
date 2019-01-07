@@ -61,6 +61,13 @@ public interface NewtonCircle extends NewtonShape, DCircle {
         return canvas().shapes().filter(NewtonCircle.class).toSet().remove(this);
     }
 
+    @Property
+    default Set<NewtonCircle> bouncing() {
+        int radius = radius();
+        DPoint position = position();
+        return others().filter(o -> o.radius() + radius > position.minus(o.position()).length()).toSet();
+    }
+
     @Rule
     default void setNonDraggingVelocity() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
@@ -70,14 +77,10 @@ public interface NewtonCircle extends NewtonShape, DCircle {
     }
 
     default Vector bounce(Vector vel) {
-        int rad = radius();
-        DPoint pos = position();
-        for (NewtonCircle other : others()) {
-            if (other.radius() + rad > pos.minus(other.position()).length()) {
-                vel = pre(other, NewtonCircle::velocity);
-            }
-        }
-        return vel;
+        Set<NewtonCircle> bouncing = bouncing();
+        return bouncing.filter(o -> !o.bouncing().isEmpty()).reduce(vel, //
+                (v, o) -> v.minus(v.div(bouncing.size())).plus(pre(o, NewtonCircle::velocity).div(o.bouncing().size())), //
+                (a, b) -> a.plus(b));
     }
 
     default Vector rebound(Vector vel) {
