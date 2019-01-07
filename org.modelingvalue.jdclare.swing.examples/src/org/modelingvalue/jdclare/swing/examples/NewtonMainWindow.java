@@ -28,7 +28,6 @@ import org.modelingvalue.jdclare.swing.DComponent;
 import org.modelingvalue.jdclare.swing.DToolbar;
 import org.modelingvalue.jdclare.swing.DToolbarItem;
 import org.modelingvalue.jdclare.swing.InputDeviceData;
-import org.modelingvalue.jdclare.swing.ScrollPane;
 import org.modelingvalue.jdclare.swing.SplitPane;
 import org.modelingvalue.jdclare.swing.draw2d.ClickMode;
 import org.modelingvalue.jdclare.swing.draw2d.DCanvas;
@@ -57,8 +56,8 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
         set(canvas(), DCanvas::shapes, List::append, s);
     }
 
-    default DCanvas canvas() {
-        return (DCanvas) ((ScrollPane) leftComponent()).viewportView();
+    default NewtonFrame canvas() {
+        return (NewtonFrame) leftComponent();
     }
 
     default void prependShape(DShape s) {
@@ -84,11 +83,7 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
     @Override
     @Property(constant)
     default DComponent leftComponent() {
-        return dclareUU(ScrollPane.class, sp -> {
-            DCanvas canvas = dclareUU(DCanvas.class, set(DCanvas::color, new Color(200, 255, 200)));
-            set(sp, ScrollPane::viewportView, canvas);
-            set(canvas, DCanvas::mode, selectionMode());
-        });
+        return dclareUU(NewtonFrame.class, set(DCanvas::color, new Color(200, 255, 200)), set(DCanvas::mode, selectionMode()));
     }
 
     @Property(constant)

@@ -15,9 +15,18 @@ import org.modelingvalue.jdclare.swing.draw2d.DShape;
 
 public interface NewtonCircle extends NewtonShape, DCircle {
 
+    default NewtonFrame frame() {
+        return (NewtonFrame) canvas();
+    }
+
     @Property
     default double mass() { // amount of dots
         return Math.PI * radius() * radius();
+    }
+
+    @Override
+    default String text() {
+        return "" + (int) mass();
     }
 
     @Override
@@ -47,14 +56,43 @@ public interface NewtonCircle extends NewtonShape, DCircle {
         }
     }
 
+    @Property
+    default Set<NewtonCircle> others() {
+        return canvas().shapes().filter(NewtonCircle.class).toSet().remove(this);
+    }
+
+    @Rule
+    default void setNonDraggingVelocity() {
+        if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
+            set(this, NewtonCircle::velocity, friction(rebound(pre(this, NewtonCircle::velocity))));
+        }
+    }
+
+    default Vector rebound(Vector vel) {
+        DPoint min = dclare(DPoint.class, radius(), radius());
+        DPoint max = canvas().size().toPoint().minus(min);
+        DPoint pos = position();
+        if ((min.x() > pos.x() && vel.x() < 0) || (max.x() < pos.x() && vel.x() > 0)) {
+            vel = dclare(Vector.class, -vel.x(), vel.y());
+        }
+        if ((min.y() > pos.y() && vel.y() < 0) || (max.y() < pos.y() && vel.y() > 0)) {
+            vel = dclare(Vector.class, vel.x(), -vel.y());
+        }
+        return vel;
+    }
+
+    default Vector friction(Vector vel) {
+        return vel.minus(vel.mult(frame().frictionCoefficient()));
+    }
+
     @Rule
     default void setNonDraggingPosition() {
-        if (!dragging()) {
-            Vector velocity = velocity();
-            if (!velocity.equals(Vector.NULL) && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
+        if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
+            Vector preVelocity = pre(this, NewtonCircle::velocity);
+            if (!preVelocity.equals(Vector.NULL)) {
                 DPoint prePosition = pre(this, DShape::position);
                 double passTime = dUniverse().clock().passSeconds();
-                DPoint movement = velocity.mult(passTime).toPoint();
+                DPoint movement = preVelocity.mult(passTime).toPoint();
                 DPoint position = prePosition.plus(movement);
                 set(this, DShape::position, position);
             }

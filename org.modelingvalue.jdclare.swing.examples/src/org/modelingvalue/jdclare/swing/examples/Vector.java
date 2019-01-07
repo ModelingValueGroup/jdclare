@@ -16,6 +16,10 @@ public interface Vector extends DStruct2<Double, Double> {
     @Property(key = 1)
     double y();
 
+    default double length() {
+        return Math.sqrt(x() * x() + y() * y());
+    }
+
     default Vector mult(double f) {
         return dclare(Vector.class, x() * f, y() * f);
     }
