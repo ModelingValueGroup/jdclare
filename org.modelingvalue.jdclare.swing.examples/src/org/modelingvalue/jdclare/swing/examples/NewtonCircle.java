@@ -64,8 +64,20 @@ public interface NewtonCircle extends NewtonShape, DCircle {
     @Rule
     default void setNonDraggingVelocity() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            set(this, NewtonCircle::velocity, friction(rebound(pre(this, NewtonCircle::velocity))));
+            Vector preVelocity = pre(this, NewtonCircle::velocity);
+            set(this, NewtonCircle::velocity, friction(rebound(bounce(preVelocity))));
         }
+    }
+
+    default Vector bounce(Vector vel) {
+        int rad = radius();
+        DPoint pos = position();
+        for (NewtonCircle other : others()) {
+            if (other.radius() + rad > pos.minus(other.position()).length()) {
+                vel = pre(other, NewtonCircle::velocity);
+            }
+        }
+        return vel;
     }
 
     default Vector rebound(Vector vel) {
