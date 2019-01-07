@@ -16,6 +16,10 @@ package org.modelingvalue.jdclare.syntax.test;
 import static org.junit.Assert.*;
 import static org.modelingvalue.jdclare.DClare.*;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+
 import org.junit.Test;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.jdclare.DClare;
@@ -27,8 +31,9 @@ import org.modelingvalue.transactions.State;
 
 public class SyntaxTests {
 
-    private static final int     MANY_TIMES = 100;
-    private static final boolean DUMP       = Boolean.getBoolean("DUMP");
+    private static final int     MANY_TIMES  = 100;
+    private static final boolean DUMP        = Boolean.getBoolean("DUMP");
+    private static final Clock   FIXED_CLOCK = Clock.fixed(Instant.EPOCH, ZoneId.systemDefault());
 
     @Test
     public void manySyntax() {
@@ -47,7 +52,7 @@ public class SyntaxTests {
     }
 
     private State doit() {
-        DClare<TextUniverse> dClare = of(TextUniverse.class);
+        DClare<TextUniverse> dClare = of(TextUniverse.class, FIXED_CLOCK);
         dClare.start();
         dClare.put("change0", () -> {
             DClare.set(dClare.universe().text(), Text::string, STRING);
