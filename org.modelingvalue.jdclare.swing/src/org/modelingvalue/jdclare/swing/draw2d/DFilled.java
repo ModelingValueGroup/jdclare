@@ -19,6 +19,7 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 
+import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DComponent.DComponentNative;
@@ -38,9 +39,7 @@ public interface DFilled extends DShape {
 
     @Override
     default DPoint position() {
-        InputDeviceData di = canvas().deviceInput();
-        return dragging() ? (di.pressedKeys().contains(KeyEvent.VK_ESCAPE) ? //
-                dragStartPosition() : dragStartPosition().plus(di.mousePosition().minus(dragStartMousePosition()))) : position();
+        return dragging() ? dragStartPosition().plus(canvas().deviceInput().mousePosition().minus(dragStartMousePosition())) : position();
     }
 
     @Property(optional)
@@ -53,11 +52,14 @@ public interface DFilled extends DShape {
     default boolean dragging() {
         DCanvas canvas = canvas();
         InputDeviceData di = canvas.deviceInput();
-        if (di.isLeftMouseDown() && !pre(di, InputDeviceData::isLeftMouseDown) && hit(di.mousePosition())) {
+        if (!pre(di, InputDeviceData::isLeftMouseDown) && di.isLeftMouseDown() && pre(this, DObject::dParent) != null && hit(di.mousePosition())) {
             set(this, DFilled::dragStartPosition, position());
             set(this, DFilled::dragStartMousePosition, di.mousePosition());
             return true;
         } else if (dragging() && (!di.isLeftMouseDown() || di.pressedKeys().contains(KeyEvent.VK_ESCAPE))) {
+            if (di.pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
+                set(this, DShape::position, dragStartPosition());
+            }
             set(this, DFilled::dragStartPosition, null);
             set(this, DFilled::dragStartMousePosition, null);
             return false;

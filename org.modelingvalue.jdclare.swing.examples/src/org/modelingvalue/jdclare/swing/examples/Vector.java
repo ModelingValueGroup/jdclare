@@ -16,12 +16,20 @@ public interface Vector extends DStruct2<Double, Double> {
     @Property(key = 1)
     double y();
 
-    default Vector mult(double factor) {
-        return dclare(Vector.class, x() * factor, y() * factor);
+    default Vector mult(double f) {
+        return dclare(Vector.class, x() * f, y() * f);
     }
 
-    default Vector div(double factor) {
-        return dclare(Vector.class, x() / factor, y() / factor);
+    default Vector div(double f) {
+        return dclare(Vector.class, x() / f, y() / f);
+    }
+
+    default Vector plus(Vector v) {
+        return dclare(Vector.class, x() + v.x(), y() + v.y());
+    }
+
+    default Vector minus(Vector v) {
+        return dclare(Vector.class, x() - v.x(), y() - v.y());
     }
 
     default DPoint toPoint() {

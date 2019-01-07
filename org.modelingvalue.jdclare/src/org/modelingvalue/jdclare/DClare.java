@@ -111,7 +111,7 @@ import org.modelingvalue.transactions.Transaction;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class DClare<U extends DUniverse> extends Root {
 
-    private static final int                                                     ANIMATE_DELAY_TIME           = Integer.getInteger("ANIMATE_DELAY_TIME", 10);
+    private static final int                                                     ANIMATE_DELAY_TIME           = Integer.getInteger("ANIMATE_DELAY_TIME", 1);
 
     private static final ContextPool                                             THE_POOL                     = ContextThread.createPool();
 

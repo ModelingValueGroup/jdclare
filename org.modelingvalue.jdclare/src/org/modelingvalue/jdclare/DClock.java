@@ -7,6 +7,8 @@ import java.time.Instant;
 
 public interface DClock extends DObject, DStruct0 {
 
+    final double BILLION = 1000000000.0;
+
     @Property
     @Default
     default Instant time() {
@@ -20,7 +22,7 @@ public interface DClock extends DObject, DStruct0 {
 
     @Property
     default double passSeconds() {
-        return passTime().toNanos() / 1000000000.0;
+        return passTime().toNanos() / BILLION;
     }
 
 }
