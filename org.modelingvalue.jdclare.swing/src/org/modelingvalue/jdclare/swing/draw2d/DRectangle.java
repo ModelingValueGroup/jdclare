@@ -30,7 +30,7 @@ public interface DRectangle extends DFilled {
     @Default
     @Property
     default DDimension size() {
-        return dclare(DDimension.class, 100, 100);
+        return dclare(DDimension.class, 100.0, 100.0);
     }
 
     @Override
@@ -42,7 +42,7 @@ public interface DRectangle extends DFilled {
 
     @Override
     default DPoint centre() {
-        return position().plus(size().toPoint().div(2.0d));
+        return position().plus(size().toPoint().div(2.0));
     }
 
     class RectangleNative extends FilledNative<DRectangle> {
@@ -58,7 +58,7 @@ public interface DRectangle extends DFilled {
             Color fc = visible.color();
             Color lc = visible.lineColor();
             String str = visible.text();
-            D2D.drawRect(g, pt.x(), pt.y(), sz.width(), sz.height(), fc, lc, str);
+            D2D.drawRect(g, (int) pt.x(), (int) pt.y(), (int) sz.width(), (int) sz.height(), fc, lc, str);
         }
 
         public void size(DDimension pre, DDimension post) {

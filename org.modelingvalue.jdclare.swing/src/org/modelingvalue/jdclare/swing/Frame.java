@@ -71,7 +71,7 @@ public interface Frame extends DContainer {
 
         @Override
         public void location(DPoint pre, DPoint post) {
-            swing.setLocation(post.x(), post.y());
+            swing.setLocation((int) post.x(), (int) post.y());
         }
 
         @Override

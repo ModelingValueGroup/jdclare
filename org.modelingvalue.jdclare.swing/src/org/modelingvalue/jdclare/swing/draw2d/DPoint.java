@@ -18,15 +18,21 @@ import static org.modelingvalue.jdclare.DClare.*;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.Property;
 
-public interface DPoint extends DStruct2<Integer, Integer> {
+public interface DPoint extends DStruct2<Double, Double> {
 
-    DPoint NULL = dclare(DPoint.class, 0, 0);
+    DPoint NULL = dclare(DPoint.class, 0.0, 0.0);
+
+    DPoint ONE  = dclare(DPoint.class, 1.0, 1.0);
 
     @Property(key = 0)
-    int x();
+    double x();
 
     @Property(key = 1)
-    int y();
+    double y();
+
+    default DPoint normal() {
+        return div(length());
+    }
 
     default DPoint minus(DPoint minus) {
         return dclare(DPoint.class, x() - minus.x(), y() - minus.y());
@@ -38,19 +44,19 @@ public interface DPoint extends DStruct2<Integer, Integer> {
 
     @Property
     default double length() {
-        return Math.sqrt(Math.pow(x(), 2.0d) + Math.pow(y(), 2.0d));
+        return Math.sqrt(Math.pow(x(), 2.0) + Math.pow(y(), 2.0));
     }
 
     default DPoint mult(double d) {
-        return dclare(DPoint.class, (int) (x() * d), (int) (y() * d));
+        return dclare(DPoint.class, (x() * d), (y() * d));
     }
 
     default DPoint div(double d) {
-        return dclare(DPoint.class, (int) (x() / d), (int) (y() / d));
+        return dclare(DPoint.class, (x() / d), (y() / d));
     }
 
     default boolean hasEqualAngle(DPoint p) {
-        return p.mult(100.0d / p.length()).minus(mult(100.0d / length())).length() < 2.0d;
+        return p.mult(100.0 / p.length()).minus(mult(100.0 / length())).length() < 2.0;
     }
 
 }

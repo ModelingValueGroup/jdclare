@@ -78,14 +78,14 @@ public interface WBUniverse extends GuiUniverse, TextUniverse {
         @Default
         @Property
         default DPoint location() {
-            return dclare(DPoint.class, 50, 50);
+            return dclare(DPoint.class, 50.0, 50.0);
         }
 
         @Override
         @Default
         @Property
         default DDimension preferredSize() {
-            return dclare(DDimension.class, 1300, 900);
+            return dclare(DDimension.class, 1300.0, 900.0);
         }
     }
 

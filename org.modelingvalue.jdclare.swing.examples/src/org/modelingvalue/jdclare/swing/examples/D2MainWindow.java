@@ -79,7 +79,7 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
 
         default DToolbarItem item(String text, String imageLink, Consumer<ActionEvent> action) {
             return dclareUU(DToolbarItem.class, //
-                    set(DToolbarItem::minimumSize, dclare(DDimension.class, 50, 50)), //
+                    set(DToolbarItem::minimumSize, dclare(DDimension.class, 50.0, 50.0)), //
                     set(DToolbarItem::text, text), //
                     set(DToolbarItem::action, action), //
                     set(DToolbarItem::imageLink, dclare(DImage.class, imageLink))//
@@ -182,8 +182,8 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
         @Property(constant)
         default DComponent rigthComponent() {
             return dclareUU(DToolbar.class, (c) -> {
-                set(c, DToolbar::preferredSize, dclare(DDimension.class, 40, 100));
-                set(c, DToolbar::minimumSize, dclare(DDimension.class, 50, 100));
+                set(c, DToolbar::preferredSize, dclare(DDimension.class, 40.0, 100.0));
+                set(c, DToolbar::minimumSize, dclare(DDimension.class, 50.0, 100.0));
                 set(c, DToolbar::items, List.of(//
                         item("Select", "selection.png", (x) -> {
                             set(canvas(), DCanvas::mode, selectionMode());
@@ -222,11 +222,11 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
         @Property(constant)
         default DComponent rigthComponent() {
             return dclareUU(DToolbar.class, (c) -> {
-                set(c, DToolbar::preferredSize, dclare(DDimension.class, 40, 100));
-                set(c, DToolbar::minimumSize, dclare(DDimension.class, 50, 100));
+                set(c, DToolbar::preferredSize, dclare(DDimension.class, 40.0, 100.0));
+                set(c, DToolbar::minimumSize, dclare(DDimension.class, 50.0, 100.0));
                 set(c, DToolbar::items, List.of(//
                         item("Triangle", "triangle.png", (x) -> {
-                            appendShape(dclareUU(DTriangle.class, set(DShape::position, dclare(DPoint.class, 100, 100))));
+                            appendShape(dclareUU(DTriangle.class, set(DShape::position, dclare(DPoint.class, 100.0, 100.0))));
                         }) //                        
                 ));
             });

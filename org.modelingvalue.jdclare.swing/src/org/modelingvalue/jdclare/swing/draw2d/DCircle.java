@@ -54,7 +54,7 @@ public interface DCircle extends DFilled {
             Color fc = visible.color();
             Color lc = visible.lineColor();
             String str = visible.text();
-            D2D.drawOval(g, pt.x() - rad, pt.y() - rad, rad * 2, rad * 2, fc, lc, str);
+            D2D.drawOval(g, (int) pt.x() - rad, (int) pt.y() - rad, rad * 2, rad * 2, fc, lc, str);
         }
 
         public void radius(int pre, int post) {

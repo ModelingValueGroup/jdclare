@@ -107,7 +107,7 @@ public interface WBOuterSplitPane extends SplitPane, DStruct1<WBUniverse> {
         @Default
         @Property
         default DDimension preferredSize() {
-            return dclare(DDimension.class, 1600, 200);
+            return dclare(DDimension.class, 1600.0, 200.0);
         }
     }
 

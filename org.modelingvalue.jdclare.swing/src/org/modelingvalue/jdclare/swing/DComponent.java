@@ -70,7 +70,7 @@ public interface DComponent extends DContainer {
                 @Override
                 public void mouseMoved(MouseEvent evt) {
                     InputDeviceData di = visible.deviceInput();
-                    DPoint pt = DClare.dclare(DPoint.class, evt.getX(), evt.getY());
+                    DPoint pt = DClare.dclare(DPoint.class, (double) evt.getX(), (double) evt.getY());
                     DClare.set(di, InputDeviceData::mousePosition, pt);
                 }
 

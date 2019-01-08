@@ -18,15 +18,15 @@ import static org.modelingvalue.jdclare.DClare.*;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.Property;
 
-public interface DDimension extends DStruct2<Integer, Integer> {
+public interface DDimension extends DStruct2<Double, Double> {
 
-    DDimension NULL = dclare(DDimension.class, 0, 0);
+    DDimension NULL = dclare(DDimension.class, 0.0, 0.0);
 
     @Property(key = 0)
-    int width();
+    double width();
 
     @Property(key = 1)
-    int height();
+    double height();
 
     @Property
     default DPoint toPoint() {
