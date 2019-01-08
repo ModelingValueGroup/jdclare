@@ -15,6 +15,17 @@ import org.modelingvalue.jdclare.swing.draw2d.DShape;
 
 public interface NewtonCircle extends NewtonShape, DCircle {
 
+    @Property
+    default DPoint minimum() {
+        double radius = radius();
+        return dclare(DPoint.class, radius, radius);
+    }
+
+    @Property
+    default DPoint maximum() {
+        return frame().size().toPoint().minus(minimum());
+    }
+
     default NewtonFrame frame() {
         return (NewtonFrame) canvas();
     }
@@ -59,6 +70,22 @@ public interface NewtonCircle extends NewtonShape, DCircle {
                 DPoint movement = acceleration.mult(Math.pow(passTime, 2.0)).div(0.5);
                 DPoint position = prePosition.plus(preMovement).plus(movement);
                 DPoint velocity = preVelocity.plus(acceleration.mult(passTime));
+                DPoint min = minimum();
+                DPoint max = maximum();
+                if (position.x() < min.x()) {
+                    position = dclare(DPoint.class, min.x() + (min.x() - position.x()), position.y());
+                    velocity = dclare(DPoint.class, -velocity.x(), velocity.y());
+                } else if (position.x() > max.x()) {
+                    position = dclare(DPoint.class, max.x() - (position.x() - max.x()), position.y());
+                    velocity = dclare(DPoint.class, -velocity.x(), velocity.y());
+                }
+                if (position.y() < min.y()) {
+                    position = dclare(DPoint.class, position.x(), min.y() + (min.y() - position.y()));
+                    velocity = dclare(DPoint.class, velocity.x(), -velocity.y());
+                } else if (position.y() > max.y()) {
+                    position = dclare(DPoint.class, position.x(), max.y() - (position.y() - max.y()));
+                    velocity = dclare(DPoint.class, velocity.x(), -velocity.y());
+                }
                 set(this, NewtonCircle::velocity, velocity);
                 set(this, DShape::position, position);
             }
