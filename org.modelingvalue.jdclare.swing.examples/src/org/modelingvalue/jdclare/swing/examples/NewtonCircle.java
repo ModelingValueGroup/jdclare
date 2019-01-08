@@ -48,20 +48,7 @@ public interface NewtonCircle extends NewtonShape, DCircle {
     }
 
     @Rule
-    default void setNonDraggingVelocity() {
-        if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            DPoint acceleration = acceleration();
-            if (!acceleration.equals(DPoint.NULL)) {
-                DPoint preVelocity = pre(this, NewtonCircle::velocity);
-                double passTime = dUniverse().clock().passSeconds();
-                DPoint velocity = preVelocity.plus(acceleration.mult(passTime));
-                set(this, NewtonCircle::velocity, velocity);
-            }
-        }
-    }
-
-    @Rule
-    default void setNonDraggingPosition() {
+    default void setNonDraggingVelocityAndPosition() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
             DPoint preVelocity = pre(this, NewtonCircle::velocity);
             DPoint acceleration = acceleration();
@@ -71,6 +58,8 @@ public interface NewtonCircle extends NewtonShape, DCircle {
                 DPoint preMovement = preVelocity.mult(passTime);
                 DPoint movement = acceleration.mult(Math.pow(passTime, 2.0)).div(0.5);
                 DPoint position = prePosition.plus(preMovement).plus(movement);
+                DPoint velocity = preVelocity.plus(acceleration.mult(passTime));
+                set(this, NewtonCircle::velocity, velocity);
                 set(this, DShape::position, position);
             }
         }
@@ -79,7 +68,7 @@ public interface NewtonCircle extends NewtonShape, DCircle {
     // While dragging
 
     @Rule
-    default void setDraggingVelocityAndPosition() {
+    default void setDraggingVelocity() {
         if (dragging()) {
             DPoint prePosition = pre(this, DShape::position);
             DPoint position = position();
