@@ -48,7 +48,7 @@ public interface DiagramCanvas extends DStruct1<WBUniverse>, DCanvas {
     @Override
     @Property(constant)
     default DDimension preferredSize() {
-        return dclare(DDimension.class, 20000, 2000);
+        return dclare(DDimension.class, 20000.0, 2000.0);
     }
 
     @Override
@@ -144,7 +144,7 @@ public interface DiagramCanvas extends DStruct1<WBUniverse>, DCanvas {
 
         @Override
         default DDimension size() {
-            return dclare(DDimension.class, 120, 40);
+            return dclare(DDimension.class, 120.0, 40.0);
         }
 
         @Property
@@ -171,7 +171,7 @@ public interface DiagramCanvas extends DStruct1<WBUniverse>, DCanvas {
 
         @Override
         default DPoint position() {
-            return dragging() ? position() : dclare(DPoint.class, order() * 130 + 10, level() * 110 + 10);
+            return dragging() ? position() : dclare(DPoint.class, order() * 130 + 10.0, level() * 110 + 10.0);
         }
 
     }

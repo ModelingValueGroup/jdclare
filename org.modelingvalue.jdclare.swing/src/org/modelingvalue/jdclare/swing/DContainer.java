@@ -76,23 +76,23 @@ public interface DContainer extends DVisible {
         }
 
         public void location(DPoint pre, DPoint post) {
-            swing.setLocation(post.x(), post.y());
+            swing.setLocation((int) post.x(), (int) post.y());
         }
 
         public void size(DDimension pre, DDimension post) {
-            swing.setSize(post.width(), post.height());
+            swing.setSize((int) post.width(), (int) post.height());
         }
 
         @Deferred
         public void preferredSize(DDimension pre, DDimension post) {
             if (post != null) {
-                swing.setPreferredSize(new Dimension(post.width(), post.height()));
+                swing.setPreferredSize(new Dimension((int) post.width(), (int) post.height()));
             }
         }
 
         public void minimumSize(DDimension pre, DDimension post) {
             if (post != null) {
-                swing.setMinimumSize(new Dimension(post.width(), post.height()));
+                swing.setMinimumSize(new Dimension((int) post.width(), (int) post.height()));
             }
         }
 
@@ -108,13 +108,13 @@ public interface DContainer extends DVisible {
         @Override
         public void componentResized(ComponentEvent e) {
             Dimension size = swing.getSize();
-            set(DContainer::size, dclare(DDimension.class, size.width, size.height));
+            set(DContainer::size, dclare(DDimension.class, (double) size.width, (double) size.height));
         }
 
         @Override
         public void componentMoved(ComponentEvent e) {
             Point loc = swing.getLocation();
-            set(DContainer::location, dclare(DPoint.class, loc.x, loc.y));
+            set(DContainer::location, dclare(DPoint.class, (double) loc.x, (double) loc.y));
         }
 
         @Override

@@ -45,7 +45,7 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
 
     default DToolbarItem item(String text, String imageLink, Consumer<ActionEvent> action) {
         return dclareUU(DToolbarItem.class, //
-                set(DToolbarItem::minimumSize, dclare(DDimension.class, 50, 50)), //
+                set(DToolbarItem::minimumSize, dclare(DDimension.class, 50.0, 50.0)), //
                 set(DToolbarItem::text, text), //
                 set(DToolbarItem::action, action), //
                 set(DToolbarItem::imageLink, dclare(DImage.class, imageLink))//
@@ -123,8 +123,8 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
     @Property(constant)
     default DComponent rigthComponent() {
         return dclareUU(DToolbar.class, //
-                set(DToolbar::preferredSize, dclare(DDimension.class, 40, 100)), //
-                set(DToolbar::minimumSize, dclare(DDimension.class, 50, 100)), //
+                set(DToolbar::preferredSize, dclare(DDimension.class, 40.0, 100.0)), //
+                set(DToolbar::minimumSize, dclare(DDimension.class, 50.0, 100.0)), //
                 set(DToolbar::items, List.of(//
                         item("Select", "selection.png", (x) -> {
                             set(canvas(), DCanvas::mode, selectionMode());

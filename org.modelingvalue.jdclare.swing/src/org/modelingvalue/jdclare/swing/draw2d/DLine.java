@@ -35,11 +35,11 @@ public interface DLine extends DShape {
     default boolean hit(DPoint pt) {
         DPoint start = position();
         DPoint end = endPoint();
-        int lowx = start.x() < end.x() ? start.x() : end.x();
-        int highx = start.x() < end.x() ? end.x() : start.x();
+        double lowx = start.x() < end.x() ? start.x() : end.x();
+        double highx = start.x() < end.x() ? end.x() : start.x();
 
-        int lowy = start.y() < end.y() ? start.y() : end.y();
-        int highy = start.y() < end.y() ? end.y() : start.y();
+        double lowy = start.y() < end.y() ? start.y() : end.y();
+        double highy = start.y() < end.y() ? end.y() : start.y();
 
         return pt.x() > lowx && pt.x() < highx && pt.y() > lowy && pt.y() < highy && //
                 end.minus(start).hasEqualAngle(end.minus(pt));
@@ -48,7 +48,7 @@ public interface DLine extends DShape {
     @Override
     default DPoint centre() {
         DPoint pos = position();
-        return pos.plus(endPoint().minus(pos).div(2.0d));
+        return pos.plus(endPoint().minus(pos).div(2.0));
     }
 
     class LineNative extends ShapeNative<DLine> {
@@ -62,7 +62,7 @@ public interface DLine extends DShape {
             DPoint pt = visible.position();
             DPoint end = visible.endPoint();
             Color lc = visible.lineColor();
-            D2D.drawLine(g, lc, pt.x(), pt.y(), end.x(), end.y());
+            D2D.drawLine(g, lc, (int) pt.x(), (int) pt.y(), (int) end.x(), (int) end.y());
         }
 
         public void endPoint(DPoint pre, DPoint post) {

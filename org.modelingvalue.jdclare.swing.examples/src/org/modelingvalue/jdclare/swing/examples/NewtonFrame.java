@@ -8,8 +8,8 @@ public interface NewtonFrame extends DCanvas {
 
     @Default
     @Property
-    default double frictionCoefficient() {
-        return 0.005;
+    default double rollingResistanceCoefficient() {
+        return 100.0;
     }
 
 }

@@ -21,13 +21,92 @@ public interface NewtonCircle extends NewtonShape, DCircle {
 
     @Property
     default double mass() { // amount of dots
-        return Math.PI * radius() * radius();
+        return Math.PI * Math.pow(radius(), 3.0) * 4.0 / 3.0;
     }
 
-    @Override
-    default String text() {
-        return "" + (int) mass();
+    @Default
+    @Property
+    default DPoint velocity() { // dots per second
+        return DPoint.NULL;
     }
+
+    @Property
+    default double frictionForce() {
+        return frame().rollingResistanceCoefficient() * mass();
+    }
+
+    @Property
+    default DPoint force() { // Newton
+        DPoint preVelocity = pre(this, NewtonCircle::velocity);
+        return !preVelocity.equals(DPoint.NULL) ? preVelocity.normal().mult(-frictionForce()) : DPoint.NULL;
+    }
+
+    @Property
+    default DPoint acceleration() { // dots per sqrt second
+        double mass = mass();
+        return mass > 0.0 ? force().div(mass) : DPoint.NULL;
+    }
+
+    @Rule
+    default void setNonDraggingVelocity() {
+        if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
+            DPoint acceleration = acceleration();
+            if (!acceleration.equals(DPoint.NULL)) {
+                DPoint preVelocity = pre(this, NewtonCircle::velocity);
+                double passTime = dUniverse().clock().passSeconds();
+                DPoint velocity = preVelocity.plus(acceleration.mult(passTime));
+                set(this, NewtonCircle::velocity, velocity);
+            }
+        }
+    }
+
+    @Rule
+    default void setNonDraggingPosition() {
+        if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
+            DPoint preVelocity = pre(this, NewtonCircle::velocity);
+            DPoint acceleration = acceleration();
+            if (!preVelocity.equals(DPoint.NULL) || !acceleration.equals(DPoint.NULL)) {
+                DPoint prePosition = pre(this, DShape::position);
+                double passTime = dUniverse().clock().passSeconds();
+                DPoint preMovement = preVelocity.mult(passTime);
+                DPoint movement = acceleration.mult(Math.pow(passTime, 2.0)).div(0.5);
+                DPoint position = prePosition.plus(preMovement).plus(movement);
+                set(this, DShape::position, position);
+            }
+        }
+    }
+
+    // While dragging
+
+    @Rule
+    default void setDraggingVelocityAndPosition() {
+        if (dragging()) {
+            DPoint prePosition = pre(this, DShape::position);
+            DPoint position = position();
+            DPoint preVelocity = pre(this, NewtonCircle::velocity);
+            double passTime = dUniverse().clock().passSeconds();
+            DPoint movement = position.minus(prePosition);
+            DPoint velocity = movement.div(passTime);
+            DPoint movingAvarage = preVelocity.plus(velocity).div(2.0);
+            set(this, NewtonCircle::velocity, movingAvarage);
+        }
+    }
+
+    // Others Circles
+
+    @Property
+    default Set<NewtonCircle> others() {
+        return canvas().shapes().filter(NewtonCircle.class).toSet().remove(this);
+    }
+
+    @Property
+    default Set<NewtonCircle> bouncing() {
+        int radius = radius();
+        DPoint position = position();
+        return others().filter(o -> o.radius() + radius > position.minus(o.position()).length()).toSet();
+    }
+
+    // Control
 
     @Override
     default int radius() {
@@ -42,88 +121,11 @@ public interface NewtonCircle extends NewtonShape, DCircle {
         }
     }
 
-    @Default
-    @Property
-    default Vector velocity() { // dots per second
-        return Vector.NULL;
-    }
-
     @Rule
     default void setStill() {
         InputDeviceData di = canvas().deviceInput();
         if (di.pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            set(this, NewtonCircle::velocity, Vector.NULL);
-        }
-    }
-
-    @Property
-    default Set<NewtonCircle> others() {
-        return canvas().shapes().filter(NewtonCircle.class).toSet().remove(this);
-    }
-
-    @Property
-    default Set<NewtonCircle> bouncing() {
-        int radius = radius();
-        DPoint position = position();
-        return others().filter(o -> o.radius() + radius > position.minus(o.position()).length()).toSet();
-    }
-
-    @Rule
-    default void setNonDraggingVelocity() {
-        if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            Vector preVelocity = pre(this, NewtonCircle::velocity);
-            set(this, NewtonCircle::velocity, friction(rebound(bounce(preVelocity))));
-        }
-    }
-
-    default Vector bounce(Vector vel) {
-        Set<NewtonCircle> bouncing = bouncing();
-        return bouncing.filter(o -> !o.bouncing().isEmpty()).reduce(vel, //
-                (v, o) -> v.minus(v.div(bouncing.size())).plus(pre(o, NewtonCircle::velocity).div(o.bouncing().size())), //
-                (a, b) -> a.plus(b));
-    }
-
-    default Vector rebound(Vector vel) {
-        DPoint min = dclare(DPoint.class, radius(), radius());
-        DPoint max = canvas().size().toPoint().minus(min);
-        DPoint pos = position();
-        if ((min.x() > pos.x() && vel.x() < 0) || (max.x() < pos.x() && vel.x() > 0)) {
-            vel = dclare(Vector.class, -vel.x(), vel.y());
-        }
-        if ((min.y() > pos.y() && vel.y() < 0) || (max.y() < pos.y() && vel.y() > 0)) {
-            vel = dclare(Vector.class, vel.x(), -vel.y());
-        }
-        return vel;
-    }
-
-    default Vector friction(Vector vel) {
-        return vel.minus(vel.mult(frame().frictionCoefficient()));
-    }
-
-    @Rule
-    default void setNonDraggingPosition() {
-        if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            Vector preVelocity = pre(this, NewtonCircle::velocity);
-            if (!preVelocity.equals(Vector.NULL)) {
-                DPoint prePosition = pre(this, DShape::position);
-                double passTime = dUniverse().clock().passSeconds();
-                DPoint movement = preVelocity.mult(passTime).toPoint();
-                DPoint position = prePosition.plus(movement);
-                set(this, DShape::position, position);
-            }
-        }
-    }
-
-    @Rule
-    default void setDraggingVelocity() {
-        if (dragging()) {
-            DPoint prePosition = pre(this, DShape::position);
-            Vector preVelocity = pre(this, NewtonCircle::velocity);
-            double passTime = dUniverse().clock().passSeconds();
-            DPoint movement = position().minus(prePosition);
-            Vector velocity = Vector.fromPoint(movement).div(passTime);
-            Vector movingAvarage = preVelocity.plus(velocity).div(2.0);
-            set(this, NewtonCircle::velocity, movingAvarage);
+            set(this, NewtonCircle::velocity, DPoint.NULL);
         }
     }
 

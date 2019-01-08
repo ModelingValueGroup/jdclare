@@ -56,7 +56,7 @@ public interface DTriangle extends DFilled {
             Color fc = visible.color();
             Color lc = visible.lineColor();
             String str = visible.text();
-            D2D.drawPoly(g, fc, lc, str, top.x(), top.y(), left.x(), left.y(), right.x(), right.y());
+            D2D.drawPoly(g, fc, lc, str, (int) top.x(), (int) top.y(), (int) left.x(), (int) left.y(), (int) right.x(), (int) right.y());
 
         }
 
