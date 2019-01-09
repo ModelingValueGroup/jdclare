@@ -69,10 +69,8 @@ public interface Ball extends DCircle {
     @Rule
     default void setNonDraggingVelocityAndPosition() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            set(this, DShape::position, solPosition().plus(positionDelta()).plus(//
-                    pairs().map(Pair::positionDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.NULL)));
-            set(this, Ball::velocity, solVelocity().dot(velocityDelta()).dot(//
-                    pairs().map(Pair::velocityDelta).reduce((a, b) -> a.dot(b)).orElse(DPoint.ONE)));
+            set(this, DShape::position, solPosition().plus(framePositionDelta()).plus(otherBallsPositionDelta()));
+            set(this, Ball::velocity, solVelocity().dot(frameVelocityDelta()).dot(otherBallsVelocityDelta()));
         }
     }
 
@@ -106,10 +104,10 @@ public interface Ball extends DCircle {
     }
 
     @Property
-    DPoint positionDelta();
+    DPoint framePositionDelta();
 
     @Property
-    DPoint velocityDelta();
+    DPoint frameVelocityDelta();
 
     @Rule
     default void bounceToFrame() {
@@ -132,8 +130,8 @@ public interface Ball extends DCircle {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (max.y() - solPosition.y())));
             velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0));
         }
-        set(this, Ball::positionDelta, positionDelta);
-        set(this, Ball::velocityDelta, velocityDelta);
+        set(this, Ball::framePositionDelta, positionDelta);
+        set(this, Ball::frameVelocityDelta, velocityDelta);
     }
 
     // Others Balls
@@ -159,6 +157,16 @@ public interface Ball extends DCircle {
         default DPoint velocityDelta() {
             return DPoint.ONE;
         }
+    }
+
+    @Property
+    default DPoint otherBallsPositionDelta() {
+        return pairs().map(Pair::positionDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.NULL);
+    }
+
+    @Property
+    default DPoint otherBallsVelocityDelta() {
+        return pairs().map(Pair::velocityDelta).reduce((a, b) -> a.dot(b)).orElse(DPoint.ONE);
     }
 
     // Control
