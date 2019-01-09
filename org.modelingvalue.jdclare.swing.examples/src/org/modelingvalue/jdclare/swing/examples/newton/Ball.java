@@ -1,6 +1,7 @@
 package org.modelingvalue.jdclare.swing.examples.newton;
 
 import static org.modelingvalue.jdclare.DClare.*;
+import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.awt.event.KeyEvent;
 
@@ -136,7 +137,7 @@ public interface Ball extends DCircle {
 
     // Others Balls
 
-    @Property
+    @Property(containment)
     default Set<Pair> pairs() {
         return canvas().shapes().filter(Ball.class).filter(b -> !equals(b)).map(b -> dclare(Pair.class, this, b)).toSet();
     }
