@@ -48,7 +48,7 @@ public interface DPoint extends DStruct2<Double, Double> {
     }
 
     default DPoint dot(DPoint p) {
-        return dclare(DPoint.class, x() * p.x(), y() * p.x());
+        return dclare(DPoint.class, x() * p.x(), y() * p.y());
     }
 
     default DPoint mult(double d) {

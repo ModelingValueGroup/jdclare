@@ -61,22 +61,6 @@ public interface Ball extends DCircle {
             DPoint movement = acceleration.mult(Math.pow(passTime, 2.0)).div(0.5);
             DPoint position = pre(this, DShape::position).plus(preMovement).plus(movement);
             DPoint velocity = preVelocity.plus(acceleration.mult(passTime));
-            DPoint min = minimum();
-            DPoint max = maximum();
-            if (position.x() < min.x()) {
-                position = dclare(DPoint.class, min.x() + (min.x() - position.x()), position.y());
-                velocity = dclare(DPoint.class, -velocity.x(), velocity.y());
-            } else if (position.x() > max.x()) {
-                position = dclare(DPoint.class, max.x() - (position.x() - max.x()), position.y());
-                velocity = dclare(DPoint.class, -velocity.x(), velocity.y());
-            }
-            if (position.y() < min.y()) {
-                position = dclare(DPoint.class, position.x(), min.y() + (min.y() - position.y()));
-                velocity = dclare(DPoint.class, velocity.x(), -velocity.y());
-            } else if (position.y() > max.y()) {
-                position = dclare(DPoint.class, position.x(), max.y() - (position.y() - max.y()));
-                velocity = dclare(DPoint.class, velocity.x(), -velocity.y());
-            }
             set(this, Ball::solPosition, position);
             set(this, Ball::solVelocity, velocity);
         }
@@ -85,8 +69,10 @@ public interface Ball extends DCircle {
     @Rule
     default void setNonDraggingVelocityAndPosition() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            set(this, DShape::position, solPosition().plus(pairs().map(Pair::positionDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.NULL)));
-            set(this, Ball::velocity, solVelocity().plus(pairs().map(Pair::velocityDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.NULL)));
+            set(this, DShape::position, solPosition().plus(positionDelta()).plus(//
+                    pairs().map(Pair::positionDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.NULL)));
+            set(this, Ball::velocity, solVelocity().dot(velocityDelta()).dot(//
+                    pairs().map(Pair::velocityDelta).reduce((a, b) -> a.dot(b)).orElse(DPoint.ONE)));
         }
     }
 
@@ -119,7 +105,38 @@ public interface Ball extends DCircle {
         return frame().size().toPoint().minus(minimum());
     }
 
-    // Others Circles
+    @Property
+    DPoint positionDelta();
+
+    @Property
+    DPoint velocityDelta();
+
+    @Rule
+    default void bounceToFrame() {
+        DPoint min = minimum();
+        DPoint max = maximum();
+        DPoint solPosition = solPosition();
+        DPoint positionDelta = DPoint.NULL;
+        DPoint velocityDelta = DPoint.ONE;
+        if (solPosition.x() < min.x()) {
+            positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (min.x() - solPosition.x()), 0.0));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0));
+        } else if (solPosition.x() > max.x()) {
+            positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (max.x() - solPosition.x()), 0.0));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0));
+        }
+        if (solPosition.y() < min.y()) {
+            positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (min.y() - solPosition.y())));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0));
+        } else if (solPosition.y() > max.y()) {
+            positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (max.y() - solPosition.y())));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0));
+        }
+        set(this, Ball::positionDelta, positionDelta);
+        set(this, Ball::velocityDelta, velocityDelta);
+    }
+
+    // Others Balls
 
     @Property
     default Set<Pair> pairs() {
@@ -140,7 +157,7 @@ public interface Ball extends DCircle {
 
         @Property
         default DPoint velocityDelta() {
-            return DPoint.NULL;
+            return DPoint.ONE;
         }
     }
 
