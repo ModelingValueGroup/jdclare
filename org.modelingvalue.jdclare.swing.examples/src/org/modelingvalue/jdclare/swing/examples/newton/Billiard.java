@@ -9,7 +9,7 @@ public interface Billiard extends DCanvas {
     @Default
     @Property
     default double rollingResistanceCoefficient() {
-        return 100.0;
+        return 200.0;
     }
 
 }
