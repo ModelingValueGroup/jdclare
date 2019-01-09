@@ -11,7 +11,7 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.jdclare.swing.examples;
+package org.modelingvalue.jdclare.swing.examples.newton;
 
 import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
@@ -21,7 +21,6 @@ import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.List;
-import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DComponent;
@@ -33,9 +32,7 @@ import org.modelingvalue.jdclare.swing.draw2d.ClickMode;
 import org.modelingvalue.jdclare.swing.draw2d.DCanvas;
 import org.modelingvalue.jdclare.swing.draw2d.DDimension;
 import org.modelingvalue.jdclare.swing.draw2d.DImage;
-import org.modelingvalue.jdclare.swing.draw2d.DLine;
 import org.modelingvalue.jdclare.swing.draw2d.DShape;
-import org.modelingvalue.jdclare.swing.draw2d.LineMode;
 import org.modelingvalue.jdclare.swing.draw2d.SelectionMode;
 
 public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
@@ -56,8 +53,8 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
         set(canvas(), DCanvas::shapes, List::append, s);
     }
 
-    default NewtonFrame canvas() {
-        return (NewtonFrame) leftComponent();
+    default Billiard canvas() {
+        return (Billiard) leftComponent();
     }
 
     default void prependShape(DShape s) {
@@ -83,33 +80,14 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
     @Override
     @Property(constant)
     default DComponent leftComponent() {
-        return dclareUU(NewtonFrame.class, set(DCanvas::color, new Color(200, 255, 200)), set(DCanvas::mode, selectionMode()));
+        return dclareUU(Billiard.class, set(DCanvas::color, new Color(200, 255, 200)), set(DCanvas::mode, selectionMode()));
     }
 
     @Property(constant)
-    default ClickMode circleMode() {
+    default ClickMode ballMode() {
         return dclareUU(ClickMode.class, set(ClickMode::action, c -> {
             InputDeviceData di = c.deviceInput();
-            appendShape(dclareUU(NewtonCircle.class, set(DShape::position, di.mousePosition())));
-            set(c, DCanvas::mode, selectionMode());
-        }));
-    }
-
-    @Property(constant)
-    default LineMode lineMode() {
-        return dclareUU(LineMode.class, set(LineMode::action, (c, sel) -> {
-            DShape one = sel.get(0);
-            DShape two = sel.get(1);
-            prependShape(dclareUU(NewtonLine.class, //
-                    rule(DShape::position, l -> one.centre()), //
-                    rule(DLine::endPoint, l -> two.centre()), //
-                    rule("delete", l -> {
-                        if ((pre(one, DObject::dParent) != null && one.dParent() == null) || //
-                        (pre(two, DObject::dParent) != null && two.dParent() == null)) {
-                            clear(l);
-                        }
-                    }) //
-            ));
+            appendShape(dclareUU(Ball.class, set(DShape::position, di.mousePosition())));
             set(c, DCanvas::mode, selectionMode());
         }));
     }
@@ -129,11 +107,8 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
                         item("Select", "selection.png", (x) -> {
                             set(canvas(), DCanvas::mode, selectionMode());
                         }), //
-                        item("Circle", "circle.png", (x) -> {
-                            set(canvas(), DCanvas::mode, circleMode());
-                        }), //
-                        item("Line", "line.png", (x) -> {
-                            set(canvas(), DCanvas::mode, lineMode());
+                        item("Ball", "circle.png", (x) -> {
+                            set(canvas(), DCanvas::mode, ballMode());
                         }) //
                 )));
     }

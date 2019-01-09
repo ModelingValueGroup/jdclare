@@ -47,12 +47,16 @@ public interface DPoint extends DStruct2<Double, Double> {
         return Math.sqrt(Math.pow(x(), 2.0) + Math.pow(y(), 2.0));
     }
 
+    default DPoint dot(DPoint p) {
+        return dclare(DPoint.class, x() * p.x(), y() * p.x());
+    }
+
     default DPoint mult(double d) {
-        return dclare(DPoint.class, (x() * d), (y() * d));
+        return dclare(DPoint.class, x() * d, y() * d);
     }
 
     default DPoint div(double d) {
-        return dclare(DPoint.class, (x() / d), (y() / d));
+        return dclare(DPoint.class, x() / d, (y() / d));
     }
 
     default boolean hasEqualAngle(DPoint p) {
