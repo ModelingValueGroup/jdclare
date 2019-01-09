@@ -18,6 +18,8 @@ import org.modelingvalue.jdclare.swing.draw2d.DShape;
 
 public interface Ball extends DCircle {
 
+    double BOUNCE_FACTOR = 0.90;
+
     @Property
     default double mass() { // amount of dots
         return Math.PI * Math.pow(radius(), 3.0) * 4.0 / 3.0;
@@ -119,17 +121,17 @@ public interface Ball extends DCircle {
         DPoint velocityDelta = DPoint.ONE;
         if (solPosition.x() < min.x()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (min.x() - solPosition.x()), 0.0));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0).mult(BOUNCE_FACTOR));
         } else if (solPosition.x() > max.x()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (max.x() - solPosition.x()), 0.0));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0).mult(BOUNCE_FACTOR));
         }
         if (solPosition.y() < min.y()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (min.y() - solPosition.y())));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0).mult(BOUNCE_FACTOR));
         } else if (solPosition.y() > max.y()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (max.y() - solPosition.y())));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0));
+            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0).mult(BOUNCE_FACTOR));
         }
         set(this, Ball::framePositionDelta, positionDelta);
         set(this, Ball::frameVelocityDelta, velocityDelta);
