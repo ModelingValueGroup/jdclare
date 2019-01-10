@@ -31,7 +31,7 @@ import org.modelingvalue.jdclare.swing.Panel;
 import org.modelingvalue.jdclare.swing.draw2d.DDimension;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
 
-public interface NewtonUniverse extends GuiUniverse {
+public interface BilliardUniverse extends GuiUniverse {
 
     @Override
     default void init() {
@@ -40,9 +40,9 @@ public interface NewtonUniverse extends GuiUniverse {
 
     }
 
-    interface NewtonFrame extends Frame, DStruct1<NewtonUniverse> {
+    interface NewtonFrame extends Frame, DStruct1<BilliardUniverse> {
         @Property(key = 0)
-        NewtonUniverse universe();
+        BilliardUniverse universe();
 
         @Override
         @Property(constant)
@@ -65,15 +65,15 @@ public interface NewtonUniverse extends GuiUniverse {
         }
     }
 
-    interface NewtonPanel extends Panel, DStruct1<NewtonUniverse> {
+    interface NewtonPanel extends Panel, DStruct1<BilliardUniverse> {
         @Property(key = 0)
-        NewtonUniverse universe();
+        BilliardUniverse universe();
 
         @Override
         @Property(constant)
         default Map<DComponent, Object> content() {
             return Map.<DComponent, Object> of()//
-                    .put(dclare(NewtonMainWindow.class, universe()), BorderLayout.CENTER);
+                    .put(dclare(BilliardPane.class, universe()), BorderLayout.CENTER);
         }
 
         @Override
@@ -83,7 +83,7 @@ public interface NewtonUniverse extends GuiUniverse {
     }
 
     static void main(String[] args) {
-        start(NewtonUniverse.class, false).waitForEnd();
+        start(BilliardUniverse.class, false).waitForEnd();
     }
 
 }

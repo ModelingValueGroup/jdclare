@@ -35,10 +35,10 @@ import org.modelingvalue.jdclare.swing.draw2d.DImage;
 import org.modelingvalue.jdclare.swing.draw2d.DShape;
 import org.modelingvalue.jdclare.swing.draw2d.SelectionMode;
 
-public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
+public interface BilliardPane extends SplitPane, DStruct1<BilliardUniverse> {
 
     @Property(key = 0)
-    NewtonUniverse universe();
+    BilliardUniverse universe();
 
     default DToolbarItem item(String text, String imageLink, Consumer<ActionEvent> action) {
         return dclareUU(DToolbarItem.class, //

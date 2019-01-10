@@ -1,3 +1,16 @@
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// (C) Copyright 2018 Modeling Value Group B.V. (http://modelingvalue.org)                                             ~
+//                                                                                                                     ~
+// Licensed under the GNU Lesser General Public License v3.0 (the "License"). You may not use this file except in      ~
+// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
+// an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
+// specific language governing permissions and limitations under the License.                                          ~
+//                                                                                                                     ~
+// Contributors:                                                                                                       ~
+//     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 package org.modelingvalue.jdclare.swing.examples.newton;
 
 import static org.modelingvalue.jdclare.DClare.*;
@@ -154,8 +167,8 @@ public interface Ball extends DCircle {
 
         @Rule
         default void collision() {
-            BilliardTable table = a().billiardTable();
-            double max = table.ballRadius() * 2;
+            BilliardTable billiardTable = a().billiardTable();
+            double max = billiardTable.ballRadius() * 2;
             double solLength = solConnection().length();
             if (solLength < max) {
                 DPoint va = a().solVelocity();
@@ -165,7 +178,7 @@ public interface Ball extends DCircle {
                 DPoint vna = na.mult(va.dot(na));
                 DPoint vnb = nb.mult(vb.dot(nb));
                 DPoint vta = vna.minus(va);
-                DPoint v = vta.plus(vnb).mult(1.0 - table.ballsBouncingResistance());
+                DPoint v = vta.plus(vnb).mult(1.0 - billiardTable.ballsBouncingResistance());
                 set(this, Pair::positionDelta, nb.mult((max - solLength) / 2.0));
                 set(this, Pair::velocityDelta, v.minus(va));
             } else {
