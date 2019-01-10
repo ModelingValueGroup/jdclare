@@ -90,7 +90,7 @@ public interface Ball extends DCircle {
         DPoint solPosition = solPosition();
         DPoint solVelocity = solVelocity();
         DPoint positionDelta = DPoint.NULL;
-        DPoint velocityDelta = DPoint.ONE;
+        DPoint velocityDelta = DPoint.NULL;
         if (solPosition.x() < min.x()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (min.x() - solPosition.x()), 0.0));
             velocityDelta = velocityDelta.plus(dclare(DPoint.class, -2.0 * solVelocity.x(), 0.0));
@@ -130,7 +130,7 @@ public interface Ball extends DCircle {
 
         @Property
         default DPoint velocityDelta() {
-            return DPoint.ONE;
+            return DPoint.NULL;
         }
     }
 
@@ -141,7 +141,7 @@ public interface Ball extends DCircle {
 
     @Property
     default DPoint otherBallsVelocityDelta() {
-        return pairs().map(Pair::velocityDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.ONE);
+        return pairs().map(Pair::velocityDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.NULL);
     }
 
     // Control
