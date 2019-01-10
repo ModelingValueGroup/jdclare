@@ -18,34 +18,15 @@ import org.modelingvalue.jdclare.swing.draw2d.DShape;
 
 public interface Ball extends DCircle {
 
-    double BOUNCE_FACTOR = 0.90;
-
-    @Property
-    default double mass() { // amount of dots
-        return Math.PI * Math.pow(radius(), 3.0) * 4.0 / 3.0;
-    }
-
     @Default
     @Property
-    default DPoint velocity() { // dots per second
+    default DPoint velocity() {
         return DPoint.NULL;
     }
 
     @Property
-    default double frictionForce() {
-        return frame().rollingResistanceCoefficient() * mass();
-    }
-
-    @Property
-    default DPoint force() { // Newton
-        DPoint preVelocity = pre(this, Ball::velocity);
-        return !preVelocity.equals(DPoint.NULL) ? preVelocity.normal().mult(-frictionForce()) : DPoint.NULL;
-    }
-
-    @Property
-    default DPoint acceleration() { // dots per sqrt second
-        double mass = mass();
-        return mass > 0.0 ? force().div(mass) : DPoint.NULL;
+    default DPoint acceleration() {
+        return pre(this, Ball::velocity).mult(-billiard().rollingResistance());
     }
 
     @Property
@@ -72,8 +53,8 @@ public interface Ball extends DCircle {
     @Rule
     default void setNonDraggingVelocityAndPosition() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            set(this, DShape::position, solPosition().plus(framePositionDelta()).plus(otherBallsPositionDelta()));
-            set(this, Ball::velocity, solVelocity().dot(frameVelocityDelta()).dot(otherBallsVelocityDelta()));
+            set(this, DShape::position, solPosition().plus(billiardPositionDelta()).plus(otherBallsPositionDelta()));
+            set(this, Ball::velocity, solVelocity().plus(billiardVelocityDelta()).plus(otherBallsVelocityDelta()));
         }
     }
 
@@ -89,52 +70,43 @@ public interface Ball extends DCircle {
         }
     }
 
-    // Frame
+    // Billiard
 
-    default Billiard frame() {
+    default Billiard billiard() {
         return (Billiard) canvas();
     }
 
     @Property
-    default DPoint minimum() {
-        double radius = radius();
-        return dclare(DPoint.class, radius, radius);
-    }
+    DPoint billiardPositionDelta();
 
     @Property
-    default DPoint maximum() {
-        return frame().size().toPoint().minus(minimum());
-    }
-
-    @Property
-    DPoint framePositionDelta();
-
-    @Property
-    DPoint frameVelocityDelta();
+    DPoint billiardVelocityDelta();
 
     @Rule
     default void bounceToFrame() {
-        DPoint min = minimum();
-        DPoint max = maximum();
+        Billiard billiard = billiard();
+        DPoint min = billiard.minimum();
+        DPoint max = billiard.maximum();
         DPoint solPosition = solPosition();
+        DPoint solVelocity = solVelocity();
         DPoint positionDelta = DPoint.NULL;
         DPoint velocityDelta = DPoint.ONE;
         if (solPosition.x() < min.x()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (min.x() - solPosition.x()), 0.0));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0).mult(BOUNCE_FACTOR));
+            velocityDelta = velocityDelta.plus(dclare(DPoint.class, -2.0 * solVelocity.x(), 0.0));
         } else if (solPosition.x() > max.x()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (max.x() - solPosition.x()), 0.0));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, -1.0, 1.0).mult(BOUNCE_FACTOR));
+            velocityDelta = velocityDelta.plus(dclare(DPoint.class, -2.0 * solVelocity.x(), 0.0));
         }
         if (solPosition.y() < min.y()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (min.y() - solPosition.y())));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0).mult(BOUNCE_FACTOR));
+            velocityDelta = velocityDelta.plus(dclare(DPoint.class, 0.0, -2.0 * solVelocity.y()));
         } else if (solPosition.y() > max.y()) {
             positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (max.y() - solPosition.y())));
-            velocityDelta = velocityDelta.dot(dclare(DPoint.class, 1.0, -1.0).mult(BOUNCE_FACTOR));
+            velocityDelta = velocityDelta.plus(dclare(DPoint.class, 0.0, -2.0 * solVelocity.y()));
         }
-        set(this, Ball::framePositionDelta, positionDelta);
-        set(this, Ball::frameVelocityDelta, velocityDelta);
+        set(this, Ball::billiardPositionDelta, positionDelta);
+        set(this, Ball::billiardVelocityDelta, velocityDelta);
     }
 
     // Others Balls
@@ -169,23 +141,10 @@ public interface Ball extends DCircle {
 
     @Property
     default DPoint otherBallsVelocityDelta() {
-        return pairs().map(Pair::velocityDelta).reduce((a, b) -> a.dot(b)).orElse(DPoint.ONE);
+        return pairs().map(Pair::velocityDelta).reduce((a, b) -> a.plus(b)).orElse(DPoint.ONE);
     }
 
     // Control
-
-    @Override
-    default int radius() {
-        if (selected()) {
-            Set<Integer> pressed = canvas().deviceInput().pressedKeys();
-            int preRadius = pre(this, DCircle::radius);
-            return pressed.contains(KeyEvent.VK_SHIFT) && pressed.contains(KeyEvent.VK_EQUALS) ? preRadius + 10 : //
-                    !pressed.contains(KeyEvent.VK_SHIFT) && pressed.contains(KeyEvent.VK_MINUS) && preRadius > 10 ? preRadius - 10 : //
-                            preRadius;
-        } else {
-            return radius();
-        }
-    }
 
     @Rule
     default void setStill() {

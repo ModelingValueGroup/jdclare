@@ -34,12 +34,12 @@ public interface DPoint extends DStruct2<Double, Double> {
         return div(length());
     }
 
-    default DPoint minus(DPoint minus) {
-        return dclare(DPoint.class, x() - minus.x(), y() - minus.y());
+    default DPoint minus(DPoint p) {
+        return p.equals(NULL) ? this : dclare(DPoint.class, x() - p.x(), y() - p.y());
     }
 
-    default DPoint plus(DPoint plus) {
-        return dclare(DPoint.class, x() + plus.x(), y() + plus.y());
+    default DPoint plus(DPoint p) {
+        return equals(NULL) ? p : p.equals(NULL) ? this : dclare(DPoint.class, x() + p.x(), y() + p.y());
     }
 
     @Property
@@ -48,15 +48,15 @@ public interface DPoint extends DStruct2<Double, Double> {
     }
 
     default DPoint dot(DPoint p) {
-        return dclare(DPoint.class, x() * p.x(), y() * p.y());
+        return equals(ONE) ? p : p.equals(ONE) ? this : dclare(DPoint.class, x() * p.x(), y() * p.y());
     }
 
     default DPoint mult(double d) {
-        return dclare(DPoint.class, x() * d, y() * d);
+        return equals(NULL) ? NULL : dclare(DPoint.class, x() * d, y() * d);
     }
 
     default DPoint div(double d) {
-        return dclare(DPoint.class, x() / d, (y() / d));
+        return equals(NULL) ? NULL : dclare(DPoint.class, x() / d, (y() / d));
     }
 
     default boolean hasEqualAngle(DPoint p) {
