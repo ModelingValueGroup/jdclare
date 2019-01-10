@@ -61,7 +61,7 @@ public interface NewtonUniverse extends GuiUniverse {
         @Default
         @Property
         default DDimension preferredSize() {
-            return dclare(DDimension.class, 1300.0, 900.0);
+            return dclare(DDimension.class, 1050.0, 550.0);
         }
     }
 

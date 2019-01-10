@@ -26,19 +26,25 @@ public interface Ball extends DCircle {
 
     @Override
     default int radius() {
-        return (int) billiard().ballRadius();
+        return (int) billiardTable().ballRadius();
     }
 
     @Property
     default DPoint acceleration() {
-        return pre(this, Ball::velocity).mult(-billiard().rollingResistance());
+        return pre(this, Ball::velocity).mult(-billiardTable().rollingResistance());
     }
 
+    @Default
     @Property
-    DPoint solPosition(); // solitary position
+    default DPoint solPosition() {
+        return DPoint.NULL;
+    }
 
+    @Default
     @Property
-    DPoint solVelocity(); // solitary velocity
+    default DPoint solVelocity() {
+        return DPoint.NULL;
+    }
 
     @Rule
     default void setSolitaryVelocityAndPosition() {
@@ -52,6 +58,8 @@ public interface Ball extends DCircle {
             DPoint velocity = preVelocity.plus(acceleration.mult(passTime));
             set(this, Ball::solPosition, position);
             set(this, Ball::solVelocity, velocity);
+        } else {
+            set(this, Ball::solVelocity, DPoint.NULL);
         }
     }
 
@@ -70,15 +78,15 @@ public interface Ball extends DCircle {
         if (dragging()) {
             double passTime = dUniverse().clock().passSeconds();
             DPoint velocity = position().minus(pre(this, DShape::position)).div(passTime);
-            DPoint movingAvarage = pre(this, Ball::velocity).plus(velocity).div(2.0);
+            DPoint movingAvarage = pre(this, Ball::velocity).mult(2.0).plus(velocity).div(3.0);
             set(this, Ball::velocity, movingAvarage);
         }
     }
 
     // Billiard
 
-    default Billiard billiard() {
-        return (Billiard) canvas();
+    default BilliardTable billiardTable() {
+        return (BilliardTable) canvas();
     }
 
     @Property
@@ -89,11 +97,11 @@ public interface Ball extends DCircle {
 
     @Rule
     default void bounceToFrame() {
-        Billiard billiard = billiard();
-        DPoint min = billiard.minimum();
-        DPoint max = billiard.maximum();
+        BilliardTable billiardTable = billiardTable();
+        DPoint min = billiardTable.minimum();
+        DPoint max = billiardTable.maximum();
         DPoint solPosition = solPosition();
-        DPoint solVelocity = solVelocity();
+        DPoint solVelocity = solVelocity().mult(1.0 - billiardTable.borderBouncingResistance());
         DPoint positionDelta = DPoint.NULL;
         DPoint velocityDelta = DPoint.NULL;
         if (solPosition.x() < min.x()) {
@@ -129,7 +137,12 @@ public interface Ball extends DCircle {
         Ball b();
 
         @Property
-        default DPoint connection() {
+        default DPoint preConnection() {
+            return pre(b(), DShape::position).minus(pre(a(), DShape::position));
+        }
+
+        @Property
+        default DPoint solConnection() {
             return b().solPosition().minus(a().solPosition());
         }
 
@@ -141,15 +154,20 @@ public interface Ball extends DCircle {
 
         @Rule
         default void collision() {
-            if (connection().length() < a().billiard().ballRadius() * 2) {
+            BilliardTable table = a().billiardTable();
+            double max = table.ballRadius() * 2;
+            double solLength = solConnection().length();
+            if (solLength < max) {
                 DPoint va = a().solVelocity();
                 DPoint vb = b().solVelocity();
-                DPoint na = connection().normal();
+                DPoint na = solConnection().normal();
                 DPoint nb = na.mult(-1.0);
                 DPoint vna = na.mult(va.dot(na));
                 DPoint vnb = nb.mult(vb.dot(nb));
                 DPoint vta = vna.minus(va);
-                set(this, Pair::velocityDelta, vta.plus(vnb).minus(va));
+                DPoint v = vta.plus(vnb).mult(1.0 - table.ballsBouncingResistance());
+                set(this, Pair::positionDelta, nb.mult((max - solLength) / 2.0));
+                set(this, Pair::velocityDelta, v.minus(va));
             } else {
                 set(this, Pair::positionDelta, DPoint.NULL);
                 set(this, Pair::velocityDelta, DPoint.NULL);
@@ -171,8 +189,8 @@ public interface Ball extends DCircle {
     // Control
 
     @Rule
-    default void setStill() {
-        InputDeviceData di = canvas().deviceInput();
+    default void freeze() {
+        InputDeviceData di = billiardTable().deviceInput();
         if (di.pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
             set(this, Ball::velocity, DPoint.NULL);
         }

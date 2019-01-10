@@ -53,8 +53,8 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
         set(canvas(), DCanvas::shapes, List::append, s);
     }
 
-    default Billiard canvas() {
-        return (Billiard) leftComponent();
+    default BilliardTable canvas() {
+        return (BilliardTable) leftComponent();
     }
 
     default void prependShape(DShape s) {
@@ -80,14 +80,14 @@ public interface NewtonMainWindow extends SplitPane, DStruct1<NewtonUniverse> {
     @Override
     @Property(constant)
     default DComponent leftComponent() {
-        return dclareUU(Billiard.class, set(DCanvas::color, new Color(200, 255, 200)), set(DCanvas::mode, selectionMode()));
+        return dclareUU(BilliardTable.class, set(DCanvas::color, new Color(100, 200, 200)), set(DCanvas::mode, selectionMode()));
     }
 
     @Property(constant)
     default ClickMode ballMode() {
         return dclareUU(ClickMode.class, set(ClickMode::action, c -> {
             InputDeviceData di = c.deviceInput();
-            appendShape(dclareUU(Ball.class, set(DShape::position, di.mousePosition())));
+            appendShape(dclareUU(Ball.class, set(Ball::solPosition, di.mousePosition())));
             set(c, DCanvas::mode, selectionMode());
         }));
     }

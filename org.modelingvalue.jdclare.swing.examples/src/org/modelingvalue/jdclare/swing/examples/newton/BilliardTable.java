@@ -7,7 +7,7 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.draw2d.DCanvas;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
 
-public interface Billiard extends DCanvas {
+public interface BilliardTable extends DCanvas {
 
     @Property(constant)
     default double rollingResistance() {
@@ -15,8 +15,18 @@ public interface Billiard extends DCanvas {
     }
 
     @Property(constant)
+    default double borderBouncingResistance() {
+        return 0.1;
+    }
+
+    @Property(constant)
+    default double ballsBouncingResistance() {
+        return 0.1;
+    }
+
+    @Property(constant)
     default double ballRadius() {
-        return 50.0;
+        return 20.0;
     }
 
     @Property(constant)
