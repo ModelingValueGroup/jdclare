@@ -24,6 +24,11 @@ public interface Ball extends DCircle {
         return DPoint.NULL;
     }
 
+    @Override
+    default int radius() {
+        return (int) billiard().ballRadius();
+    }
+
     @Property
     default DPoint acceleration() {
         return pre(this, Ball::velocity).mult(-billiard().rollingResistance());
@@ -124,14 +129,33 @@ public interface Ball extends DCircle {
         Ball b();
 
         @Property
-        default DPoint positionDelta() {
-            return DPoint.NULL;
+        default DPoint connection() {
+            return b().solPosition().minus(a().solPosition());
         }
 
         @Property
-        default DPoint velocityDelta() {
-            return DPoint.NULL;
+        DPoint positionDelta();
+
+        @Property
+        DPoint velocityDelta();
+
+        @Rule
+        default void collision() {
+            if (connection().length() < a().billiard().ballRadius() * 2) {
+                DPoint va = a().solVelocity();
+                DPoint vb = b().solVelocity();
+                DPoint na = connection().normal();
+                DPoint nb = na.mult(-1.0);
+                DPoint vna = na.mult(va.dot(na));
+                DPoint vnb = nb.mult(vb.dot(nb));
+                DPoint vta = vna.minus(va);
+                set(this, Pair::velocityDelta, vta.plus(vnb).minus(va));
+            } else {
+                set(this, Pair::positionDelta, DPoint.NULL);
+                set(this, Pair::velocityDelta, DPoint.NULL);
+            }
         }
+
     }
 
     @Property

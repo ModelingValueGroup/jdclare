@@ -47,8 +47,12 @@ public interface DPoint extends DStruct2<Double, Double> {
         return Math.sqrt(Math.pow(x(), 2.0) + Math.pow(y(), 2.0));
     }
 
-    default DPoint dot(DPoint p) {
-        return equals(ONE) ? p : p.equals(ONE) ? this : dclare(DPoint.class, x() * p.x(), y() * p.y());
+    default double dot(DPoint p) {
+        return x() * p.x() + y() * p.y();
+    }
+
+    default DPoint mult(DPoint p) {
+        return equals(NULL) ? NULL : dclare(DPoint.class, x() * p.x(), y() * p.y());
     }
 
     default DPoint mult(double d) {
