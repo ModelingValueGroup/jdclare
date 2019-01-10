@@ -20,7 +20,7 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.draw2d.DCanvas;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
 
-public interface BilliardTable extends DCanvas {
+public interface Table extends DCanvas {
 
     @Property(constant)
     default double rollingResistance() {

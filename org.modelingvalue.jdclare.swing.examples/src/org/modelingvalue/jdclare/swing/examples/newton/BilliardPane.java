@@ -53,8 +53,8 @@ public interface BilliardPane extends SplitPane, DStruct1<BilliardUniverse> {
         set(canvas(), DCanvas::shapes, List::append, s);
     }
 
-    default BilliardTable canvas() {
-        return (BilliardTable) leftComponent();
+    default Table canvas() {
+        return (Table) leftComponent();
     }
 
     default void prependShape(DShape s) {
@@ -80,7 +80,7 @@ public interface BilliardPane extends SplitPane, DStruct1<BilliardUniverse> {
     @Override
     @Property(constant)
     default DComponent leftComponent() {
-        return dclareUU(BilliardTable.class, set(DCanvas::color, new Color(100, 200, 200)), set(DCanvas::mode, selectionMode()));
+        return dclareUU(Table.class, set(DCanvas::color, new Color(100, 200, 200)), set(DCanvas::mode, selectionMode()));
     }
 
     @Property(constant)

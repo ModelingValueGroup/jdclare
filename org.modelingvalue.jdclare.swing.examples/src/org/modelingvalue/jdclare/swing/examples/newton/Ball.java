@@ -39,12 +39,12 @@ public interface Ball extends DCircle {
 
     @Override
     default int radius() {
-        return (int) billiardTable().ballRadius();
+        return (int) table().ballRadius();
     }
 
     @Property
     default DPoint acceleration() {
-        return pre(this, Ball::velocity).mult(-billiardTable().rollingResistance());
+        return pre(this, Ball::velocity).mult(-table().rollingResistance());
     }
 
     @Default
@@ -98,8 +98,8 @@ public interface Ball extends DCircle {
 
     // Billiard
 
-    default BilliardTable billiardTable() {
-        return (BilliardTable) canvas();
+    default Table table() {
+        return (Table) canvas();
     }
 
     @Property
@@ -110,11 +110,11 @@ public interface Ball extends DCircle {
 
     @Rule
     default void bounceToFrame() {
-        BilliardTable billiardTable = billiardTable();
-        DPoint min = billiardTable.minimum();
-        DPoint max = billiardTable.maximum();
+        Table table = table();
+        DPoint min = table.minimum();
+        DPoint max = table.maximum();
         DPoint solPosition = solPosition();
-        DPoint solVelocity = solVelocity().mult(1.0 - billiardTable.borderBouncingResistance());
+        DPoint solVelocity = solVelocity().mult(1.0 - table.borderBouncingResistance());
         DPoint positionDelta = DPoint.NULL;
         DPoint velocityDelta = DPoint.NULL;
         if (solPosition.x() < min.x()) {
@@ -167,8 +167,8 @@ public interface Ball extends DCircle {
 
         @Rule
         default void collision() {
-            BilliardTable billiardTable = a().billiardTable();
-            double max = billiardTable.ballRadius() * 2;
+            Table table = a().table();
+            double max = table.ballRadius() * 2;
             double solLength = solConnection().length();
             if (solLength < max) {
                 DPoint va = a().solVelocity();
@@ -178,7 +178,7 @@ public interface Ball extends DCircle {
                 DPoint vna = na.mult(va.dot(na));
                 DPoint vnb = nb.mult(vb.dot(nb));
                 DPoint vta = vna.minus(va);
-                DPoint v = vta.plus(vnb).mult(1.0 - billiardTable.ballsBouncingResistance());
+                DPoint v = vta.plus(vnb).mult(1.0 - table.ballsBouncingResistance());
                 set(this, Pair::positionDelta, nb.mult((max - solLength) / 2.0));
                 set(this, Pair::velocityDelta, v.minus(va));
             } else {
@@ -203,7 +203,7 @@ public interface Ball extends DCircle {
 
     @Rule
     default void freeze() {
-        InputDeviceData di = billiardTable().deviceInput();
+        InputDeviceData di = table().deviceInput();
         if (di.pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
             set(this, Ball::velocity, DPoint.NULL);
         }
