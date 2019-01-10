@@ -14,6 +14,7 @@
 package org.modelingvalue.jdclare.swing.examples.newton;
 
 import static org.modelingvalue.jdclare.DClare.*;
+import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.awt.event.KeyEvent;
 
@@ -78,7 +79,9 @@ public interface Ball extends DCircle {
     default void setNonDraggingVelocityAndPosition() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
             set(this, DShape::position, solPosition().plus(cushionsPositionDelta()));
-            set(this, Ball::velocity, solVelocity().plus(cushionsVelocityDelta()).plus(otherBallsVelocityDelta()));
+            DPoint collVelocity = collisionVelocity();
+            DPoint velocity = collVelocity != null ? collVelocity : solVelocity();
+            set(this, Ball::velocity, velocity.plus(cushionsVelocityDelta()));
         }
     }
 
@@ -103,10 +106,10 @@ public interface Ball extends DCircle {
         return next < shapes.size() ? shapes.sublist(next, shapes.size()).filter(Ball.class).toSet() : Set.of();
     }
 
-    @Property
-    default DPoint otherBallsVelocityDelta() {
+    @Property(optional)
+    default DPoint collisionVelocity() {
         BallPair c = table().collision();
-        return c == null ? DPoint.NULL : equals(c.a()) ? c.aVelocityDelta() : equals(c.b()) ? c.bVelocityDelta() : DPoint.NULL;
+        return c == null ? null : equals(c.a()) ? c.aVelocity() : equals(c.b()) ? c.bVelocity() : null;
     }
 
     // Billiard

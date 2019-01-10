@@ -48,31 +48,29 @@ public interface BallPair extends DStruct2<Ball, Ball>, DObject {
     }
 
     @Property
-    DPoint aVelocityDelta();
+    DPoint aVelocity();
 
     @Property
-    DPoint bVelocityDelta();
+    DPoint bVelocity();
 
     @Rule
     default void collision() {
         Table table = a().table();
+        DPoint va = a().solVelocity();
+        DPoint vb = b().solVelocity();
         if (equals(table.collision())) {
-            DPoint va = a().solVelocity();
-            DPoint vb = b().solVelocity();
             DPoint na = b().solPosition().minus(a().solPosition()).normal();
             DPoint nb = na.mult(-1.0);
             DPoint vna = na.mult(va.dot(na));
             DPoint vnb = nb.mult(vb.dot(nb));
-            DPoint vta = vna.minus(va);
-            DPoint vtb = vnb.minus(vb);
+            DPoint vta = va.minus(vna);
+            DPoint vtb = vb.minus(vnb);
             double f = 1.0 - table.ballsBouncingResistance();
-            DPoint va_ = vta.plus(vnb).mult(f);
-            DPoint vb_ = vtb.plus(vna).mult(f);
-            set(this, BallPair::aVelocityDelta, va_.minus(va));
-            set(this, BallPair::bVelocityDelta, vb_.minus(vb));
+            set(this, BallPair::aVelocity, vta.plus(vnb).mult(f));
+            set(this, BallPair::bVelocity, vtb.plus(vna).mult(f));
         } else {
-            set(this, BallPair::aVelocityDelta, DPoint.NULL);
-            set(this, BallPair::bVelocityDelta, DPoint.NULL);
+            set(this, BallPair::aVelocity, va);
+            set(this, BallPair::bVelocity, vb);
         }
     }
 
