@@ -83,7 +83,7 @@ public interface Table extends DCanvas {
                 Instant pt = pre(clock, DClock::time);
                 set(this, Table::collision, f);
                 set(clock, DClock::time, pt.plus((long) (ct * DClock.BILLION), ChronoUnit.NANOS));
-            } else if (ct > pass + 0.00001) {
+            } else if (ct > pass + 0.0001) {
                 set(this, Table::collision, null);
             }
         }, () -> {

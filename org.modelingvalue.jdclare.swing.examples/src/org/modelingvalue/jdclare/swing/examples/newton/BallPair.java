@@ -35,6 +35,12 @@ public interface BallPair extends DStruct2<Ball, Ball>, DObject {
                 double sqrt = sqrt(d);
                 double t1 = (-b + sqrt) / (2 * a);
                 double t2 = (-b - sqrt) / (2 * a);
+                if (t1 < 0) {
+                    t1 = Double.MAX_VALUE;
+                }
+                if (t2 < 0) {
+                    t2 = Double.MAX_VALUE;
+                }
                 return min(t1, t2);
             }
         }
