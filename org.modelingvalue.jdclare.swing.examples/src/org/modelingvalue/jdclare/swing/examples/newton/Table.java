@@ -78,11 +78,12 @@ public interface Table extends DCanvas {
         first.ifPresentOrElse(f -> {
             double ct = f.collisionTime();
             DClock clock = dUniverse().clock();
-            if (ct < clock.passSeconds()) {
+            double pass = clock.passSeconds();
+            if (ct < pass) {
                 Instant pt = pre(clock, DClock::time);
                 set(this, Table::collision, f);
                 set(clock, DClock::time, pt.plus((long) (ct * DClock.BILLION), ChronoUnit.NANOS));
-            } else {
+            } else if (ct > pass + 0.00001) {
                 set(this, Table::collision, null);
             }
         }, () -> {
