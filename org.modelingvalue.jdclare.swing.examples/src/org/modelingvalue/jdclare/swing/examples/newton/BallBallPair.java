@@ -3,13 +3,12 @@ package org.modelingvalue.jdclare.swing.examples.newton;
 import static java.lang.Math.*;
 import static org.modelingvalue.jdclare.DClare.*;
 
-import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.Rule;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
 
-public interface BallPair extends DStruct2<Ball, Ball>, DObject {
+public interface BallBallPair extends DStruct2<Ball, Ball>, CollisionPair {
 
     @Property(key = 0)
     Ball a();
@@ -17,6 +16,7 @@ public interface BallPair extends DStruct2<Ball, Ball>, DObject {
     @Property(key = 1)
     Ball b();
 
+    @Override
     @Property
     default double collisionTime() {
         DPoint va = pre(a(), Ball::velocity);
@@ -47,6 +47,11 @@ public interface BallPair extends DStruct2<Ball, Ball>, DObject {
         return Double.MAX_VALUE;
     }
 
+    @Override
+    default DPoint velocity(Ball ball) {
+        return ball.equals(a()) ? aVelocity() : ball.equals(b()) ? bVelocity() : ball.solVelocity();
+    }
+
     @Property
     DPoint aVelocity();
 
@@ -66,11 +71,11 @@ public interface BallPair extends DStruct2<Ball, Ball>, DObject {
             DPoint vta = va.minus(vna);
             DPoint vtb = vb.minus(vnb);
             double f = 1.0 - table.ballsBouncingResistance();
-            set(this, BallPair::aVelocity, vta.plus(vnb).mult(f));
-            set(this, BallPair::bVelocity, vtb.plus(vna).mult(f));
+            set(this, BallBallPair::aVelocity, vta.plus(vnb).mult(f));
+            set(this, BallBallPair::bVelocity, vtb.plus(vna).mult(f));
         } else {
-            set(this, BallPair::aVelocity, va);
-            set(this, BallPair::bVelocity, vb);
+            set(this, BallBallPair::aVelocity, va);
+            set(this, BallBallPair::bVelocity, vb);
         }
     }
 

@@ -65,16 +65,16 @@ public interface Table extends DCanvas {
     }
 
     @Property(containment)
-    default Set<BallPair> pairs() {
-        return shapes().filter(Ball.class).flatMap(a -> a.otherBalls().map(b -> dclare(BallPair.class, a, b))).toSet();
+    default Set<CollisionPair> collisionPairs() {
+        return shapes().filter(Ball.class).flatMap(b -> b.collisionPairs()).toSet();
     }
 
     @Property(optional)
-    BallPair collision();
+    CollisionPair collision();
 
     @Rule
     default void setCollisionTimeAndPair() {
-        Optional<BallPair> collision = pairs().sorted((a, b) -> Double.compare(a.collisionTime(), b.collisionTime())).findFirst();
+        Optional<CollisionPair> collision = collisionPairs().sorted((a, b) -> Double.compare(a.collisionTime(), b.collisionTime())).findFirst();
         collision.ifPresentOrElse(c -> {
             double ctd = c.collisionTime();
             DClock clock = dUniverse().clock();

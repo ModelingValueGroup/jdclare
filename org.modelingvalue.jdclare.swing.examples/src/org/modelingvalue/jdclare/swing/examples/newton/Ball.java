@@ -14,7 +14,6 @@
 package org.modelingvalue.jdclare.swing.examples.newton;
 
 import static org.modelingvalue.jdclare.DClare.*;
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.awt.event.KeyEvent;
 
@@ -48,13 +47,13 @@ public interface Ball extends DCircle {
 
     @Default
     @Property
-    default DPoint solPosition() {
+    default DPoint solVelocity() {
         return DPoint.NULL;
     }
 
     @Default
     @Property
-    default DPoint solVelocity() {
+    default DPoint solPosition() {
         return DPoint.NULL;
     }
 
@@ -78,10 +77,10 @@ public interface Ball extends DCircle {
     @Rule
     default void setNonDraggingVelocityAndPosition() {
         if (!dragging() && !canvas().deviceInput().pressedKeys().contains(KeyEvent.VK_ESCAPE)) {
-            set(this, DShape::position, solPosition().plus(cushionsPositionDelta()));
-            DPoint collVelocity = collisionVelocity();
-            DPoint velocity = collVelocity != null ? collVelocity : solVelocity();
-            set(this, Ball::velocity, velocity.plus(cushionsVelocityDelta()));
+            set(this, Ball::position, solPosition());
+            CollisionPair c = table().collision();
+            DPoint velocity = c != null ? c.velocity(this) : solVelocity();
+            set(this, Ball::velocity, velocity);
         }
     }
 
@@ -97,58 +96,26 @@ public interface Ball extends DCircle {
         }
     }
 
-    // Others Balls
+    // Collision Pairs
 
     @Property
-    default Set<Ball> otherBalls() {
+    default Set<CollisionPair> collisionPairs() {
         List<DShape> shapes = canvas().shapes();
         int next = shapes.firstIndexOf(this) + 1;
-        return next < shapes.size() ? shapes.sublist(next, shapes.size()).filter(Ball.class).toSet() : Set.of();
-    }
-
-    @Property(optional)
-    default DPoint collisionVelocity() {
-        BallPair c = table().collision();
-        return c == null ? null : equals(c.a()) ? c.aVelocity() : equals(c.b()) ? c.bVelocity() : null;
+        Set<CollisionPair> set = Set.of();
+        if (next < shapes.size()) {
+            set = set.addAll(shapes.sublist(next, shapes.size()).filter(Ball.class).map(b -> dclare(BallBallPair.class, this, b)));
+        }
+        return set.addAll(Set.of(dclare(BallCushionPair.class, this, false, false), //
+                dclare(BallCushionPair.class, this, false, true), //
+                dclare(BallCushionPair.class, this, true, false), //
+                dclare(BallCushionPair.class, this, true, true)));
     }
 
     // Billiard
 
     default Table table() {
         return (Table) canvas();
-    }
-
-    @Property
-    DPoint cushionsPositionDelta();
-
-    @Property
-    DPoint cushionsVelocityDelta();
-
-    @Rule
-    default void bounceToCushions() {
-        Table table = table();
-        DPoint min = table.cushionMinimum();
-        DPoint max = table.cushionMaximum();
-        DPoint solPosition = solPosition();
-        DPoint solVelocity = solVelocity().mult(1.0 - table.cushionBouncingResistance());
-        DPoint positionDelta = DPoint.NULL;
-        DPoint velocityDelta = DPoint.NULL;
-        if (solPosition.x() < min.x()) {
-            positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (min.x() - solPosition.x()), 0.0));
-            velocityDelta = velocityDelta.plus(dclare(DPoint.class, -2.0 * solVelocity.x(), 0.0));
-        } else if (solPosition.x() > max.x()) {
-            positionDelta = positionDelta.plus(dclare(DPoint.class, 2.0 * (max.x() - solPosition.x()), 0.0));
-            velocityDelta = velocityDelta.plus(dclare(DPoint.class, -2.0 * solVelocity.x(), 0.0));
-        }
-        if (solPosition.y() < min.y()) {
-            positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (min.y() - solPosition.y())));
-            velocityDelta = velocityDelta.plus(dclare(DPoint.class, 0.0, -2.0 * solVelocity.y()));
-        } else if (solPosition.y() > max.y()) {
-            positionDelta = positionDelta.plus(dclare(DPoint.class, 0.0, 2.0 * (max.y() - solPosition.y())));
-            velocityDelta = velocityDelta.plus(dclare(DPoint.class, 0.0, -2.0 * solVelocity.y()));
-        }
-        set(this, Ball::cushionsPositionDelta, positionDelta);
-        set(this, Ball::cushionsVelocityDelta, velocityDelta);
     }
 
     // Control
