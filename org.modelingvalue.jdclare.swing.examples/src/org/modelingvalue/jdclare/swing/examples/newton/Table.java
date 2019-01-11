@@ -74,18 +74,17 @@ public interface Table extends DCanvas {
 
     @Rule
     default void setCollisionTimeAndPair() {
-        Optional<BallPair> first = pairs().sorted((a, b) -> Double.compare(a.collisionTime(), b.collisionTime())).findFirst();
-        first.ifPresentOrElse(f -> {
-            double ct = f.collisionTime();
+        Optional<BallPair> collision = pairs().sorted((a, b) -> Double.compare(a.collisionTime(), b.collisionTime())).findFirst();
+        collision.ifPresentOrElse(c -> {
+            double ctd = c.collisionTime();
             DClock clock = dUniverse().clock();
-            double pass = clock.passSeconds();
-            if (ct <= pass) {
-                if (!f.equals(collision())) {
-                    set(this, Table::collision, f);
-                    Instant pt = pre(clock, DClock::time);
-                    set(clock, DClock::time, pt.plus((long) (ct * DClock.BILLION), ChronoUnit.NANOS));
-                }
-            } else if (ct > pass + 0.00001) {
+            Instant preTime = pre(clock, DClock::time);
+            Instant cTime = preTime.plus((long) (ctd * DClock.BILLION), ChronoUnit.NANOS);
+            Instant time = clock.time();
+            if (cTime.isBefore(time)) {
+                set(this, Table::collision, c);
+                set(clock, DClock::time, cTime);
+            } else if (cTime.isAfter(time)) {
                 set(this, Table::collision, null);
             }
         }, () -> {
