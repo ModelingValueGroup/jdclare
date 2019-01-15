@@ -47,7 +47,7 @@ public interface DUniverse extends DPackageContainer, DStruct0 {
     boolean stop();
 
     default void init() {
-        dClare().addAugmentation(JavaOperators.class, Math.class);
+        // dClare().addAugmentation(JavaOperators.class, Math.class);
     }
 
 }

@@ -41,4 +41,15 @@ public class MandatoryObserved<O, T> extends Observed<O, T> {
         }
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public T pre(O object) {
+        T result = super.pre(object);
+        if (result == null || (result instanceof ContainingCollection && ((ContainingCollection) result).isEmpty())) {
+            throw new EmptyMandatoryException();
+        } else {
+            return result;
+        }
+    }
+
 }

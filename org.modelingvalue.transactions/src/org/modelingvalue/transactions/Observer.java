@@ -165,7 +165,7 @@ public class Observer extends Leaf {
     @SuppressWarnings("rawtypes")
     protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
         super.trigger(common, leaf, prio, object, setable, pre, post);
-        if (leaf instanceof Observer) {
+        if (leaf instanceof Observer && setable instanceof Observed) {
             ((Observer) leaf).reportTooManyChanges(common.root(), this, prio, object, setable, pre, post);
         }
     }
