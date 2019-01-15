@@ -18,8 +18,8 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
+import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClock;
 import org.modelingvalue.jdclare.Property;
@@ -29,19 +29,53 @@ import org.modelingvalue.jdclare.swing.draw2d.DPoint;
 
 public interface Table extends DCanvas {
 
+    @Property()
+    default List<Ball> balls() {
+        return shapes().filter(Ball.class).toList();
+    }
+
+    @Property(constant)
+    default double gravity() {
+        return 9.80665;
+    }
+
     @Property(constant)
     default double rollingResistance() {
-        return 0.2;
+        return 0.8;
+    }
+
+    @Property(constant)
+    default double friction() {
+        return gravity() * rollingResistance();
+    }
+
+    @Property
+    default double passSeconds() {
+        if (balls().anyMatch(b -> !pre(b, Ball::velocity).equals(DPoint.NULL))) {
+            return dUniverse().clock().passSeconds();
+        } else {
+            return 1.0;
+        }
+    }
+
+    @Property
+    default double velocityDelta() {
+        return friction() * passSeconds();
+    }
+
+    @Property
+    default double positionDelta() {
+        return 0.5 * velocityDelta() * passSeconds();
     }
 
     @Property(constant)
     default double cushionBouncingResistance() {
-        return 0.1;
+        return 0.2;
     }
 
     @Property(constant)
     default double ballsBouncingResistance() {
-        return 0.1;
+        return 0.2;
     }
 
     @Property(constant)
@@ -66,30 +100,27 @@ public interface Table extends DCanvas {
 
     @Property(containment)
     default Set<CollisionPair> collisionPairs() {
-        return shapes().filter(Ball.class).flatMap(b -> b.collisionPairs()).toSet();
+        return balls().flatMap(b -> b.collisionPairs()).toSet();
     }
 
     @Property(optional)
-    CollisionPair collision();
+    default CollisionPair collision() {
+        return collisionPairs().filter(c -> c.distance() < 0.1).//
+                sorted((a, b) -> Double.compare(a.distance(), b.distance())).findFirst().orElse(null);
+    }
 
     @Rule
-    default void setCollisionTimeAndPair() {
-        Optional<CollisionPair> collision = collisionPairs().sorted((a, b) -> Double.compare(a.collisionTime(), b.collisionTime())).findFirst();
-        collision.ifPresentOrElse(c -> {
-            double ctd = c.collisionTime();
-            DClock clock = dUniverse().clock();
-            Instant preTime = pre(clock, DClock::time);
-            Instant cTime = preTime.plus((long) (ctd * DClock.BILLION), ChronoUnit.NANOS);
-            Instant time = clock.time();
-            if (cTime.isBefore(time)) {
-                set(this, Table::collision, c);
-                set(clock, DClock::time, cTime);
-            } else if (cTime.isAfter(time)) {
-                set(this, Table::collision, null);
-            }
-        }, () -> {
-            set(this, Table::collision, null);
-        });
+    default void setCollisionTime() {
+        if (collision() == null) {
+            collisionPairs().filter(c -> c.collisionTime() > 0.0).//
+                    sorted((a, b) -> Double.compare(a.collisionTime(), b.collisionTime())).findFirst().ifPresent(c -> {
+                        DClock clock = dUniverse().clock();
+                        Instant cTime = pre(clock, DClock::time).plus((long) (c.collisionTime() * DClock.BILLION), ChronoUnit.NANOS);
+                        if (cTime.isBefore(clock.time())) {
+                            set(clock, DClock::time, cTime);
+                        }
+                    });
+        }
     }
 
 }

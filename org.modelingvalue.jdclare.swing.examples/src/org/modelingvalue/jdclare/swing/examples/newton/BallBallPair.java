@@ -79,4 +79,13 @@ public interface BallBallPair extends DStruct2<Ball, Ball>, CollisionPair {
         }
     }
 
+    @Override
+    @Property
+    default double distance() {
+        int radius = a().radius();
+        double preDist = pre(b(), Ball::position).minus(pre(a(), Ball::position)).length();
+        double dist = b().solPosition().minus(a().solPosition()).length();
+        return preDist > dist ? dist - radius - radius : Double.MAX_VALUE;
+    }
+
 }

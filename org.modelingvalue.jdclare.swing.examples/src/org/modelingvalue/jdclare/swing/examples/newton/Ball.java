@@ -41,37 +41,22 @@ public interface Ball extends DCircle {
     }
 
     @Property
-    default DPoint acceleration() {
-        return pre(this, Ball::velocity).mult(-table().rollingResistance());
-    }
-
-    @Default
-    @Property
     default DPoint solVelocity() {
-        return DPoint.NULL;
+        DPoint preVelocity = pre(this, Ball::velocity);
+        double delta = table().velocityDelta();
+        double length = preVelocity.length();
+        return delta >= length ? DPoint.NULL : preVelocity.mult((length - delta) / length);
     }
 
-    @Default
     @Property
     default DPoint solPosition() {
-        return DPoint.NULL;
-    }
-
-    @Rule
-    default void setSolitaryVelocityAndPosition() {
         DPoint preVelocity = pre(this, Ball::velocity);
-        DPoint acceleration = acceleration();
-        if (!preVelocity.equals(DPoint.NULL) || !acceleration.equals(DPoint.NULL)) {
-            double passTime = dUniverse().clock().passSeconds();
-            DPoint preMovement = preVelocity.mult(passTime);
-            DPoint movement = acceleration.mult(Math.pow(passTime, 2.0)).div(0.5);
-            DPoint position = pre(this, DShape::position).plus(preMovement).plus(movement);
-            DPoint velocity = preVelocity.plus(acceleration.mult(passTime));
-            set(this, Ball::solPosition, position);
-            set(this, Ball::solVelocity, velocity);
-        } else {
-            set(this, Ball::solVelocity, DPoint.NULL);
-        }
+        DPoint prePosition = pre(this, Ball::position);
+        Table table = table();
+        DPoint preMovement = preVelocity.mult(table.passSeconds());
+        double delta = table.positionDelta();
+        double length = preMovement.length();
+        return delta >= length ? prePosition : prePosition.plus(preMovement.mult((length - delta) / length));
     }
 
     @Rule
@@ -100,11 +85,11 @@ public interface Ball extends DCircle {
 
     @Property
     default Set<CollisionPair> collisionPairs() {
-        List<DShape> shapes = canvas().shapes();
-        int next = shapes.firstIndexOf(this) + 1;
+        List<Ball> balls = table().balls();
+        int next = balls.firstIndexOf(this) + 1;
         Set<CollisionPair> set = Set.of();
-        if (next < shapes.size()) {
-            set = set.addAll(shapes.sublist(next, shapes.size()).filter(Ball.class).map(b -> dclare(BallBallPair.class, this, b)));
+        if (next < balls.size()) {
+            set = set.addAll(balls.sublist(next, balls.size()).map(b -> dclare(BallBallPair.class, this, b)));
         }
         return set.addAll(Set.of(dclare(BallCushionPair.class, this, false, false), //
                 dclare(BallCushionPair.class, this, false, true), //

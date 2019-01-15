@@ -36,11 +36,8 @@ public interface DShape extends DVisible {
         return dAncestor(DCanvas.class);
     }
 
-    @Default
     @Property
-    default DPoint position() {
-        return DPoint.NULL;
-    }
+    DPoint position();
 
     @Default
     @Property

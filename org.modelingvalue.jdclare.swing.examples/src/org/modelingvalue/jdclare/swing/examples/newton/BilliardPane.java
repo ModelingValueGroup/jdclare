@@ -87,7 +87,7 @@ public interface BilliardPane extends SplitPane, DStruct1<BilliardUniverse> {
     default ClickMode ballMode() {
         return dclareUU(ClickMode.class, set(ClickMode::action, c -> {
             InputDeviceData di = c.deviceInput();
-            appendShape(dclareUU(Ball.class, set(Ball::solPosition, di.mousePosition())));
+            appendShape(dclareUU(Ball.class, set(Ball::position, di.mousePosition())));
             set(c, DCanvas::mode, selectionMode());
         }));
     }

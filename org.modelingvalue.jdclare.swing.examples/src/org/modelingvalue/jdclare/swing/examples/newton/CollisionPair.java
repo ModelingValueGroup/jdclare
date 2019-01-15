@@ -11,4 +11,7 @@ public interface CollisionPair extends DObject {
 
     DPoint velocity(Ball ball);
 
+    @Property
+    double distance();
+
 }
