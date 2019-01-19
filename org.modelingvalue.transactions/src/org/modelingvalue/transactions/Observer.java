@@ -41,6 +41,7 @@ public class Observer extends Leaf {
     private Concurrent<Set<Slot>> setted = Concurrent.of();
     private long                  count  = -1;
     private int                   changes;
+    private boolean               changed;
 
     public Observer(Object id, Compound parent, Runnable action, Priority initPrio) {
         super(id, parent, action, initPrio);
@@ -99,7 +100,6 @@ public class Observer extends Leaf {
             setted.init(Set.of());
             State post = super.apply(pre);
             if (post != pre) {
-                countChanges();
                 init(post);
                 getted.clear();
                 setted.clear();
@@ -109,9 +109,6 @@ public class Observer extends Leaf {
             }
             return result();
         } catch (EmptyMandatoryException soe) {
-            if (isChanged()) {
-                countChanges();
-            }
             clear();
             init(pre);
             setObserveds(setted.result(), getted.result());
@@ -123,6 +120,7 @@ public class Observer extends Leaf {
             setObserveds(Set.of(), Set.of());
             return result();
         } finally {
+            changed = false;
             clear();
             getted.clear();
             setted.clear();
@@ -141,7 +139,17 @@ public class Observer extends Leaf {
         });
     }
 
+    @Override
+    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
+        super.changed(object, property, preValue, postValue);
+        if (!changed) {
+            countChanges();
+        }
+        trigger(parent, this, Priority.low, object, property, preValue, postValue);
+    }
+
     private void countChanges() {
+        changed = true;
         Root root = root();
         int totalChanges = root.countTotalChanges();
         long runCount = root.runCount();
@@ -156,26 +164,26 @@ public class Observer extends Leaf {
     }
 
     @Override
-    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        super.changed(object, property, preValue, postValue);
-        trigger(parent, this, Priority.low, object, property, preValue, postValue);
-    }
-
-    @Override
     @SuppressWarnings("rawtypes")
     protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
         super.trigger(common, leaf, prio, object, setable, pre, post);
         if (leaf instanceof Observer && setable instanceof Observed) {
-            ((Observer) leaf).reportTooManyChanges(common.root(), this, prio, object, setable, pre, post);
+            ((Observer) leaf).checkTooManyChanges(common.root(), this, prio, object, setable, pre, post);
         }
     }
 
     @SuppressWarnings("rawtypes")
-    protected void reportTooManyChanges(Root root, Transaction running, Priority prio, Object object, Setable setable, Object pre, Object post) {
+    protected void checkTooManyChanges(Root root, Transaction running, Priority prio, Object object, Setable setable, Object pre, Object post) {
         int totalChanges = root.totalChanges();
         if (changes > root.maxNrOfChanges || totalChanges > root.maxTotalNrOfChanges) {
-            System.err.println("ERROR: Too many changes: " + (totalChanges > root.maxTotalNrOfChanges ? totalChanges : changes) + "\n       Running: " + root.preState().get(() -> running + "\n       Change: " + object + "." + setable + "=" + pre + " -> " + post + "\n       Triggers: " + this));
+            int tooMany = totalChanges > root.maxTotalNrOfChanges ? totalChanges : changes;
+            reportTooManyChanges(root, running, object, setable, pre, post, tooMany);
         }
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected void reportTooManyChanges(Root root, Transaction running, Object object, Setable setable, Object pre, Object post, int tooMany) {
+        System.err.println("ERROR: Too many changes: " + tooMany + "\n       Running: " + root.preState().get(() -> running + "\n       Change: " + object + "." + setable + "=" + pre + " -> " + post + "\n       Triggers: " + this));
     }
 
     private static final class Observerds extends Setable<Observer, Set<Slot>> {

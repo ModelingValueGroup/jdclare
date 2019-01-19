@@ -75,10 +75,6 @@ public class Leaf extends AbstractLeaf {
         return result;
     }
 
-    protected boolean isChanged() {
-        return setted.isChanged();
-    }
-
     @Override
     public State apply(State state) {
         TraceTimer.traceBegin(traceId());

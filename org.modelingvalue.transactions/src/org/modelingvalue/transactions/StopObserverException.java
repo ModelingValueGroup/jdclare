@@ -20,4 +20,9 @@ public final class StopObserverException extends RuntimeException {
     public StopObserverException(String mess) {
         super(mess);
     }
+
+    public StopObserverException(Throwable t) {
+        super(t);
+    }
+
 }

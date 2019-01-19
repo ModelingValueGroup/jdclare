@@ -187,7 +187,7 @@ public class Compound extends Transaction {
         Root root = root();
         for (Observer leaf : leafs) {
             state = state.set(commonAncestor(leaf), prio.triggered, Set::add, leaf);
-            leaf.reportTooManyChanges(root, this, prio, object, setable, pre, post);
+            leaf.checkTooManyChanges(root, this, prio, object, setable, pre, post);
         }
         return state;
     }
