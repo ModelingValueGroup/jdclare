@@ -19,23 +19,32 @@ public interface BallCushionPair extends DStruct3<Ball, Boolean, Boolean>, Colli
 
     @Override
     @Property
-    default double collisionTime() {
-        DPoint v = pre(ball(), Ball::velocity);
-        DPoint p = pre(ball(), Ball::position);
-        Table table = ball().table();
-        DPoint min = table.cushionMinimum();
-        DPoint max = table.cushionMaximum();
-        if (isY()) {
-            if (isMax() && v.y() > 0.0) {
-                return (max.y() - p.y()) / v.y();
-            } else if (!isMax() && v.y() < 0.0) {
-                return (min.y() - p.y()) / v.y();
-            }
-        } else {
-            if (isMax() && v.x() > 0.0) {
-                return (max.x() - p.x()) / v.x();
-            } else if (!isMax() && v.x() < 0.0) {
-                return (min.x() - p.x()) / v.x();
+    default double preCollisionTime() {
+        return collisionTime(pre(ball(), Ball::velocity), pre(ball(), Ball::position));
+    }
+
+    @Override
+    default double postCollisionTime() {
+        return collisionTime(ball().solVelocity(), ball().solPosition());
+    }
+
+    private double collisionTime(DPoint v, DPoint p) {
+        if (v.y() != 0.0 || v.x() != 0.0) {
+            Table table = ball().table();
+            DPoint min = table.cushionMinimum();
+            DPoint max = table.cushionMaximum();
+            if (isY()) {
+                if (isMax() && v.y() > 0.0) {
+                    return (max.y() - p.y()) / v.y();
+                } else if (!isMax() && v.y() < 0.0) {
+                    return (min.y() - p.y()) / v.y();
+                }
+            } else {
+                if (isMax() && v.x() > 0.0) {
+                    return (max.x() - p.x()) / v.x();
+                } else if (!isMax() && v.x() < 0.0) {
+                    return (min.x() - p.x()) / v.x();
+                }
             }
         }
         return Double.MAX_VALUE;
@@ -62,28 +71,25 @@ public interface BallCushionPair extends DStruct3<Ball, Boolean, Boolean>, Colli
     }
 
     @Override
-    @Property
     default double distance() {
         Ball ball = ball();
-        DPoint p = pre(ball, Ball::position);
-        DPoint v = pre(ball, Ball::velocity);
+        DPoint p = ball.solPosition();
         Table table = ball.table();
         DPoint min = table.cushionMinimum();
         DPoint max = table.cushionMaximum();
         if (isY()) {
-            if (isMax() && v.y() > 0.0) {
-                return max.y() - p.y();
-            } else if (!isMax() && v.y() < 0.0) {
-                return p.y() - min.y();
+            if (isMax()) {
+                return Math.abs(max.y() - p.y());
+            } else {
+                return Math.abs(p.y() - min.y());
             }
         } else {
-            if (isMax() && v.x() > 0.0) {
-                return max.x() - p.x();
-            } else if (!isMax() && v.x() < 0.0) {
-                return p.x() - min.x();
+            if (isMax()) {
+                return Math.abs(max.x() - p.x());
+            } else {
+                return Math.abs(p.x() - min.x());
             }
         }
-        return Double.MAX_VALUE;
     }
 
 }

@@ -35,6 +35,11 @@ public interface Ball extends DCircle {
         return DPoint.NULL;
     }
 
+    @Property
+    default boolean moving() {
+        return !pre(this, Ball::velocity).equals(DPoint.NULL);
+    }
+
     @Override
     default int radius() {
         return (int) table().ballRadius();
@@ -50,12 +55,12 @@ public interface Ball extends DCircle {
 
     @Property
     default DPoint solPosition() {
-        DPoint preVelocity = pre(this, Ball::velocity);
-        DPoint prePosition = pre(this, Ball::position);
         Table table = table();
+        DPoint preVelocity = pre(this, Ball::velocity);
         DPoint preMovement = preVelocity.mult(table.passSeconds());
         double delta = table.positionDelta();
         double length = preMovement.length();
+        DPoint prePosition = pre(this, Ball::position);
         return delta >= length ? prePosition : prePosition.plus(preMovement.mult((length - delta) / length));
     }
 
@@ -97,7 +102,7 @@ public interface Ball extends DCircle {
                 dclare(BallCushionPair.class, this, true, true)));
     }
 
-    // Billiard
+    // Billiard Table
 
     default Table table() {
         return (Table) canvas();

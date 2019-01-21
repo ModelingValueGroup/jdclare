@@ -16,9 +16,6 @@ package org.modelingvalue.jdclare.swing.examples.newton;
 import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClock;
@@ -47,15 +44,6 @@ public interface Table extends DCanvas {
     @Property(constant)
     default double friction() {
         return gravity() * rollingResistance();
-    }
-
-    @Property
-    default double passSeconds() {
-        if (balls().anyMatch(b -> !pre(b, Ball::velocity).equals(DPoint.NULL))) {
-            return dUniverse().clock().passSeconds();
-        } else {
-            return 1.0;
-        }
     }
 
     @Property
@@ -103,24 +91,40 @@ public interface Table extends DCanvas {
         return balls().flatMap(b -> b.collisionPairs()).toSet();
     }
 
+    @Property
+    default boolean moving() {
+        return balls().anyMatch(b -> b.moving());
+    }
+
+    @Property
+    default double passSeconds() {
+        return moving() ? dUniverse().clock().passSeconds() : 0.01;
+    }
+
+    @Property(optional)
+    default CollisionPair firstCollision() {
+        if (moving()) {
+            double timeWindow = dUniverse().clock().passSeconds() * 2;
+            return collisionPairs().filter(c -> c.preCollisionTime() > 0.0 && c.preCollisionTime() <= timeWindow).//
+                    sorted((a, b) -> Double.compare(a.preCollisionTime(), b.preCollisionTime())).findFirst().orElse(null);
+        } else {
+            return null;
+        }
+    }
+
     @Property(optional)
     default CollisionPair collision() {
-        return collisionPairs().filter(c -> c.distance() < 0.1).//
-                sorted((a, b) -> Double.compare(a.distance(), b.distance())).findFirst().orElse(null);
+        CollisionPair firstCollision = firstCollision();
+        return firstCollision != null && firstCollision.distance() <= 0.5 ? firstCollision : null;
     }
 
     @Rule
     default void setCollisionTime() {
-        if (collision() == null) {
-            collisionPairs().filter(c -> c.collisionTime() > 0.0).//
-                    sorted((a, b) -> Double.compare(a.collisionTime(), b.collisionTime())).findFirst().ifPresent(c -> {
-                        DClock clock = dUniverse().clock();
-                        Instant cTime = pre(clock, DClock::time).plus((long) (c.collisionTime() * DClock.BILLION), ChronoUnit.NANOS);
-                        if (cTime.isBefore(clock.time())) {
-                            set(clock, DClock::time, cTime);
-                        }
-                    });
+        CollisionPair firstCollision = firstCollision();
+        if (firstCollision != null && collision() == null) {
+            double passNanos = (passSeconds() + firstCollision.postCollisionTime()) * DClock.BILLION;
+            DClock clock = dUniverse().clock();
+            set(clock, DClock::time, pre(clock, DClock::time).plusNanos((long) passNanos));
         }
     }
-
 }

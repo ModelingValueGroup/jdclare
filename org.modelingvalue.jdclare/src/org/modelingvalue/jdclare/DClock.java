@@ -16,12 +16,6 @@ public interface DClock extends DObject, DStruct0 {
     }
 
     @Property
-    @Default
-    default Instant setTime() {
-        return dClare().getClock().instant();
-    }
-
-    @Property
     default Duration passTime() {
         return Duration.between(pre(this, DClock::time), time());
     }

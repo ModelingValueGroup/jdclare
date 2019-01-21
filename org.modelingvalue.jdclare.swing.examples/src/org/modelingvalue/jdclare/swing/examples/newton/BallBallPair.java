@@ -18,13 +18,26 @@ public interface BallBallPair extends DStruct2<Ball, Ball>, CollisionPair {
 
     @Override
     @Property
-    default double collisionTime() {
+    default double preCollisionTime() {
         DPoint va = pre(a(), Ball::velocity);
         DPoint vb = pre(b(), Ball::velocity);
+        DPoint pa = pre(a(), Ball::position);
+        DPoint pb = pre(b(), Ball::position);
+        return collisionTime(va, vb, pa, pb);
+    }
+
+    @Override
+    default double postCollisionTime() {
+        DPoint va = a().solVelocity();
+        DPoint vb = b().solVelocity();
+        DPoint pa = a().solPosition();
+        DPoint pb = b().solPosition();
+        return collisionTime(va, vb, pa, pb);
+    }
+
+    private double collisionTime(DPoint va, DPoint vb, DPoint pa, DPoint pb) {
         if (!va.equals(DPoint.NULL) || !vb.equals(DPoint.NULL)) {
             Table table = a().table();
-            DPoint pa = pre(a(), Ball::position);
-            DPoint pb = pre(b(), Ball::position);
             DPoint dv = va.minus(vb);
             DPoint dp = pa.minus(pb);
             double a = dv.dot(dv);
@@ -35,13 +48,7 @@ public interface BallBallPair extends DStruct2<Ball, Ball>, CollisionPair {
                 double sqrt = sqrt(d);
                 double t1 = (-b + sqrt) / (2 * a);
                 double t2 = (-b - sqrt) / (2 * a);
-                if (t1 < 0) {
-                    t1 = Double.MAX_VALUE;
-                }
-                if (t2 < 0) {
-                    t2 = Double.MAX_VALUE;
-                }
-                return min(t1, t2);
+                return Math.min(t1, t2);
             }
         }
         return Double.MAX_VALUE;
@@ -59,7 +66,7 @@ public interface BallBallPair extends DStruct2<Ball, Ball>, CollisionPair {
     DPoint bVelocity();
 
     @Rule
-    default void collision() {
+    default void velocity() {
         Table table = a().table();
         DPoint va = a().solVelocity();
         DPoint vb = b().solVelocity();
@@ -80,12 +87,11 @@ public interface BallBallPair extends DStruct2<Ball, Ball>, CollisionPair {
     }
 
     @Override
-    @Property
     default double distance() {
+        DPoint pa = a().solPosition();
+        DPoint pb = b().solPosition();
         int radius = a().radius();
-        double preDist = pre(b(), Ball::position).minus(pre(a(), Ball::position)).length();
-        double dist = b().solPosition().minus(a().solPosition()).length();
-        return preDist > dist ? dist - radius - radius : Double.MAX_VALUE;
+        return Math.abs(Math.abs(pb.minus(pa).length()) - radius - radius);
     }
 
 }

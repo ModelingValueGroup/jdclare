@@ -7,11 +7,12 @@ import org.modelingvalue.jdclare.swing.draw2d.DPoint;
 public interface CollisionPair extends DObject {
 
     @Property
-    double collisionTime();
+    double preCollisionTime();
+
+    double postCollisionTime();
 
     DPoint velocity(Ball ball);
 
-    @Property
     double distance();
 
 }

@@ -49,30 +49,26 @@ public class Observer extends Leaf {
 
     @Override
     public <O, T> T get(O object, Getable<O, T> property) {
-        T result = super.get(object, property);
         observe(object, property, false);
-        return result;
+        return super.get(object, property);
     }
 
     @Override
     public <O, T> T pre(O object, Getable<O, T> property) {
-        T result = super.pre(object, property);
         observe(object, property, false);
-        return result;
+        return super.pre(object, property);
     }
 
     @Override
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        T pre = super.set(object, property, function, element);
         observe(object, property, true);
-        return pre;
+        return super.set(object, property, function, element);
     }
 
     @Override
     public <O, T> T set(O object, Setable<O, T> property, T value) {
-        T pre = super.set(object, property, value);
         observe(object, property, true);
-        return pre;
+        return super.set(object, property, value);
     }
 
     @SuppressWarnings("rawtypes")
