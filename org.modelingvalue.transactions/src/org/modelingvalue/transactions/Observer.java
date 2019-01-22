@@ -136,26 +136,27 @@ public class Observer extends Leaf {
     }
 
     @Override
-    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        super.changed(object, property, preValue, postValue);
-        if (!changed) {
-            countChanges();
-        }
-        trigger(parent, this, Priority.low, object, property, preValue, postValue);
+    protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
+        super.changed(object, setable, preValue, postValue);
+        countChanges(setable);
+        trigger(parent, this, Priority.low, object, setable, preValue, postValue);
     }
 
-    private void countChanges() {
-        changed = true;
-        Root root = root();
-        int totalChanges = root.countTotalChanges();
-        long runCount = root.runCount();
-        if (runCount > count) {
-            count = runCount;
-            changes = 1;
-        } else if (changes++ > root.maxNrOfChanges * 2) {
-            throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
-        } else if (totalChanges > root.maxTotalNrOfChanges + root.maxNrOfChanges) {
-            throw new TooManyChangesException("Total changes: " + totalChanges + ", running: " + root.preState().get(this::toString));
+    @SuppressWarnings("rawtypes")
+    protected void countChanges(Setable setable) {
+        if (!changed && setable instanceof Observed) {
+            changed = true;
+            Root root = root();
+            int totalChanges = root.countTotalChanges();
+            long runCount = root.runCount();
+            if (runCount > count) {
+                count = runCount;
+                changes = 1;
+            } else if (changes++ > root.maxNrOfChanges * 2) {
+                throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
+            } else if (totalChanges > root.maxTotalNrOfChanges + root.maxNrOfChanges) {
+                throw new TooManyChangesException("Total changes: " + totalChanges + ", running: " + root.preState().get(this::toString));
+            }
         }
     }
 
@@ -164,7 +165,7 @@ public class Observer extends Leaf {
     protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
         super.trigger(common, leaf, prio, object, setable, pre, post);
         if (leaf instanceof Observer && setable instanceof Observed) {
-            ((Observer) leaf).checkTooManyChanges(common.root(), this, prio, object, setable, pre, post);
+            ((Observer) leaf).checkTooManyChanges(common.root(), leaf, prio, object, setable, pre, post);
         }
     }
 
