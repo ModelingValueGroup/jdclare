@@ -173,7 +173,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
                         System.arraycopy(mv.values, 0, flattened, i, mv.values.length);
                         i += mv.values.length;
                         depth = Math.max(depth, mv.depth - 1);
-                    } else {
+                    } else if (e != null) {
                         flattened[i++] = e;
                         depth = Math.max(depth, 1);
                     }
