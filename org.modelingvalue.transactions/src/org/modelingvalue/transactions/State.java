@@ -35,19 +35,23 @@ import org.modelingvalue.collections.util.TriConsumer;
 
 public class State implements Serializable {
 
-    private static final long               serialVersionUID = -3468784705870374732L;
+    private static final long                       serialVersionUID = -3468784705870374732L;
 
     @SuppressWarnings("rawtypes")
-    private static final Comparator<Entry>  COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
+    private static final Comparator<Entry>          COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
 
     @SuppressWarnings("rawtypes")
-    final Map<Object, Map<Setable, Object>> map;
-    private final Root                      root;
+    private final Map<Object, Map<Setable, Object>> map;
+    private final Root                              root;
 
     @SuppressWarnings("rawtypes")
     State(Root root, Map<Object, Map<Setable, Object>> map) {
         this.root = root;
         this.map = map;
+    }
+
+    protected State clone(Root root) {
+        return new State(root, map);
     }
 
     @SuppressWarnings("rawtypes")

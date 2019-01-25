@@ -14,7 +14,10 @@
 package org.modelingvalue.jdclare.examples;
 
 import static org.modelingvalue.jdclare.DClare.*;
+import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
+import org.modelingvalue.jdclare.DObject;
+import org.modelingvalue.jdclare.DStruct0;
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.IOString;
 import org.modelingvalue.jdclare.Property;
@@ -26,19 +29,33 @@ public interface CyclicUniverse extends DUniverse {
         runAndRead(CyclicUniverse.class);
     }
 
-    @Property
-    default int a() {
-        return b();
+    interface A extends DStruct0, DObject {
+        @Property
+        default int v() {
+            return dAncestor(CyclicUniverse.class).b().v();
+        }
     }
 
-    @Property
-    default int b() {
-        return a();
+    interface B extends DStruct0, DObject {
+        @Property
+        default int v() {
+            return dAncestor(CyclicUniverse.class).a().v();
+        }
+    }
+
+    @Property({containment, constant})
+    default A a() {
+        return dclare(A.class);
+    }
+
+    @Property({containment, constant})
+    default B b() {
+        return dclare(B.class);
     }
 
     @Override
     default IOString output() {
-        return IOString.of("a=" + a() + " b=" + b() + System.lineSeparator() + "> ");
+        return IOString.of("a=" + a().v() + " b=" + b().v() + System.lineSeparator() + "> ");
     }
 
     @Rule
@@ -48,13 +65,13 @@ public interface CyclicUniverse extends DUniverse {
             set(this, DUniverse::stop, true);
         } else if (input.startsWith("a=")) {
             try {
-                set(this, CyclicUniverse::a, Integer.parseInt(input.substring(2)));
+                set(a(), A::v, Integer.parseInt(input.substring(2)));
             } catch (NumberFormatException nfe) {
                 set(this, DUniverse::error, IOString.ofln("Only integers after 'a=' allowed"));
             }
         } else if (input.startsWith("b=")) {
             try {
-                set(this, CyclicUniverse::b, Integer.parseInt(input.substring(2)));
+                set(b(), B::v, Integer.parseInt(input.substring(2)));
             } catch (NumberFormatException nfe) {
                 set(this, DUniverse::error, IOString.ofln("Only integers after 'b=' allowed"));
             }

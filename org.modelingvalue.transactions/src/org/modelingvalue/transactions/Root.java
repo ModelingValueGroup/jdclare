@@ -108,7 +108,7 @@ public class Root extends Compound {
         });
         pre = cycle != null ? Leaf.of("cycle", this, () -> cycle.accept(this)) : null;
         pool.execute(() -> {
-            State state = start != null ? new State(this, start.map) : emptyState;
+            State state = start != null ? start.clone(this) : emptyState;
             while (true) {
                 TraceTimer.traceBegin("root");
                 try {
@@ -134,7 +134,7 @@ public class Root extends Compound {
                         if (history.size() > maxNrOfHistory) {
                             history = history.removeFirst();
                         }
-                        state = post(apply(schedule(pre(state), leaf, Priority.high)));
+                        state = post(scheduleAndApply(pre(state), leaf, Priority.high));
                     }
                     state = apply(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.high));
                     if (inQueue.isEmpty()) {

@@ -14,6 +14,7 @@
 package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Pair;
 
 public enum Priority {
 
@@ -23,14 +24,26 @@ public enum Priority {
 
     low(2);
 
-    public final Setable<Compound, Set<AbstractLeaf>> triggered;
-    public final Setable<Compound, Set<AbstractLeaf>> scheduled;
-    public final int                                  nr;
+    public final PrioritySetable<AbstractLeaf> triggered;
+    public final PrioritySetable<AbstractLeaf> scheduled;
+    public final PrioritySetable<Compound>     compound;
+    public final int                           nr;
 
     private Priority(int nr) {
-        triggered = Setable.of(this, Set.of());
-        scheduled = Setable.of(this, Set.of());
+        triggered = new PrioritySetable<>("triggered");
+        scheduled = new PrioritySetable<>("scheduled");
+        compound = new PrioritySetable<>("compound");
         this.nr = nr;
+    }
+
+    public final class PrioritySetable<T extends Transaction> extends Setable<Compound, Set<T>> {
+        private PrioritySetable(String id) {
+            super(Pair.of(Priority.this, id), Set.of(), null);
+        }
+
+        public Priority prio() {
+            return Priority.this;
+        }
     }
 
 }

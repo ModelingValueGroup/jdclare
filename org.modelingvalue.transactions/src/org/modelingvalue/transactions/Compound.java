@@ -23,16 +23,22 @@ import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.transactions.Observed.Observers;
+import org.modelingvalue.transactions.Priority.PrioritySetable;
 
 public class Compound extends Transaction {
 
-    private static final int                                   MAX_STACK_DEPTH    = Integer.getInteger("MAX_STACK_DEPTH", 4);
+    private static final int               MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
-    public static final Setable<Compound, Set<Compound>>       SCHEDULED_COMPOUND = Setable.of("scheduledCompound", Set.of());
-
-    @SuppressWarnings("unchecked")
-    private static final Setable<Compound, Set<Transaction>>[] SCHEDULED          =                                           //
-            new Setable[]{Priority.first.scheduled, SCHEDULED_COMPOUND, Priority.high.scheduled, Priority.low.scheduled};
+    @SuppressWarnings("rawtypes")
+    private static final PrioritySetable[] SCHEDULED;
+    static {
+        Priority[] priorities = Priority.values();
+        SCHEDULED = new PrioritySetable[Priority.values().length * 2];
+        for (int i = 0; i < priorities.length; i++) {
+            SCHEDULED[i * 2] = priorities[i].compound;
+            SCHEDULED[i * 2 + 1] = priorities[i].scheduled;
+        }
+    }
 
     public static Compound of(Object id, Compound parent) {
         return new Compound(id, parent);
@@ -76,6 +82,10 @@ public class Compound extends Transaction {
         return true;
     }
 
+    public State scheduleAndApply(State state, AbstractLeaf leaf, Priority prio) {
+        return apply(schedule(state, leaf, prio));
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public State apply(State state) {
@@ -84,22 +94,23 @@ public class Compound extends Transaction {
         State[] sa = new State[]{state};
         int i;
         try {
-            do {
-                for (i = 0; i == 0 || (ts[0].isEmpty() && i < SCHEDULED.length); i++) {
+            while (true) {
+                for (i = 0, ts[0] = Set.of(); i < SCHEDULED.length && ts[0].isEmpty(); i++) {
                     sa[0] = sa[0].set(this, SCHEDULED[i], Set.of(), ts);
                 }
-                if (!ts[0].isEmpty()) {
-                    sa[0] = scheduleTriggered(merge(sa[0], ts[0].reduce(sa, (s, t) -> {
-                        State[] r = s.clone();
-                        r[0] = t.apply(s[0]);
-                        return r;
-                    }, (a, b) -> {
-                        State[] r = Arrays.copyOf(a, a.length + b.length);
-                        System.arraycopy(b, 0, r, a.length, b.length);
-                        return r;
-                    })));
+                if (ts[0].isEmpty()) {
+                    break;
                 }
-            } while (!ts[0].isEmpty());
+                sa[0] = scheduleTriggered(merge(sa[0], ts[0].reduce(sa, (s, t) -> {
+                    State[] r = s.clone();
+                    r[0] = t.apply(s[0]);
+                    return r;
+                }, (a, b) -> {
+                    State[] r = Arrays.copyOf(a, a.length + b.length);
+                    System.arraycopy(b, 0, r, a.length, b.length);
+                    return r;
+                })));
+            }
             return sa[0];
         } catch (TooManyChangesException tmce) {
             throw tmce;
@@ -213,7 +224,7 @@ public class Compound extends Transaction {
         Compound parent = leaf.parent;
         state = state.set(parent, prio.scheduled, Set::add, leaf);
         while (!equals(parent)) {
-            state = state.set(parent.parent, SCHEDULED_COMPOUND, Set::add, parent);
+            state = state.set(parent.parent, prio.compound, Set::add, parent);
             parent = parent.parent;
         }
         return state;
