@@ -38,7 +38,7 @@ public class Imperative extends AbstractLeaf {
     private Set<Pair<Object, Setable>>               setted    = Set.of();
 
     private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
-        super(id, root, Priority.high);
+        super(id, root, Priority.mid);
         this.state = init;
         this.pre = state();
         this.scheduler = r -> scheduler.accept(() -> {
@@ -49,7 +49,7 @@ public class Imperative extends AbstractLeaf {
     }
 
     @Override
-    public State apply(State last) {
+    public State apply(State last, Priority priority) {
         throw new UnsupportedOperationException();
     }
 

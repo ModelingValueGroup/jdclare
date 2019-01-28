@@ -135,7 +135,9 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
             return dclareUU(ClickMode.class, e -> {
                 set(e, ClickMode::action, z -> {
                     InputDeviceData di = z.deviceInput();
-                    appendShape(dclareUU(DRectangle.class, set(DShape::position, di.mousePosition())));
+                    DRectangle r = dclareUU(DRectangle.class, set(DShape::position, di.mousePosition()));
+                    set(dclare(MappingData.class, ((DUUObject) r).uuid()).triangle(), DShape::position, di.mousePosition());
+                    appendShape(r);
                     set(z, DCanvas::mode, selectionMode());
                 });
             });
@@ -226,10 +228,17 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
                 set(c, DToolbar::minimumSize, dclare(DDimension.class, 50.0, 100.0));
                 set(c, DToolbar::items, List.of(//
                         item("Triangle", "triangle.png", (x) -> {
-                            appendShape(dclareUU(DTriangle.class, set(DShape::position, dclare(DPoint.class, 100.0, 100.0))));
+                            DTriangle t = dclareUU(DTriangle.class, set(DShape::position, startPosition()));
+                            set(dclare(MappingData.class, ((DUUObject) t).uuid()).rectangle(), DShape::position, startPosition());
+                            appendShape(t);
                         }) //                        
                 ));
             });
+        }
+
+        @Property(constant)
+        default DPoint startPosition() {
+            return dclare(DPoint.class, 100.0, 100.0);
         }
     }
 
@@ -275,24 +284,22 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
 
         @Property(constant)
         default DTriangle triangle() {
-            DTriangle t = dclareUU(DTriangle.class, uuid(), //
-                    rule(DTriangle::position, x -> {
+            return dclareUU(DTriangle.class, uuid(), //
+                    rule(DTriangle::position, t -> {
                         DFilled f = rectangle();
                         if (f.dragging()) {
                             DPoint delta = f.position().minus(pre(f, DShape::position));
-                            DPoint p = pre(x, DShape::position);
+                            DPoint p = pre(t, DShape::position);
                             return p.plus(delta);
                         }
-                        return x.position();
+                        return t.position();
                     }), //
-                    rule(DTriangle::highlighted, x -> rectangle().selected()), //
-                    rule(DTriangle::radius, x -> {
+                    rule(DTriangle::highlighted, t -> rectangle().selected()), //
+                    rule(DTriangle::radius, t -> {
                         DCanvas c = dAncestor(ExampleMapping1.class).rectanglesAndCircles();
                         long nr = c.shapes().filter(DLine.class).filter(l -> l.position().equals(rectangle().centre()) || l.endPoint().equals(rectangle().centre())).count();
                         return (int) (50 + nr * 10);
                     }));
-            //mag niet? set(t, DTriangle::position, rectangle().position());
-            return t;
         }
     }
 

@@ -48,7 +48,7 @@ public interface JRule<O extends DObject, T> extends DRule<O>, DStruct1<Method> 
     @Override
     @Property(constant)
     default Priority initPrio() {
-        return method().getReturnType() == Void.TYPE ? Priority.low : Priority.high;
+        return method().getReturnType() == Void.TYPE ? Priority.low : Priority.mid;
     }
 
 }

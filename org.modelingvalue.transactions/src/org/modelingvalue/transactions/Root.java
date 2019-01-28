@@ -134,9 +134,9 @@ public class Root extends Compound {
                         if (history.size() > maxNrOfHistory) {
                             history = history.removeFirst();
                         }
-                        state = post(scheduleAndApply(pre(state), leaf, Priority.high));
+                        state = post(scheduleAndApply(pre(state), leaf, Priority.mid));
                     }
-                    state = apply(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.high));
+                    state = apply(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.mid), Priority.low);
                     if (inQueue.isEmpty()) {
                         if (isStopped(state)) {
                             break;
@@ -158,6 +158,10 @@ public class Root extends Compound {
 
     public State emptyState() {
         return emptyState;
+    }
+
+    protected State scheduleAndApply(State state, AbstractLeaf leaf, Priority prio) {
+        return apply(schedule(state, leaf, prio), Priority.low);
     }
 
     protected State pre(State state) {

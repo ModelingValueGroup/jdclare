@@ -465,8 +465,8 @@ public final class DClare<U extends DUniverse> extends Root {
         void makeRule(T t);
     }
 
-    public static <T extends DObject, V> Consumer<T> rule(SerializableFunction<T, V> prop, Function<T, V> value) {
-        return o -> rule(o, prop, value);
+    public static <T extends DObject, V> Consumer<T> rule(SerializableFunction<T, V> prop, Function<T, V> val) {
+        return o -> rule(o, prop, val);
     }
 
     public static <T extends DObject, V> Consumer<T> rule(String name, Consumer<T> rule) {
@@ -680,7 +680,7 @@ public final class DClare<U extends DUniverse> extends Root {
         Leaf.of("dStop", tx, () -> {
             CHILDREN_TRANSACTIONS.set(tx, Set.of());
             OBSERVERS.set(tx, Set.of());
-        }, Priority.first).trigger();
+        }, Priority.high).trigger();
     }
 
     private static void start(DObject dObject, Compound tx) {
@@ -694,14 +694,14 @@ public final class DClare<U extends DUniverse> extends Root {
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.first).trigger();
+        }, Priority.high).trigger();
         Observer.of(D_START_CHILDREN, tx, () -> {
             if (tx.equals(TRANSACTION.get(dObject))) {
                 CHILDREN_TRANSACTIONS.set(tx, dChildren.get(dObject).map(c -> Compound.of(c, tx)).toSet());
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.first).trigger();
+        }, Priority.high).trigger();
         Observer.of(D_START_OBSERVERS, tx, () -> {
             if (tx.equals(TRANSACTION.get(dObject))) {
                 Set<DRule> objectRules = dObject.dObjectClass().allRules().addAll(dObject.dObjectRules());
@@ -716,7 +716,7 @@ public final class DClare<U extends DUniverse> extends Root {
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.high).trigger();
+        }, Priority.mid).trigger();
     }
 
     public static <T extends DStruct> Class<T> jClass(T dObject) {
@@ -1566,7 +1566,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     @Override
     protected State pre(State pre) {
-        return stopSetable != null ? scheduleAndApply(pre, setTime, Priority.first) : pre;
+        return stopSetable != null ? scheduleAndApply(pre, setTime, Priority.mid) : pre;
     }
 
     @Override

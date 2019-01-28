@@ -40,7 +40,7 @@ public abstract class AbstractLeaf extends Transaction {
 
     public void trigger() {
         AbstractLeaf leaf = getCurrent();
-        leaf.trigger(leaf.commonAncestor(this), this, initPrio, null, null, null, null);
+        leaf.trigger(leaf.commonAncestor(this, initPrio), this, initPrio, null, null, null, null);
     }
 
     public abstract State state();

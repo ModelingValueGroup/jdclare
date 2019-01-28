@@ -82,34 +82,33 @@ public class Compound extends Transaction {
         return true;
     }
 
-    public State scheduleAndApply(State state, AbstractLeaf leaf, Priority prio) {
-        return apply(schedule(state, leaf, prio));
-    }
-
     @SuppressWarnings("unchecked")
     @Override
-    public State apply(State state) {
+    public State apply(State state, Priority outerPrio) {
+        state = super.apply(state, outerPrio);
         TraceTimer.traceBegin("compound");
         Set<Transaction>[] ts = new Set[1];
         State[] sa = new State[]{state};
-        int i;
+        Priority[] innerPrio = new Priority[]{outerPrio};
+        int i = 0;
         try {
-            while (true) {
-                for (i = 0, ts[0] = Set.of(); i < SCHEDULED.length && ts[0].isEmpty(); i++) {
-                    sa[0] = sa[0].set(this, SCHEDULED[i], Set.of(), ts);
-                }
+            while (i < SCHEDULED.length && SCHEDULED[i].prio().nr <= outerPrio.nr) {
+                sa[0] = sa[0].set(this, SCHEDULED[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
-                    break;
+                    i++;
+                } else {
+                    innerPrio[0] = SCHEDULED[i].prio();
+                    sa[0] = scheduleTriggered(merge(sa[0], ts[0].reduce(sa, (s, t) -> {
+                        State[] r = s.clone();
+                        r[0] = t.apply(s[0], innerPrio[0]);
+                        return r;
+                    }, (a, b) -> {
+                        State[] r = Arrays.copyOf(a, a.length + b.length);
+                        System.arraycopy(b, 0, r, a.length, b.length);
+                        return r;
+                    })));
+                    i = 0;
                 }
-                sa[0] = scheduleTriggered(merge(sa[0], ts[0].reduce(sa, (s, t) -> {
-                    State[] r = s.clone();
-                    r[0] = t.apply(s[0]);
-                    return r;
-                }, (a, b) -> {
-                    State[] r = Arrays.copyOf(a, a.length + b.length);
-                    System.arraycopy(b, 0, r, a.length, b.length);
-                    return r;
-                })));
             }
             return sa[0];
         } catch (TooManyChangesException tmce) {
@@ -197,7 +196,7 @@ public class Compound extends Transaction {
     protected State trigger(State state, Set<Observer> leafs, Priority prio, Object object, Setable setable, Object pre, Object post) {
         Root root = root();
         for (Observer leaf : leafs) {
-            state = state.set(commonAncestor(leaf), prio.triggered, Set::add, leaf);
+            state = state.set(commonAncestor(leaf, prio), prio.triggered, Set::add, leaf);
             leaf.checkTooManyChanges(root, this, prio, object, setable, pre, post);
         }
         return state;

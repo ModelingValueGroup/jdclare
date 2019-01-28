@@ -31,10 +31,17 @@ public class Observed<O, T> extends Setable<O, T> {
 
     @SuppressWarnings("unchecked")
     protected Observed(Object id, T def, QuadConsumer<AbstractLeaf, O, T, T> changed) {
-        this(id, def, new Observers[]{
-                Observers.of(Pair.of(id, Priority.first), Priority.first), //
-                Observers.of(Pair.of(id, Priority.high), Priority.high), //
-                Observers.of(Pair.of(id, Priority.low), Priority.low)}, changed);
+        this(id, def, observers(id), changed);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Observers[] observers(Object id) {
+        Priority[] priorities = Priority.values();
+        Observers[] observers = new Observers[priorities.length];
+        for (int i = 0; i < priorities.length; i++) {
+            observers[i] = Observers.of(Pair.of(id, priorities[i]), priorities[i]);
+        }
+        return observers;
     }
 
     private Observed(Object id, T def, Observers<O, T>[] observers, QuadConsumer<AbstractLeaf, O, T, T> changed) {
@@ -46,7 +53,7 @@ public class Observed<O, T> extends Setable<O, T> {
             for (Observers<O, T> observ : observers) {
                 for (Observer obs : l.get(o, observ)) {
                     if (!l.equals(obs)) {
-                        l.trigger(l.commonAncestor(obs), obs, observ.prio(), o, this, p, n);
+                        l.trigger(l.commonAncestor(obs, observ.prio()), obs, observ.prio(), o, this, p, n);
                     }
                 }
             }

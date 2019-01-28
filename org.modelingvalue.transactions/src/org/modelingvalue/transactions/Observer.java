@@ -30,7 +30,7 @@ public class Observer extends Leaf {
     }
 
     public static Observer of(Object id, Compound parent, Runnable action) {
-        return of(id, parent, action, Priority.high);
+        return of(id, parent, action, Priority.mid);
     }
 
     public static Observer of(Object id, Compound parent, Runnable action, Priority initPrio) {
@@ -93,12 +93,12 @@ public class Observer extends Leaf {
     }
 
     @Override
-    public State apply(State pre) {
+    public State apply(State pre, Priority priority) {
         TraceTimer.traceBegin("observer");
         try {
             getted.init(Set.of());
             setted.init(Set.of());
-            State post = super.apply(pre);
+            State post = super.apply(pre, priority);
             if (post != pre) {
                 init(post);
                 getted.clear();
@@ -131,7 +131,7 @@ public class Observer extends Leaf {
     private void setObserveds(Set<Slot> sets, Set<Slot> gets) {
         CURRENT.run(this, () -> {
             OBSERVEDS[2].set(this, sets);
-            if (initPrio() == Priority.first) {
+            if (initPrio() == Priority.high) {
                 OBSERVEDS[0].set(this, gets.removeAll(sets));
             } else {
                 OBSERVEDS[1].set(this, gets.removeAll(sets));
@@ -143,7 +143,7 @@ public class Observer extends Leaf {
     protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
         super.changed(object, setable, preValue, postValue);
         countChanges(setable);
-        trigger(parent, this, Priority.low, object, setable, preValue, postValue);
+        trigger(parent, this, priority, object, setable, preValue, postValue);
     }
 
     @SuppressWarnings("rawtypes")

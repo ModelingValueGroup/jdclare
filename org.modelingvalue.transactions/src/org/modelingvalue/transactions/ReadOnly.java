@@ -25,11 +25,11 @@ public class ReadOnly extends AbstractLeaf {
     private State[] states;
 
     private ReadOnly(Object id, Root root) {
-        super(id, root, Priority.high);
+        super(id, root, Priority.mid);
     }
 
     @Override
-    public State apply(State state) {
+    public State apply(State state, Priority priority) {
         throw new UnsupportedOperationException();
     }
 

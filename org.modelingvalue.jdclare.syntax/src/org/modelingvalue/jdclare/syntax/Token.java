@@ -39,7 +39,7 @@ public interface Token extends DObject, DStruct2<Line, Long> {
     @Property(key = 1)
     long id();
 
-    @Property({constant, optional})
+    @Property
     TokenType type();
 
     @Property

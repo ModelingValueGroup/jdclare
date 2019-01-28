@@ -18,9 +18,9 @@ import org.modelingvalue.collections.util.Pair;
 
 public enum Priority {
 
-    first(0),
+    high(0),
 
-    high(1),
+    mid(1),
 
     low(2);
 
@@ -44,6 +44,11 @@ public enum Priority {
         public Priority prio() {
             return Priority.this;
         }
+    }
+
+    public static Priority lowest() {
+        Priority[] priorities = Priority.values();
+        return priorities[priorities.length - 1];
     }
 
 }
