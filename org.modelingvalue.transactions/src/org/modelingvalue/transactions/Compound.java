@@ -84,8 +84,8 @@ public class Compound extends Transaction {
 
     @SuppressWarnings("unchecked")
     @Override
-    public State apply(State state, Priority outerPrio) {
-        state = super.apply(state, outerPrio);
+    public State apply(State state, Compound parent, Priority outerPrio) {
+        state = super.apply(state, parent, outerPrio);
         TraceTimer.traceBegin("compound");
         Set<Transaction>[] ts = new Set[1];
         State[] sa = new State[]{state};
@@ -100,7 +100,7 @@ public class Compound extends Transaction {
                     innerPrio[0] = SCHEDULED[i].prio();
                     sa[0] = scheduleTriggered(merge(sa[0], ts[0].reduce(sa, (s, t) -> {
                         State[] r = s.clone();
-                        r[0] = t.apply(s[0], innerPrio[0]);
+                        r[0] = t.apply(s[0], Compound.this, innerPrio[0]);
                         return r;
                     }, (a, b) -> {
                         State[] r = Arrays.copyOf(a, a.length + b.length);

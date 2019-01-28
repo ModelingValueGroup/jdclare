@@ -93,12 +93,12 @@ public class Observer extends Leaf {
     }
 
     @Override
-    public State apply(State pre, Priority priority) {
+    public State apply(State pre, Compound parent, Priority priority) {
         TraceTimer.traceBegin("observer");
         try {
             getted.init(Set.of());
             setted.init(Set.of());
-            State post = super.apply(pre, priority);
+            State post = super.apply(pre, parent, priority);
             if (post != pre) {
                 init(post);
                 getted.clear();

@@ -16,17 +16,17 @@ package org.modelingvalue.transactions;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Objects;
-import java.util.function.BiFunction;
 
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.collections.util.TriFunction;
 
-public abstract class Transaction implements BiFunction<State, Priority, State>, Mergeable<Transaction> {
+public abstract class Transaction implements TriFunction<State, Compound, Priority, State>, Mergeable<Transaction> {
 
-    private final Object     id;
-    protected final Compound parent;
-    private final int        hashCode;
-    protected Priority       priority;
+    private final Object id;
+    protected Compound   parent;
+    private final int    hashCode;
+    protected Priority   priority;
 
     protected Transaction(Object id, Compound parent) {
         this.id = id;
@@ -107,7 +107,8 @@ public abstract class Transaction implements BiFunction<State, Priority, State>,
     }
 
     @Override
-    public State apply(State state, Priority priority) {
+    public State apply(State state, Compound parent, Priority priority) {
+        this.parent = parent;
         this.priority = priority;
         return state;
     }

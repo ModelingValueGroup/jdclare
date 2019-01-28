@@ -76,8 +76,8 @@ public class Leaf extends AbstractLeaf {
     }
 
     @Override
-    public State apply(State state, Priority priority) {
-        state = super.apply(state, priority);
+    public State apply(State state, Compound parent, Priority priority) {
+        state = super.apply(state, parent, priority);
         TraceTimer.traceBegin(traceId());
         try {
             init(state);

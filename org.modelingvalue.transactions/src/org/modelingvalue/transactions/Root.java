@@ -136,7 +136,7 @@ public class Root extends Compound {
                         }
                         state = post(scheduleAndApply(pre(state), leaf, Priority.mid));
                     }
-                    state = apply(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.mid), Priority.low);
+                    state = apply(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.mid), null, Priority.low);
                     if (inQueue.isEmpty()) {
                         if (isStopped(state)) {
                             break;
@@ -161,7 +161,7 @@ public class Root extends Compound {
     }
 
     protected State scheduleAndApply(State state, AbstractLeaf leaf, Priority prio) {
-        return apply(schedule(state, leaf, prio), Priority.low);
+        return apply(schedule(state, leaf, prio), null, Priority.low);
     }
 
     protected State pre(State state) {
