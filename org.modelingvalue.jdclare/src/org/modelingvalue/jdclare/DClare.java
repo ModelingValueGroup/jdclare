@@ -1354,11 +1354,12 @@ public final class DClare<U extends DUniverse> extends Root {
             private void change(DNative no, ChangeHandler nch, Pair<Object, Object> val) {
                 Pair<DNative, ChangeHandler> key = Pair.of(no, nch);
                 if (nch.deferred()) {
-                    Map<Pair<DNative, ChangeHandler>, Pair<Object, Object>> map = deferred.get();
-                    Pair<Object, Object> old = map.get(key);
-                    deferred.set(map.put(key, old != null ? Pair.of(old.a(), val.b()) : val));
+                    deferred.change(m -> {
+                        Pair<Object, Object> old = m.get(key);
+                        return m.put(key, old != null ? Pair.of(old.a(), val.b()) : val);
+                    });
                 } else {
-                    queue.set(queue.get().put(key, val));
+                    queue.change(m -> m.put(key, val));
                 }
             }
 
