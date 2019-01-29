@@ -29,7 +29,7 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     @Override
-    public State apply(State state, Compound parent, Priority priority) {
+    public State apply(State state) {
         throw new UnsupportedOperationException();
     }
 
@@ -80,7 +80,7 @@ public class ReadOnly extends AbstractLeaf {
 
     @SuppressWarnings("rawtypes")
     @Override
-    protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
+    protected void trigger(AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
         // Do nothing
     }
 

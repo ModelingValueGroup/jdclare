@@ -16,17 +16,16 @@ package org.modelingvalue.transactions;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Objects;
+import java.util.function.Function;
 
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.collections.util.TriFunction;
 
-public abstract class Transaction implements TriFunction<State, Compound, Priority, State>, Mergeable<Transaction> {
+public abstract class Transaction implements Function<State, State>, Mergeable<Transaction> {
 
-    private final Object id;
-    protected Compound   parent;
-    private final int    hashCode;
-    protected Priority   priority;
+    private final Object     id;
+    protected final Compound parent;
+    private final int        hashCode;
 
     protected Transaction(Object id, Compound parent) {
         this.id = id;
@@ -78,14 +77,6 @@ public abstract class Transaction implements TriFunction<State, Compound, Priori
 
     public abstract boolean isAncestorOf(Transaction child);
 
-    public Compound commonAncestor(Transaction transaction, Priority priority) {
-        Compound c = this instanceof Compound ? (Compound) this : parent;
-        while (c.priority.nr < priority.nr || !c.isAncestorOf(transaction)) {
-            c = c.parent;
-        }
-        return c;
-    }
-
     @Override
     public Transaction merge(Transaction[] branches) {
         Transaction r = null;
@@ -104,13 +95,6 @@ public abstract class Transaction implements TriFunction<State, Compound, Priori
     @Override
     public Transaction getMerger() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public State apply(State state, Compound parent, Priority priority) {
-        this.parent = parent;
-        this.priority = priority;
-        return state;
     }
 
 }

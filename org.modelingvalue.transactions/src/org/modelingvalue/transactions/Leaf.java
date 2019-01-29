@@ -76,8 +76,7 @@ public class Leaf extends AbstractLeaf {
     }
 
     @Override
-    public State apply(State state, Compound parent, Priority priority) {
-        state = super.apply(state, parent, priority);
+    public State apply(State state) {
         TraceTimer.traceBegin(traceId());
         try {
             init(state);
@@ -152,7 +151,7 @@ public class Leaf extends AbstractLeaf {
         } else if (prePre instanceof Mergeable) {
             return ((Mergeable) prePre).merge2(pre, post);
         } else if (slot.b() instanceof Observed && this instanceof Observer) {
-            trigger(parent, this, priority, slot.a(), slot.b(), pre, post);
+            trigger(this, Priority.low, slot.a(), slot.b(), pre, post);
             return post;
         } else {
             throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);

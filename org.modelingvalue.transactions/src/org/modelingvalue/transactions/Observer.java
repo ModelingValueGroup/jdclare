@@ -93,12 +93,12 @@ public class Observer extends Leaf {
     }
 
     @Override
-    public State apply(State pre, Compound parent, Priority priority) {
+    public State apply(State pre) {
         TraceTimer.traceBegin("observer");
         try {
             getted.init(Set.of());
             setted.init(Set.of());
-            State post = super.apply(pre, parent, priority);
+            State post = super.apply(pre);
             if (post != pre) {
                 init(post);
                 getted.clear();
@@ -143,7 +143,7 @@ public class Observer extends Leaf {
     protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
         super.changed(object, setable, preValue, postValue);
         countChanges(setable);
-        trigger(parent, this, priority, object, setable, preValue, postValue);
+        trigger(this, Priority.low, object, setable, preValue, postValue);
     }
 
     @SuppressWarnings("rawtypes")
@@ -166,10 +166,10 @@ public class Observer extends Leaf {
 
     @Override
     @SuppressWarnings("rawtypes")
-    protected void trigger(Compound common, AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
-        super.trigger(common, leaf, prio, object, setable, pre, post);
+    protected void trigger(AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
+        super.trigger(leaf, prio, object, setable, pre, post);
         if (leaf instanceof Observer && setable instanceof Observed) {
-            ((Observer) leaf).checkTooManyChanges(common.root(), leaf, prio, object, setable, pre, post);
+            ((Observer) leaf).checkTooManyChanges(leaf.root(), leaf, prio, object, setable, pre, post);
         }
     }
 

@@ -24,15 +24,17 @@ public enum Priority {
 
     low(2);
 
-    public final PrioritySetable<AbstractLeaf> triggered;
-    public final PrioritySetable<AbstractLeaf> scheduled;
-    public final PrioritySetable<Compound>     compound;
+    public final PrioritySetable<AbstractLeaf> leafTriggered;
+    public final PrioritySetable<AbstractLeaf> leafScheduled;
+    public final PrioritySetable<Compound>     compTriggered;
+    public final PrioritySetable<Compound>     compScheduled;
     public final int                           nr;
 
     private Priority(int nr) {
-        triggered = new PrioritySetable<>("triggered");
-        scheduled = new PrioritySetable<>("scheduled");
-        compound = new PrioritySetable<>("compound");
+        leafTriggered = new PrioritySetable<>("leafTriggered");
+        leafScheduled = new PrioritySetable<>("leafScheduled");
+        compTriggered = new PrioritySetable<>("compTriggered");
+        compScheduled = new PrioritySetable<>("compScheduled");
         this.nr = nr;
     }
 
