@@ -37,18 +37,15 @@ public class Observer extends Leaf {
         return new Observer(id, parent, action, initPrio);
     }
 
-    private Concurrent<Set<Slot>> getted = Concurrent.of();
-    private Concurrent<Set<Slot>> setted = Concurrent.of();
-    private long                  count  = -1;
-    private int                   changes;
-    private boolean               changed;
+    private final Concurrent<Set<Slot>> getted   = Concurrent.of();
+    private final Concurrent<Set<Slot>> setted   = Concurrent.of();
+    private long                        runCount = -1;
+    private int                         changes;
+    private boolean                     changed;
+    private boolean                     stopped;
 
     public Observer(Object id, Compound parent, Runnable action, Priority initPrio) {
         super(id, parent, action, initPrio);
-    }
-
-    public long count() {
-        return count;
     }
 
     @Override
@@ -92,10 +89,22 @@ public class Observer extends Leaf {
         return "observerRun";
     }
 
+    protected void firstRun() {
+    }
+
     @Override
     public State apply(State pre) {
         TraceTimer.traceBegin("observer");
         try {
+            long rootCount = root().runCount();
+            if (runCount < rootCount) {
+                runCount = rootCount;
+                changes = 0;
+                stopped = false;
+                firstRun();
+            } else if (stopped) {
+                return pre;
+            }
             getted.init(Set.of());
             setted.init(Set.of());
             State post = super.apply(pre);
@@ -114,6 +123,7 @@ public class Observer extends Leaf {
             setObserveds(setted.result(), getted.result());
             return result();
         } catch (StopObserverException soe) {
+            stopped = true;
             init(result());
             getted.clear();
             setted.clear();
@@ -152,11 +162,7 @@ public class Observer extends Leaf {
             changed = true;
             Root root = root();
             int totalChanges = root.countTotalChanges();
-            long runCount = root.runCount();
-            if (runCount > count) {
-                count = runCount;
-                changes = 1;
-            } else if (++changes > root.maxNrOfChanges * 2) {
+            if (++changes > root.maxNrOfChanges * 2) {
                 throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
             } else if (totalChanges > root.maxTotalNrOfChanges + root.maxNrOfChanges) {
                 throw new TooManyChangesException("Total changes: " + totalChanges + ", running: " + root.preState().get(this::toString));
@@ -175,7 +181,7 @@ public class Observer extends Leaf {
 
     @SuppressWarnings("rawtypes")
     protected void checkTooManyChanges(Root root, Transaction running, Priority prio, Object object, Setable setable, Object pre, Object post) {
-        if (count == root.runCount()) {
+        if (runCount == root.runCount()) {
             int totalChanges = root.totalChanges();
             if (changes > root.maxNrOfChanges || totalChanges > root.maxTotalNrOfChanges) {
                 int tooMany = totalChanges > root.maxTotalNrOfChanges ? totalChanges : changes;
