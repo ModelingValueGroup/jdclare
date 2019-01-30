@@ -37,12 +37,13 @@ public class Observer extends Leaf {
         return new Observer(id, parent, action, initPrio);
     }
 
-    private final Concurrent<Set<Slot>> getted   = Concurrent.of();
-    private final Concurrent<Set<Slot>> setted   = Concurrent.of();
-    private long                        runCount = -1;
+    private final Concurrent<Set<Slot>> getted    = Concurrent.of();
+    private final Concurrent<Set<Slot>> setted    = Concurrent.of();
+    private long                        runCount  = -1;
     private int                         changes;
     private boolean                     changed;
     private boolean                     stopped;
+    private boolean                     firstTime = true;
 
     public Observer(Object id, Compound parent, Runnable action, Priority initPrio) {
         super(id, parent, action, initPrio);
@@ -89,7 +90,8 @@ public class Observer extends Leaf {
         return "observerRun";
     }
 
-    protected void firstRun() {
+    public boolean firstTime() {
+        return this.firstTime;
     }
 
     @Override
@@ -101,7 +103,7 @@ public class Observer extends Leaf {
                 runCount = rootCount;
                 changes = 0;
                 stopped = false;
-                firstRun();
+                firstTime = true;
             } else if (stopped) {
                 return pre;
             }
@@ -131,6 +133,7 @@ public class Observer extends Leaf {
             return result();
         } finally {
             changed = false;
+            firstTime = false;
             clear();
             getted.clear();
             setted.clear();
