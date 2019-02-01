@@ -29,7 +29,7 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     @Override
-    public State apply(State state) {
+    protected State run(State state, Priority prio) {
         throw new UnsupportedOperationException();
     }
 

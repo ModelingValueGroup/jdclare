@@ -77,12 +77,7 @@ public abstract class AbstractLeaf extends Transaction {
 
     @SuppressWarnings("rawtypes")
     protected void trigger(AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
-        Compound p = leaf.parent;
-        set(p, prio.leafTriggered, Set::add, leaf);
-        while (!p.isAncestorOf(this)) {
-            set(p.parent, prio.compTriggered, Set::add, p);
-            p = p.parent;
-        }
+        set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
     }
 
     protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {

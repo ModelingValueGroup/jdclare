@@ -49,7 +49,7 @@ public class Imperative extends AbstractLeaf {
     }
 
     @Override
-    public State apply(State last) {
+    protected State run(State last, Priority prio) {
         throw new UnsupportedOperationException();
     }
 

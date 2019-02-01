@@ -95,7 +95,7 @@ public class Observer extends Leaf {
     }
 
     @Override
-    public State apply(State pre) {
+    protected State run(State pre, Priority prio) {
         TraceTimer.traceBegin("observer");
         try {
             long rootCount = root().runCount();
@@ -109,15 +109,8 @@ public class Observer extends Leaf {
             }
             getted.init(Set.of());
             setted.init(Set.of());
-            State post = super.apply(pre);
-            if (post != pre) {
-                init(post);
-                getted.clear();
-                setted.clear();
-            } else {
-                init(pre);
-                setObserveds(setted.result(), getted.result());
-            }
+            init(super.run(pre, prio));
+            setObserveds(setted.result(), getted.result());
             return result();
         } catch (EmptyMandatoryException soe) {
             clear();
@@ -127,8 +120,6 @@ public class Observer extends Leaf {
         } catch (StopObserverException soe) {
             stopped = true;
             init(result());
-            getted.clear();
-            setted.clear();
             setObserveds(Set.of(), Set.of());
             return result();
         } finally {
@@ -178,12 +169,12 @@ public class Observer extends Leaf {
     protected void trigger(AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
         super.trigger(leaf, prio, object, setable, pre, post);
         if (leaf instanceof Observer && setable instanceof Observed) {
-            ((Observer) leaf).checkTooManyChanges(leaf.root(), leaf, prio, object, setable, pre, post);
+            ((Observer) leaf).checkTooManyChanges(leaf.root(), leaf, prio, object, (Observed) setable, pre, post);
         }
     }
 
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyChanges(Root root, Transaction running, Priority prio, Object object, Setable setable, Object pre, Object post) {
+    protected void checkTooManyChanges(Root root, Transaction running, Priority prio, Object object, Observed setable, Object pre, Object post) {
         if (runCount == root.runCount()) {
             int totalChanges = root.totalChanges();
             if (changes > root.maxNrOfChanges || totalChanges > root.maxTotalNrOfChanges) {

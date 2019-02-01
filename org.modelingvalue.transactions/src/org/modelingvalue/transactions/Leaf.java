@@ -76,7 +76,7 @@ public class Leaf extends AbstractLeaf {
     }
 
     @Override
-    public State apply(State state) {
+    protected State run(State state, Priority prio) {
         TraceTimer.traceBegin(traceId());
         try {
             init(state);

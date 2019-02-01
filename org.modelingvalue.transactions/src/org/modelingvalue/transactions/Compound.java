@@ -84,26 +84,28 @@ public class Compound extends Transaction {
 
     @SuppressWarnings("unchecked")
     @Override
-    public State apply(State state) {
+    protected State run(State state, Priority maxPrio) {
         TraceTimer.traceBegin("compound");
         Set<Transaction>[] ts = new Set[1];
         State[] sa = new State[]{state};
         int i = 0;
         try {
-            while (i < SCHEDULED.length) {
+            while (i < SCHEDULED.length && SCHEDULED[i].prio().nr <= maxPrio.nr) {
                 sa[0] = sa[0].set(this, SCHEDULED[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     i++;
                 } else {
-                    sa[0] = schedule(merge(sa[0], ts[0].reduce(sa, (s, t) -> {
+                    Priority prio = SCHEDULED[i].prio();
+                    sa[0] = merge(sa[0], ts[0].reduce(sa, (s, t) -> {
                         State[] r = s.clone();
-                        r[0] = t.apply(s[0]);
+                        r[0] = t.run(s[0], prio);
                         return r;
                     }, (a, b) -> {
                         State[] r = Arrays.copyOf(a, a.length + b.length);
                         System.arraycopy(b, 0, r, a.length, b.length);
                         return r;
-                    })));
+                    }));
+                    sa[0] = schedule(sa[0], maxPrio);
                     i = 0;
                 }
             }
@@ -190,57 +192,44 @@ public class Compound extends Transaction {
     }
 
     @SuppressWarnings("rawtypes")
-    private State trigger(State state, Set<Observer> leafs, Priority prio, Object object, Setable setable, Object pre, Object post) {
+    private State trigger(State state, Set<Observer> leafs, Priority prio, Object object, Observed setable, Object pre, Object post) {
         Root root = root();
         for (Observer leaf : leafs) {
-            state = trigger(state, leaf, prio);
+            state = state.set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
             leaf.checkTooManyChanges(root, this, prio, object, setable, pre, post);
         }
         return state;
     }
 
-    protected State trigger(State state, Set<AbstractLeaf> leafs, Priority prio) {
-        for (AbstractLeaf leaf : leafs) {
-            state = trigger(state, leaf, prio);
-        }
-        return state;
-    }
-
-    protected State trigger(State state, AbstractLeaf leaf, Priority prio) {
-        Compound p = leaf.parent;
-        state = state.set(p, prio.leafTriggered, Set::add, leaf);
-        while (!p.isAncestorOf(this)) {
-            state = state.set(p.parent, prio.compTriggered, Set::add, p);
-            p = p.parent;
-        }
-        return state;
-    }
-
     @SuppressWarnings("unchecked")
-    protected State schedule(State state) {
+    private State schedule(State state, Priority maxPrio) {
         Set<AbstractLeaf>[] ls = new Set[1];
-        Set<Compound>[] cs = new Set[2];
         for (Priority prio : Priority.values()) {
-            state = schedule(state, ls, cs, prio);
+            state = state.set(this, prio.leafTriggered, Set.of(), ls);
+            if (!ls[0].isEmpty()) {
+                if (prio.nr <= maxPrio.nr) {
+                    state = schedule(state, ls[0], prio);
+                } else {
+                    state = state.set(parent, prio.leafTriggered, Set::addAll, ls[0]);
+                }
+            }
         }
         return state;
     }
 
-    private State schedule(State state, Set<AbstractLeaf>[] ls, Set<Compound>[] cs, Priority prio) {
-        state = state.set(this, prio.compTriggered, Set.of(), cs);
-        if (!cs[0].isEmpty()) {
-            Set<Compound> csi = cs[0];
-            state = state.set(this, prio.compScheduled, Set::addAll, csi, cs);
-            for (int i = 0; i < prio.nr; i++) {
-                state = state.set(this, Priority.values()[i].compScheduled, Set::removeAll, cs[1]);
-            }
-            for (Compound c : csi) {
-                state = c.schedule(state, ls, cs, prio);
-            }
+    protected State schedule(State state, Set<AbstractLeaf> ls, Priority prio) {
+        for (AbstractLeaf leaf : ls) {
+            state = schedule(state, leaf, prio);
         }
-        state = state.set(this, prio.leafTriggered, Set.of(), ls);
-        if (!ls[0].isEmpty()) {
-            state = state.set(this, prio.leafScheduled, Set::addAll, ls[0]);
+        return state;
+    }
+
+    protected State schedule(State state, AbstractLeaf leaf, Priority prio) {
+        Compound p = leaf.parent;
+        state = state.set(p, prio.leafScheduled, Set::add, leaf);
+        while (!equals(p)) {
+            state = state.set(p.parent, prio.compScheduled, Set::add, p);
+            p = p.parent;
         }
         return state;
     }

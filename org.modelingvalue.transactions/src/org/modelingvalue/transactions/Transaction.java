@@ -16,12 +16,11 @@ package org.modelingvalue.transactions;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Objects;
-import java.util.function.Function;
 
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.StringUtil;
 
-public abstract class Transaction implements Function<State, State>, Mergeable<Transaction> {
+public abstract class Transaction implements Mergeable<Transaction> {
 
     private final Object     id;
     protected final Compound parent;
@@ -74,6 +73,15 @@ public abstract class Transaction implements Function<State, State>, Mergeable<T
     public Root root() {
         return parent.root();
     }
+
+    public Compound commonAncestor(Compound p) {
+        while (!p.isAncestorOf(this)) {
+            p = p.parent;
+        }
+        return p;
+    }
+
+    protected abstract State run(State state, Priority prio);
 
     public abstract boolean isAncestorOf(Transaction child);
 

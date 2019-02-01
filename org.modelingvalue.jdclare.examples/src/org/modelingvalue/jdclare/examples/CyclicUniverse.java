@@ -31,15 +31,43 @@ public interface CyclicUniverse extends DUniverse {
 
     interface A extends DStruct0, DObject {
         @Property
-        default int v() {
-            return dAncestor(CyclicUniverse.class).b().v();
+        default int x() {
+            System.err.println("a.x=" + x());
+            return dAncestor(CyclicUniverse.class).c().y();
+        }
+
+        @Property
+        default int y() {
+            System.err.println("a.y=" + y());
+            return x();
         }
     }
 
     interface B extends DStruct0, DObject {
         @Property
-        default int v() {
-            return dAncestor(CyclicUniverse.class).a().v();
+        default int x() {
+            System.err.println("b.x=" + x());
+            return dAncestor(CyclicUniverse.class).a().y();
+        }
+
+        @Property
+        default int y() {
+            System.err.println("b.y=" + y());
+            return x();
+        }
+    }
+
+    interface C extends DStruct0, DObject {
+        @Property
+        default int x() {
+            System.err.println("c.x=" + x());
+            return dAncestor(CyclicUniverse.class).b().y();
+        }
+
+        @Property
+        default int y() {
+            System.err.println("c.y=" + y());
+            return x();
         }
     }
 
@@ -53,9 +81,14 @@ public interface CyclicUniverse extends DUniverse {
         return dclare(B.class);
     }
 
+    @Property({containment, constant})
+    default C c() {
+        return dclare(C.class);
+    }
+
     @Override
     default IOString output() {
-        return IOString.of("a=" + a().v() + " b=" + b().v() + System.lineSeparator() + "> ");
+        return IOString.of("a.y=" + a().y() + " b.y=" + b().y() + "c.y=" + c().y() + System.lineSeparator() + "> ");
     }
 
     @Rule
@@ -65,18 +98,24 @@ public interface CyclicUniverse extends DUniverse {
             set(this, DUniverse::stop, true);
         } else if (input.startsWith("a=")) {
             try {
-                set(a(), A::v, Integer.parseInt(input.substring(2)));
+                set(a(), A::x, Integer.parseInt(input.substring(2)));
             } catch (NumberFormatException nfe) {
                 set(this, DUniverse::error, IOString.ofln("Only integers after 'a=' allowed"));
             }
         } else if (input.startsWith("b=")) {
             try {
-                set(b(), B::v, Integer.parseInt(input.substring(2)));
+                set(b(), B::x, Integer.parseInt(input.substring(2)));
             } catch (NumberFormatException nfe) {
                 set(this, DUniverse::error, IOString.ofln("Only integers after 'b=' allowed"));
             }
+        } else if (input.startsWith("c=")) {
+            try {
+                set(c(), C::x, Integer.parseInt(input.substring(2)));
+            } catch (NumberFormatException nfe) {
+                set(this, DUniverse::error, IOString.ofln("Only integers after 'c=' allowed"));
+            }
         } else if (!input.isEmpty()) {
-            set(this, DUniverse::error, IOString.ofln("Only 'stop', 'a=<int>' or 'b=<int>'"));
+            set(this, DUniverse::error, IOString.ofln("Only 'stop', 'a=<int>' or 'b=<int>' or 'c=<int>'"));
         }
         set(this, DUniverse::input, IOString.of(""));
     }
