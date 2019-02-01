@@ -42,6 +42,8 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
     @Override
     QualifiedSet<K, V> add(V value);
 
+    QualifiedSet<K, V> put(V value);
+
     QualifiedSet<K, V> removeKey(K key);
 
     QualifiedSet<K, V> removeAllKey(Collection<K> c);

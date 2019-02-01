@@ -68,6 +68,11 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     @Override
+    public QualifiedSet<K, V> put(V e) {
+        return create(put(value, key(), e, key()));
+    }
+
+    @Override
     public QualifiedSet<K, V> removeKey(K k) {
         return create(remove(value, key(), k, identity()));
     }
