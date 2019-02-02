@@ -22,6 +22,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
+import org.modelingvalue.collections.util.Triple;
 import org.modelingvalue.transactions.Observed.Observers;
 import org.modelingvalue.transactions.Priority.PrioritySetable;
 
@@ -44,10 +45,11 @@ public class Compound extends Transaction {
         return new Compound(id, parent);
     }
 
-    private final Concurrent<Set<Observer>>[]             triggered;
     @SuppressWarnings("rawtypes")
-    private final Concurrent<Set<Pair<Object, Observed>>> conflicts;
-    private final ReadOnly                                merger;
+    private final Concurrent<Map<Pair<Object, Observed>, Triple<Object, Object, Set<Observer>>>>[] triggered;
+    @SuppressWarnings("rawtypes")
+    private final Concurrent<Map<Pair<Object, Observed>, Pair<Object, Object>>>                    conflicts;
+    private final ReadOnly                                                                         merger;
 
     @SuppressWarnings("unchecked")
     protected Compound(Object id, Compound parent) {
@@ -144,10 +146,10 @@ public class Compound extends Transaction {
         try {
             return merger.get(() -> {
                 for (int i = 0; i < triggered.length; i++) {
-                    triggered[i].init(Set.of());
+                    triggered[i].init(Map.of());
                 }
-                conflicts.init(Set.of());
-                State state = base.merge((ps, psm, psbs) -> {
+                conflicts.init(Map.of());
+                State state = base.merge((o, ps, psm, psbs) -> {
                     for (Entry<Setable, Object> p : psm) {
                         if (p.getKey() instanceof Observers) {
                             Observers<?, ?> observersProp = (Observers) p.getKey();
@@ -158,30 +160,33 @@ public class Compound extends Transaction {
                                 Observed<?, ?> observedProp = observersProp.observed();
                                 Object baseValue = State.get(ps, observedProp);
                                 for (Map<Setable, Object> psb : psbs) {
-                                    if (!Objects.equals(State.get(psb, observedProp), baseValue)) {
+                                    Object branchValue = State.get(psb, observedProp);
+                                    if (!Objects.equals(branchValue, baseValue)) {
                                         Set<Observer> addedObservers = observers.removeAll(State.get(psb, observersProp));
                                         if (!addedObservers.isEmpty()) {
-                                            triggered[observersProp.prio().nr].change(o -> o.addAll(addedObservers));
+                                            triggered[observersProp.prio().nr].change(ts -> ts.put(Pair.of(o, observedProp), Triple.of(baseValue, branchValue, addedObservers)));
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }, (o, p) -> {
+                }, (o, p, c, r) -> {
                     if (p instanceof Observed) {
-                        conflicts.change(c -> c.add(Pair.of(o, (Observed) p)));
+                        conflicts.change(cs -> cs.put(Pair.of(o, (Observed) p), Pair.of(c, r)));
                         return true;
                     } else {
                         return false;
                     }
                 }, branches);
                 for (int i = 0; i < triggered.length; i++) {
-                    state = trigger(state, triggered[i].result(), Priority.values()[i], null, null, null, null);
+                    for (Entry<Pair<Object, Observed>, Triple<Object, Object, Set<Observer>>> e : triggered[i].result()) {
+                        state = trigger(state, e.getValue().c(), Priority.values()[i], e.getKey().a(), e.getKey().b(), e.getValue().a(), e.getValue().b());
+                    }
                 }
-                for (Pair<Object, Observed> c : conflicts.result()) {
-                    for (Observers<Object, ?> obs : c.b().observers()) {
-                        state = trigger(state, state.get(c.a(), obs), obs.prio(), c.a(), c.b(), null, null);
+                for (Entry<Pair<Object, Observed>, Pair<Object, Object>> e : conflicts.result()) {
+                    for (Observers<Object, ?> obs : e.getKey().b().observers()) {
+                        state = trigger(state, state.get(e.getKey().a(), obs), obs.prio(), e.getKey().a(), e.getKey().b(), e.getValue().a(), e.getValue().b());
                     }
                 }
                 return state;

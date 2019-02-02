@@ -30,6 +30,8 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadConsumer;
+import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 
@@ -156,7 +158,7 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public State merge(TriConsumer<Map<Setable, Object>, Map<Setable, Object>, Map<Setable, Object>[]> changeHandler, BiFunction<Object, Setable, Boolean> conflictHandler, State... branches) {
+    public State merge(QuadConsumer<Object, Map<Setable, Object>, Map<Setable, Object>, Map<Setable, Object>[]> changeHandler, QuadFunction<Object, Setable, Object, Object, Boolean> conflictHandler, State... branches) {
         Map<Object, Map<Setable, Object>>[] maps = new Map[branches.length];
         for (int i = 0; i < maps.length; i++) {
             maps[i] = map(branches[i].map);
@@ -171,19 +173,19 @@ public class State implements Serializable {
                     Object result = ((Mergeable<Object>) v).merge(vs);
                     return Objects.equals(result, p.getDefault()) ? null : Entry.of(p, result);
                 } else {
-                    boolean conflict = false;
+                    Object conflict = null;
                     Object result = null;
                     for (int i = 0; i < vs.length; i++) {
                         if (vs[i] != null) {
                             if (result != null) {
-                                conflict = true;
+                                conflict = vs[i];
                                 break;
                             } else {
                                 result = vs[i];
                             }
                         }
                     }
-                    if (conflict && (conflictHandler == null || !conflictHandler.apply(o, p))) {
+                    if (conflict != null && (conflictHandler == null || !conflictHandler.apply(o, p, conflict, result))) {
                         Object stv = v;
                         throw new ConcurrentModificationException(get(() -> o + "." + p + " = " + stv + " -> " + Arrays.toString(vs)));
                     }
@@ -191,7 +193,7 @@ public class State implements Serializable {
                 }
             }, pss);
             if (changeHandler != null) {
-                changeHandler.accept(ps, map(props), pss);
+                changeHandler.accept(o, ps, map(props), pss);
             }
             return props == null || props.isEmpty() ? null : Entry.of(o, props);
         }, maps);
