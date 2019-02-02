@@ -96,8 +96,10 @@ public class Leaf extends AbstractLeaf {
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
         Pair<Object, Setable> slot = Pair.of(object, property);
         T prePre = state().get(object, property);
-        Entry<Pair<Object, Setable>, Object> e = setted.get().getEntry(slot);
-        return set(object, property, function.apply(e == null ? prePre : (T) e.getValue(), element), slot, prePre);
+        Map<Pair<Object, Setable>, Object> map = setted.get();
+        Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
+        T post = function.apply(bra == null ? prePre : (T) bra.getValue(), element);
+        return set(object, property, post, slot, prePre, map, bra);
     }
 
     @Override
@@ -105,13 +107,13 @@ public class Leaf extends AbstractLeaf {
     public <O, T> T set(O object, Setable<O, T> property, T post) {
         Pair<Object, Setable> slot = Pair.of(object, property);
         T prePre = state().get(object, property);
-        return set(object, property, post, slot, prePre);
+        Map<Pair<Object, Setable>, Object> map = setted.get();
+        Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
+        return set(object, property, post, slot, prePre, map, bra);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <O, T> T set(O object, Setable<O, T> property, T post, Pair<Object, Setable> slot, T prePre) {
-        Map<Pair<Object, Setable>, Object> map = setted.get();
-        Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
+    private <O, T> T set(O object, Setable<O, T> property, T post, Pair<Object, Setable> slot, T prePre, Map<Pair<Object, Setable>, Object> map, Entry<Pair<Object, Setable>, Object> bra) {
         T pre = bra == null ? prePre : (T) bra.getValue();
         if (!Objects.equals(pre, post)) {
             if (bra != null) {
