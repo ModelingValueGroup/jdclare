@@ -27,7 +27,9 @@ public class Observed<O, T> extends Setable<O, T> {
         return new Observed<C, V>(id, def, changed);
     }
 
-    private final Observers<O, T>[] observers;
+    private final Setable<Object, Set<ObserverRun>> readers = Setable.of(Pair.of(this, "readers"), Set.of());
+    private final Setable<Object, Set<ObserverRun>> writers = Setable.of(Pair.of(this, "writers"), Set.of());
+    private final Observers<O, T>[]                 observers;
 
     @SuppressWarnings("unchecked")
     protected Observed(Object id, T def, QuadConsumer<AbstractLeaf, O, T, T> changed) {
@@ -53,7 +55,7 @@ public class Observed<O, T> extends Setable<O, T> {
             for (Observers<O, T> observ : observers) {
                 for (Observer obs : l.get(o, observ)) {
                     if (!l.equals(obs)) {
-                        l.trigger(obs, observ.prio(), o, this, p, n);
+                        l.trigger(obs, observ.prio());
                     }
                 }
             }
@@ -70,6 +72,14 @@ public class Observed<O, T> extends Setable<O, T> {
 
     public Observers<O, T>[] observers() {
         return observers;
+    }
+
+    public Setable<Object, Set<ObserverRun>> readers() {
+        return readers;
+    }
+
+    public Setable<Object, Set<ObserverRun>> writers() {
+        return writers;
     }
 
     public int getNrOfObservers(O object) {

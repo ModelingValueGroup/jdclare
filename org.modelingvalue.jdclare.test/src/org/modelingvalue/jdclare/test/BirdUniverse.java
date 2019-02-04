@@ -43,7 +43,7 @@ public interface BirdUniverse extends DUniverse {
             if ("yellow".equals(color()) && children().isEmpty() && name().length() < 7) {
                 for (int i = 0; i < 7; i++) {
                     Bird son = dclare(Bird.class, this, name() + i);
-                    set(this, Bird::children, (s, b) -> s.add(b), son);
+                    set(this, Bird::children, Set::add, son);
                     set(son, Bird::color, "yellow");
                 }
             }
@@ -143,7 +143,7 @@ public interface BirdUniverse extends DUniverse {
         default void init() {
             BirdUniverse.super.init();
             Bird condor = dclare(Bird.class, this, "Condor");
-            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
+            set(this, BirdUniverse::birds, Set::add, condor);
             set(condor, Bird::color, "red");
         }
 
@@ -155,7 +155,7 @@ public interface BirdUniverse extends DUniverse {
         default void init() {
             BirdUniverse.super.init();
             Bird condor = dclare(Bird.class, this, "Condor");
-            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
+            set(this, BirdUniverse::birds, Set::add, condor);
             set(condor, Bird::color, "green");
         }
     }
@@ -166,7 +166,7 @@ public interface BirdUniverse extends DUniverse {
         default void init() {
             BirdUniverse.super.init();
             Bird condor = dclare(Bird.class, this, "Condor");
-            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
+            set(this, BirdUniverse::birds, Set::add, condor);
             set(condor, Bird::color, "blue");
         }
     }
@@ -177,7 +177,7 @@ public interface BirdUniverse extends DUniverse {
         default void init() {
             BirdUniverse.super.init();
             Bird condor = dclare(Bird.class, this, "Condor");
-            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
+            set(this, BirdUniverse::birds, Set::add, condor);
             set(condor, Bird::color, "white");
         }
     }
@@ -188,7 +188,7 @@ public interface BirdUniverse extends DUniverse {
         default void init() {
             BirdUniverse.super.init();
             Bird condor = dclare(Bird.class, this, "Condor");
-            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
+            set(this, BirdUniverse::birds, Set::add, condor);
             set(condor, Bird::color, "black");
         }
     }
@@ -199,7 +199,7 @@ public interface BirdUniverse extends DUniverse {
         default void init() {
             BirdUniverse.super.init();
             Bird condor = dclare(Bird.class, this, "0");
-            set(this, BirdUniverse::birds, (s, b) -> s.add(b), condor);
+            set(this, BirdUniverse::birds, Set::add, condor);
             set(condor, Bird::color, "yellow");
         }
     }

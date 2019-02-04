@@ -49,7 +49,7 @@ public class Imperative extends AbstractLeaf {
     }
 
     @Override
-    protected State run(State last, Priority prio) {
+    protected State run(State last, Root root, Priority prio) {
         throw new UnsupportedOperationException();
     }
 
@@ -99,9 +99,8 @@ public class Imperative extends AbstractLeaf {
         }
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    protected void trigger(AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
+    protected void trigger(AbstractLeaf leaf, Priority prio) {
         // Do nothing
     }
 

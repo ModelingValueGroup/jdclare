@@ -16,7 +16,37 @@ package org.modelingvalue.transactions;
 public final class TooManyChangesException extends Error {
     private static final long serialVersionUID = 7857822332170335179L;
 
-    public TooManyChangesException(String message) {
-        super(message);
+    private final State       state;
+    private final int         nrOfChanges;
+    private final ObserverRun last;
+
+    public TooManyChangesException(State state, ObserverRun last, int nrOfChanges) {
+        this.state = state;
+        this.last = last;
+        this.nrOfChanges = nrOfChanges;
+
     }
+
+    @Override
+    public String getMessage() {
+        String message = "" + nrOfChanges;
+        return state.get(() -> last.trace("\n  ", message, last.observer().root().maxNrOfChanges));
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public Observer getObserver() {
+        return last.observer();
+    }
+
+    public ObserverRun getLast() {
+        return last;
+    }
+
+    public int getNrOfChanges() {
+        return nrOfChanges;
+    }
+
 }

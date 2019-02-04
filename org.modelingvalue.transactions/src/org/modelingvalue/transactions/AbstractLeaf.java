@@ -40,7 +40,7 @@ public abstract class AbstractLeaf extends Transaction {
 
     public void trigger() {
         AbstractLeaf leaf = getCurrent();
-        leaf.trigger(this, initPrio, null, null, null, null);
+        leaf.trigger(this, initPrio);
     }
 
     public abstract State state();
@@ -75,8 +75,7 @@ public abstract class AbstractLeaf extends Transaction {
 
     public abstract <O, T> T set(O object, Setable<O, T> property, T post);
 
-    @SuppressWarnings("rawtypes")
-    protected void trigger(AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
+    protected void trigger(AbstractLeaf leaf, Priority prio) {
         set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
     }
 

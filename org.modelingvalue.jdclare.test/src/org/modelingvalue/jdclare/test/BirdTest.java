@@ -23,7 +23,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
+            assertTooManyChanges(cause);
         }
     }
 
@@ -35,7 +35,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
+            assertTooManyChanges(cause);
         }
     }
 
@@ -47,7 +47,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
+            assertTooManyChanges(cause);
         }
     }
 
@@ -59,7 +59,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
+            assertTooManyChanges(cause);
         }
     }
 
@@ -71,7 +71,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
+            assertTooManyChanges(cause);
         }
     }
 
@@ -83,7 +83,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
+            assertTooManyChanges(cause);
         }
     }
 
@@ -92,6 +92,11 @@ public class BirdTest {
             t = t.getCause();
         }
         return t;
+    }
+
+    private void assertTooManyChanges(Throwable cause) {
+        cause.printStackTrace();
+        assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
     }
 
 }

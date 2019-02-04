@@ -80,8 +80,10 @@ public class Root extends Compound {
     private final Leaf                                   forward;
     protected final BlockingQueue<Leaf>                  inQueue;
     private final BlockingQueue<State>                   resultQueue;
-
     private final State                                  emptyState    = new State(this, null);
+    final int                                            maxTotalNrOfChanges;
+    final int                                            maxNrOfChanges;
+
     private List<State>                                  history       = List.of();
     private List<State>                                  future        = List.of();
     private State                                        preState;
@@ -89,9 +91,8 @@ public class Root extends Compound {
     protected Leaf                                       leaf;
     private long                                         runCount;
     private int                                          changes;
+    private boolean                                      debug;
     private Throwable                                    error;
-    final int                                            maxTotalNrOfChanges;
-    final int                                            maxNrOfChanges;
 
     protected Root(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
         super(id);
@@ -113,6 +114,7 @@ public class Root extends Compound {
                 TraceTimer.traceBegin("root");
                 try {
                     changes = 0;
+                    debug = false;
                     runCount++;
                     preState = state;
                     leaf = take();
@@ -157,7 +159,7 @@ public class Root extends Compound {
     }
 
     protected State run(State state) {
-        return run(state, Priority.low);
+        return run(state, this, Priority.low);
     }
 
     public State emptyState() {
@@ -233,11 +235,6 @@ public class Root extends Compound {
         return n;
     }
 
-    @Override
-    public Root root() {
-        return this;
-    }
-
     public void backward() {
         put(backward);
     }
@@ -260,6 +257,14 @@ public class Root extends Compound {
 
     protected boolean isTimeTraveling() {
         return leaf == backward || leaf == forward;
+    }
+
+    public boolean isDebugging() {
+        return debug;
+    }
+
+    public void setDebugging() {
+        debug = true;
     }
 
     public long runCount() {

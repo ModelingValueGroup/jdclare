@@ -25,17 +25,13 @@ public abstract class Transaction implements Mergeable<Transaction> {
     private final Object     id;
     protected final Compound parent;
     private final int        hashCode;
+    private Root             root;
 
     protected Transaction(Object id, Compound parent) {
         this.id = id;
         this.parent = parent;
         this.hashCode = parent != null ? (id.hashCode() * 31 + parent.hashCode()) : id.hashCode();
-    }
-
-    Transaction(Object id) {
-        this.hashCode = id.hashCode();
-        this.id = id;
-        this.parent = null;
+        this.root = parent != null ? parent.root() : (Root) this;
     }
 
     public Object getId() {
@@ -70,8 +66,8 @@ public abstract class Transaction implements Mergeable<Transaction> {
         return parent;
     }
 
-    public Root root() {
-        return parent.root();
+    public final Root root() {
+        return root;
     }
 
     public Compound commonAncestor(Compound p) {
@@ -81,7 +77,10 @@ public abstract class Transaction implements Mergeable<Transaction> {
         return p;
     }
 
-    protected abstract State run(State state, Priority prio);
+    protected State run(State state, Root root, Priority prio) {
+        this.root = root;
+        return state;
+    }
 
     public abstract boolean isAncestorOf(Transaction child);
 

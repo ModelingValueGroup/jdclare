@@ -15,13 +15,16 @@ package org.modelingvalue.transactions;
 
 import java.util.function.BiFunction;
 
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.TraceTimer;
 
 public class Observer extends Leaf {
 
-    private static final Observerds[] OBSERVEDS;
+    public static final Setable<Observer, Set<ObserverRun>> RUNS = Setable.of("RUNS", Set.of());
+
+    private static final Observerds[]                       OBSERVEDS;
     static {
         OBSERVEDS = new Observerds[Priority.values().length];
         for (int i = 0; i < OBSERVEDS.length; i++) {
@@ -95,10 +98,10 @@ public class Observer extends Leaf {
     }
 
     @Override
-    protected State run(State pre, Priority prio) {
+    protected State run(State pre, Root root, Priority prio) {
         TraceTimer.traceBegin("observer");
         try {
-            long rootCount = root().runCount();
+            long rootCount = root.runCount();
             if (runCount < rootCount) {
                 runCount = rootCount;
                 changes = 0;
@@ -107,21 +110,15 @@ public class Observer extends Leaf {
             } else if (stopped) {
                 return pre;
             }
-            getted.init(Set.of());
-            setted.init(Set.of());
-            init(super.run(pre, prio));
-            setObserveds(setted.result(), getted.result());
-            return result();
+            return observe(pre, root, prio);
         } catch (EmptyMandatoryException soe) {
             clear();
-            init(pre);
-            setObserveds(setted.result(), getted.result());
-            return result();
+            changed = false;
+            return result(pre, pre, root, setted.result(), getted.result());
         } catch (StopObserverException soe) {
             stopped = true;
-            init(result());
-            setObserveds(Set.of(), Set.of());
-            return result();
+            changed = false;
+            return result(pre, result(), root, Set.of(), Set.of());
         } finally {
             changed = false;
             firstTime = false;
@@ -132,7 +129,16 @@ public class Observer extends Leaf {
         }
     }
 
-    private void setObserveds(Set<Slot> sets, Set<Slot> gets) {
+    protected State observe(State pre, Root root, Priority prio) {
+        getted.init(Set.of());
+        setted.init(Set.of());
+        return result(pre, super.run(pre, root, prio), root, setted.result(), getted.result());
+    }
+
+    @SuppressWarnings("unchecked")
+    private State result(State pre, State post, Root root, Set<Slot> sets, Set<Slot> gets) {
+        init(post);
+        int totalChanges = root.countTotalChanges();
         CURRENT.run(this, () -> {
             OBSERVEDS[2].set(this, sets);
             if (initPrio() == Priority.high) {
@@ -140,53 +146,51 @@ public class Observer extends Leaf {
             } else {
                 OBSERVEDS[1].set(this, gets.removeAll(sets));
             }
+            if (changed && root.isDebugging()) {
+                Set<ObserverRun> runs = RUNS.get(this);
+                ObserverRun run = new ObserverRun(this, runs.sorted().findFirst().orElse(null), changes, //
+                        gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
+                        sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
+                RUNS.set(this, runs.add(run));
+            }
         });
+        State result = result();
+        if (changed) {
+            if (++changes > root.maxNrOfChanges) {
+                root.setDebugging();
+                if (changes > root.maxNrOfChanges * 2) {
+                    hadleTooManyChanges(root, changes, result);
+                }
+            } else if (totalChanges > root.maxTotalNrOfChanges) {
+                root.setDebugging();
+                if (totalChanges > root.maxTotalNrOfChanges + root.maxNrOfChanges) {
+                    hadleTooManyChanges(root, totalChanges, result);
+                }
+            }
+        }
+        return result;
     }
 
+    private void hadleTooManyChanges(Root root, int changes, State result) {
+        ObserverRun last = result.get(this, Observer.RUNS).sorted().findFirst().get();
+        if (last.done().size() >= root.maxNrOfChanges) {
+            throw new TooManyChangesException(result, last, changes);
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
     @Override
     protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
         super.changed(object, setable, preValue, postValue);
-        countChanges(setable);
-        trigger(this, Priority.low, object, setable, preValue, postValue);
-    }
-
-    @SuppressWarnings("rawtypes")
-    protected void countChanges(Setable setable) {
-        if (!changed && setable instanceof Observed) {
-            changed = true;
-            Root root = root();
-            int totalChanges = root.countTotalChanges();
-            if (++changes > root.maxNrOfChanges * 2) {
-                throw new TooManyChangesException("Changes: " + changes + ", running: " + root.preState().get(this::toString));
-            } else if (totalChanges > root.maxTotalNrOfChanges + root.maxNrOfChanges) {
-                throw new TooManyChangesException("Total changes: " + totalChanges + ", running: " + root.preState().get(this::toString));
-            }
-        }
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    protected void trigger(AbstractLeaf leaf, Priority prio, Object object, Setable setable, Object pre, Object post) {
-        super.trigger(leaf, prio, object, setable, pre, post);
-        if (leaf instanceof Observer && setable instanceof Observed) {
-            ((Observer) leaf).checkTooManyChanges(leaf.root(), leaf, prio, object, (Observed) setable, pre, post);
+        if (setable instanceof Observed) {
+            countChanges((Observed) setable);
+            trigger(this, Priority.low);
         }
     }
 
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyChanges(Root root, Transaction running, Priority prio, Object object, Observed setable, Object pre, Object post) {
-        if (runCount == root.runCount()) {
-            int totalChanges = root.totalChanges();
-            if (changes > root.maxNrOfChanges || totalChanges > root.maxTotalNrOfChanges) {
-                int tooMany = totalChanges > root.maxTotalNrOfChanges ? totalChanges : changes;
-                reportTooManyChanges(root, running, object, setable, pre, post, tooMany);
-            }
-        }
-    }
-
-    @SuppressWarnings("rawtypes")
-    protected void reportTooManyChanges(Root root, Transaction running, Object object, Setable setable, Object pre, Object post, int tooMany) {
-        System.err.println("ERROR: Too many changes: " + tooMany + "\n       Running: " + root.preState().get(() -> running + "\n       Change: " + object + "." + setable + "=" + pre + " -> " + post + "\n       Triggers: " + this));
+    protected void countChanges(Observed observed) {
+        changed = true;
     }
 
     private static final class Observerds extends Setable<Observer, Set<Slot>> {

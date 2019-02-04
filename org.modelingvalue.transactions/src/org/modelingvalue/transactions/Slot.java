@@ -36,4 +36,8 @@ public class Slot extends Struct2Impl<Object, Observed> {
         return get1();
     }
 
+    public Observed<?, ?> observed() {
+        return get1();
+    }
+
 }

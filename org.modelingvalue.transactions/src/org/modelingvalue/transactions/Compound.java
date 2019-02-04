@@ -22,7 +22,6 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
-import org.modelingvalue.collections.util.Triple;
 import org.modelingvalue.transactions.Observed.Observers;
 import org.modelingvalue.transactions.Priority.PrioritySetable;
 
@@ -45,11 +44,9 @@ public class Compound extends Transaction {
         return new Compound(id, parent);
     }
 
-    @SuppressWarnings("rawtypes")
-    private final Concurrent<Map<Pair<Object, Observed>, Triple<Object, Object, Set<Observer>>>>[] triggered;
-    @SuppressWarnings("rawtypes")
-    private final Concurrent<Map<Pair<Object, Observed>, Pair<Object, Object>>>                    conflicts;
-    private final ReadOnly                                                                         merger;
+    private final Concurrent<Set<Observer>>[] triggered;
+    private final Concurrent<Set<Slot>>       conflicts;
+    private final ReadOnly                    merger;
 
     @SuppressWarnings("unchecked")
     protected Compound(Object id, Compound parent) {
@@ -86,8 +83,9 @@ public class Compound extends Transaction {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected State run(State state, Priority maxPrio) {
+    protected State run(State state, Root root, Priority maxPrio) {
         TraceTimer.traceBegin("compound");
+        state = super.run(state, root, maxPrio);
         Set<Transaction>[] ts = new Set[1];
         State[] sa = new State[]{state};
         int i = 0;
@@ -100,7 +98,7 @@ public class Compound extends Transaction {
                     Priority prio = SCHEDULED[i].prio();
                     sa[0] = merge(sa[0], ts[0].reduce(sa, (s, t) -> {
                         State[] r = s.clone();
-                        r[0] = t.run(s[0], prio);
+                        r[0] = t.run(s[0], root, prio);
                         return r;
                     }, (a, b) -> {
                         State[] r = Arrays.copyOf(a, a.length + b.length);
@@ -146,9 +144,9 @@ public class Compound extends Transaction {
         try {
             return merger.get(() -> {
                 for (int i = 0; i < triggered.length; i++) {
-                    triggered[i].init(Map.of());
+                    triggered[i].init(Set.of());
                 }
-                conflicts.init(Map.of());
+                conflicts.init(Set.of());
                 State state = base.merge((o, ps, psm, psbs) -> {
                     for (Entry<Setable, Object> p : psm) {
                         if (p.getKey() instanceof Observers) {
@@ -164,7 +162,7 @@ public class Compound extends Transaction {
                                     if (!Objects.equals(branchValue, baseValue)) {
                                         Set<Observer> addedObservers = observers.removeAll(State.get(psb, observersProp));
                                         if (!addedObservers.isEmpty()) {
-                                            triggered[observersProp.prio().nr].change(ts -> ts.put(Pair.of(o, observedProp), Triple.of(baseValue, branchValue, addedObservers)));
+                                            triggered[observersProp.prio().nr].change(ts -> ts.addAll(addedObservers));
                                         }
                                     }
                                 }
@@ -173,20 +171,18 @@ public class Compound extends Transaction {
                     }
                 }, (o, p, c, r) -> {
                     if (p instanceof Observed) {
-                        conflicts.change(cs -> cs.put(Pair.of(o, (Observed) p), Pair.of(c, r)));
+                        conflicts.change(cs -> cs.add(Slot.of(o, (Observed) p)));
                         return true;
                     } else {
                         return false;
                     }
                 }, branches);
                 for (int i = 0; i < triggered.length; i++) {
-                    for (Entry<Pair<Object, Observed>, Triple<Object, Object, Set<Observer>>> e : triggered[i].result()) {
-                        state = trigger(state, e.getValue().c(), Priority.values()[i], e.getKey().a(), e.getKey().b(), e.getValue().a(), e.getValue().b());
-                    }
+                    state = trigger(state, triggered[i].result(), Priority.values()[i]);
                 }
-                for (Entry<Pair<Object, Observed>, Pair<Object, Object>> e : conflicts.result()) {
-                    for (Observers<Object, ?> obs : e.getKey().b().observers()) {
-                        state = trigger(state, state.get(e.getKey().a(), obs), obs.prio(), e.getKey().a(), e.getKey().b(), e.getValue().a(), e.getValue().b());
+                for (Slot slot : conflicts.result()) {
+                    for (Observers<Object, ?> obs : slot.property().observers()) {
+                        state = trigger(state, state.get(slot.object(), obs), obs.prio());
                     }
                 }
                 return state;
@@ -196,12 +192,9 @@ public class Compound extends Transaction {
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    private State trigger(State state, Set<Observer> leafs, Priority prio, Object object, Observed setable, Object pre, Object post) {
-        Root root = root();
+    private State trigger(State state, Set<Observer> leafs, Priority prio) {
         for (Observer leaf : leafs) {
             state = state.set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
-            leaf.checkTooManyChanges(root, this, prio, object, setable, pre, post);
         }
         return state;
     }
