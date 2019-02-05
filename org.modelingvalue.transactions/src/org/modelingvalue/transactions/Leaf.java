@@ -78,14 +78,18 @@ public class Leaf extends AbstractLeaf {
     @Override
     protected State run(State state, Root root, Priority prio) {
         TraceTimer.traceBegin(traceId());
-        state = super.run(state, root, prio);
+        super.run(state, root, prio);
         try {
             init(state);
-            CURRENT.run(this, action);
+            CURRENT.run(this, () -> run(state, root));
             return result();
         } finally {
             TraceTimer.traceEnd(traceId());
         }
+    }
+
+    protected void run(State pre, Root root) {
+        action.run();
     }
 
     protected String traceId() {

@@ -90,7 +90,7 @@ public class Observer extends Leaf {
 
     @Override
     protected String traceId() {
-        return "observerRun";
+        return "observer";
     }
 
     public boolean firstTime() {
@@ -98,8 +98,7 @@ public class Observer extends Leaf {
     }
 
     @Override
-    protected State run(State pre, Root root, Priority prio) {
-        TraceTimer.traceBegin("observer");
+    protected void run(State pre, Root root) {
         try {
             long rootCount = root.runCount();
             if (runCount < rootCount) {
@@ -108,72 +107,74 @@ public class Observer extends Leaf {
                 stopped = false;
                 firstTime = true;
             } else if (stopped) {
-                return pre;
+                return;
             }
-            return observe(pre, root, prio);
+            getted.init(Set.of());
+            setted.init(Set.of());
+            super.run(pre, root);
+            Set<Slot> gets = getted.result();
+            Set<Slot> sets = setted.result();
+            if (changed) {
+                checkTooManyChanges(pre, root, sets, gets);
+            }
+            observe(root, sets, gets);
         } catch (EmptyMandatoryException soe) {
             clear();
-            changed = false;
-            return result(pre, pre, root, setted.result(), getted.result());
+            init(pre);
+            observe(root, setted.result(), getted.result());
         } catch (StopObserverException soe) {
             stopped = true;
-            changed = false;
-            return result(pre, result(), root, Set.of(), Set.of());
+            observe(root, Set.of(), Set.of());
         } finally {
             changed = false;
             firstTime = false;
-            clear();
             getted.clear();
             setted.clear();
             TraceTimer.traceEnd("observer");
         }
     }
 
-    protected State observe(State pre, Root root, Priority prio) {
-        getted.init(Set.of());
-        setted.init(Set.of());
-        return result(pre, super.run(pre, root, prio), root, setted.result(), getted.result());
+    private void observe(Root root, Set<Slot> sets, Set<Slot> gets) {
+        OBSERVEDS[2].set(this, sets);
+        if (initPrio() == Priority.high) {
+            OBSERVEDS[0].set(this, gets.removeAll(sets));
+        } else {
+            OBSERVEDS[1].set(this, gets.removeAll(sets));
+        }
     }
 
     @SuppressWarnings("unchecked")
-    private State result(State pre, State post, Root root, Set<Slot> sets, Set<Slot> gets) {
-        init(post);
+    protected void checkTooManyChanges(State pre, Root root, Set<Slot> sets, Set<Slot> gets) {
+        if (root.isDebugging()) {
+            State post = result();
+            init(post);
+            Set<ObserverRun> runs = RUNS.get(this);
+            ObserverRun run = new ObserverRun(this, runs.sorted().findFirst().orElse(null), changes, //
+                    gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
+                    sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
+            RUNS.set(this, runs.add(run));
+        }
         int totalChanges = root.countTotalChanges();
-        CURRENT.run(this, () -> {
-            OBSERVEDS[2].set(this, sets);
-            if (initPrio() == Priority.high) {
-                OBSERVEDS[0].set(this, gets.removeAll(sets));
-            } else {
-                OBSERVEDS[1].set(this, gets.removeAll(sets));
+        if (++changes > root.maxNrOfChanges()) {
+            root.setDebugging();
+            if (changes > root.maxNrOfChanges() * 2) {
+                hadleTooManyChanges(root, changes);
             }
-            if (changed && root.isDebugging()) {
-                Set<ObserverRun> runs = RUNS.get(this);
-                ObserverRun run = new ObserverRun(this, runs.sorted().findFirst().orElse(null), changes, //
-                        gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
-                        sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
-                RUNS.set(this, runs.add(run));
-            }
-        });
-        State result = result();
-        if (changed) {
-            if (++changes > root.maxNrOfChanges()) {
-                root.setDebugging();
-                if (changes > root.maxNrOfChanges() * 2) {
-                    hadleTooManyChanges(root, changes, result);
-                }
-            } else if (totalChanges > root.maxTotalNrOfChanges()) {
-                root.setDebugging();
-                if (totalChanges > root.maxTotalNrOfChanges() + root.maxNrOfChanges()) {
-                    hadleTooManyChanges(root, totalChanges, result);
-                }
+        } else if (totalChanges > root.maxTotalNrOfChanges()) {
+            root.setDebugging();
+            if (totalChanges > root.maxTotalNrOfChanges() + root.maxNrOfChanges()) {
+                hadleTooManyChanges(root, totalChanges);
             }
         }
-        return result;
     }
 
-    private void hadleTooManyChanges(Root root, int changes, State result) {
+    private void hadleTooManyChanges(Root root, int changes) {
+        State result = result();
+        init(result);
         ObserverRun last = result.get(this, Observer.RUNS).sorted().findFirst().get();
         if (last.done().size() >= root.maxNrOfChanges()) {
+            getted.init(Set.of());
+            setted.init(Set.of());
             throw new TooManyChangesException(result, last, changes);
         }
     }
