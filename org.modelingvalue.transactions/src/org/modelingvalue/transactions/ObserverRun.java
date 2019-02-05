@@ -13,9 +13,13 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.TriConsumer;
 
 public class ObserverRun implements Comparable<ObserverRun> {
 
@@ -91,24 +95,36 @@ public class ObserverRun implements Comparable<ObserverRun> {
 
     @SuppressWarnings("unchecked")
     public String trace(String prefix, String message, int length) {
-        return trace(prefix, message, new Set[]{Set.of()}, length);
+        String[] result = new String[]{message};
+        trace(prefix, (c, r) -> {
+            result[0] += c + "run: " + r.observer + " nr: " + r.nrOfChanges;
+        }, (c, r, s) -> {
+            result[0] += c + "read: " + s.object() + "." + s.observed() + "=" + r.read.get(s);
+        }, (c, w, s) -> {
+            result[0] += c + "  write: " + s.object() + "." + s.observed() + "=" + w.written.get(s);
+        }, p -> p + "  ", new Set[]{Set.of()}, length);
+        return result[0];
     }
 
-    private String trace(String prefix, String message, Set<ObserverRun>[] done, int length) {
-        message += prefix + "run: " + observer() + " nr: " + nrOfChanges;
+    @SuppressWarnings("unchecked")
+    public <C> void trace(C context, BiConsumer<C, ObserverRun> runHandler, TriConsumer<C, ObserverRun, Slot> readHandler, TriConsumer<C, ObserverRun, Slot> writeHandler, Function<C, C> traceHandler, int length) {
+        trace(context, runHandler, readHandler, writeHandler, traceHandler, new Set[]{Set.of()}, length);
+    }
+
+    private <C> void trace(C context, BiConsumer<C, ObserverRun> runHandler, TriConsumer<C, ObserverRun, Slot> readHandler, TriConsumer<C, ObserverRun, Slot> writeHandler, Function<C, C> traceHandler, Set<ObserverRun>[] done, int length) {
+        runHandler.accept(context, this);
         if (done[0].size() < length && !done[0].contains(this)) {
             done[0] = done[0].add(this);
             for (Entry<Slot, Set<ObserverRun>> e : backTrace()) {
                 if (!e.getValue().isEmpty()) {
-                    message += prefix + "read: " + e.getKey().object() + "." + e.getKey().observed() + "=" + read().get(e.getKey());
+                    readHandler.accept(context, this, e.getKey());
                     for (ObserverRun writer : e.getValue()) {
-                        message += prefix + "  write: " + e.getKey().object() + "." + e.getKey().observed() + "=" + writer.written().get(e.getKey());
-                        message = writer.trace(prefix + "  ", message, done, length);
+                        writeHandler.accept(context, writer, e.getKey());
+                        writer.trace(traceHandler.apply(context), runHandler, readHandler, writeHandler, traceHandler, done, length);
                     }
                 }
             }
         }
-        return message;
     }
 
 }

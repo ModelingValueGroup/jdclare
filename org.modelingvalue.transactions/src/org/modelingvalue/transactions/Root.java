@@ -81,8 +81,8 @@ public class Root extends Compound {
     protected final BlockingQueue<Leaf>                  inQueue;
     private final BlockingQueue<State>                   resultQueue;
     private final State                                  emptyState    = new State(this, null);
-    final int                                            maxTotalNrOfChanges;
-    final int                                            maxNrOfChanges;
+    private final int                                    maxTotalNrOfChanges;
+    private final int                                    maxNrOfChanges;
 
     private List<State>                                  history       = List.of();
     private List<State>                                  future        = List.of();
@@ -257,6 +257,14 @@ public class Root extends Compound {
 
     protected boolean isTimeTraveling() {
         return leaf == backward || leaf == forward;
+    }
+
+    public int maxTotalNrOfChanges() {
+        return maxTotalNrOfChanges;
+    }
+
+    public int maxNrOfChanges() {
+        return maxNrOfChanges;
     }
 
     public boolean isDebugging() {

@@ -156,14 +156,14 @@ public class Observer extends Leaf {
         });
         State result = result();
         if (changed) {
-            if (++changes > root.maxNrOfChanges) {
+            if (++changes > root.maxNrOfChanges()) {
                 root.setDebugging();
-                if (changes > root.maxNrOfChanges * 2) {
+                if (changes > root.maxNrOfChanges() * 2) {
                     hadleTooManyChanges(root, changes, result);
                 }
-            } else if (totalChanges > root.maxTotalNrOfChanges) {
+            } else if (totalChanges > root.maxTotalNrOfChanges()) {
                 root.setDebugging();
-                if (totalChanges > root.maxTotalNrOfChanges + root.maxNrOfChanges) {
+                if (totalChanges > root.maxTotalNrOfChanges() + root.maxNrOfChanges()) {
                     hadleTooManyChanges(root, totalChanges, result);
                 }
             }
@@ -173,7 +173,7 @@ public class Observer extends Leaf {
 
     private void hadleTooManyChanges(Root root, int changes, State result) {
         ObserverRun last = result.get(this, Observer.RUNS).sorted().findFirst().get();
-        if (last.done().size() >= root.maxNrOfChanges) {
+        if (last.done().size() >= root.maxNrOfChanges()) {
             throw new TooManyChangesException(result, last, changes);
         }
     }
