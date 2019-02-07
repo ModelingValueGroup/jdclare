@@ -168,11 +168,13 @@ public class State implements Serializable {
             Map<Setable, Object>[] pss = map(epss);
             Map<Setable, Object> props = ps.merge((p, ev, evs) -> {
                 Object v = val(p, ev);
-                Object[] vs = val(v, p, evs);
+                Object[] vs;
                 if (v instanceof Mergeable) {
-                    Object result = ((Mergeable<Object>) v).merge(vs);
+                    vs = val(v, p, evs);
+                    Object result = ((Mergeable) v).merge(vs);
                     return Objects.equals(result, p.getDefault()) ? null : Entry.of(p, result);
                 } else {
+                    vs = val(null, p, evs);
                     Object conflict = null;
                     Object result = null;
                     for (int i = 0; i < vs.length; i++) {
