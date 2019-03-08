@@ -13,6 +13,9 @@
 
 package org.modelingvalue.collections;
 
+import java.util.ListIterator;
+import java.util.Spliterator;
+
 public interface ContainingCollection<T> extends Collection<T> {
 
     <R extends ContainingCollection<T>> StreamCollection<R[]> compare(R other);
@@ -32,5 +35,13 @@ public interface ContainingCollection<T> extends Collection<T> {
     ContainingCollection<T> addAllUnique(Collection<? extends T> e);
 
     boolean contains(T e);
+
+    Collection<T> reverse();
+
+    Spliterator<T> reverseSpliterator();
+
+    ListIterator<T> listIterator();
+
+    ListIterator<T> listIteratorAtEnd();
 
 }

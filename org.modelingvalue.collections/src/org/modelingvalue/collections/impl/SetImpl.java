@@ -44,7 +44,12 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @Override
     public Spliterator<T> spliterator() {
-        return new DistinctCollectionSpliterator<T>(value, 0, length(value), size(value));
+        return new DistinctCollectionSpliterator<T>(value, 0, length(value), size(value), false);
+    }
+
+    @Override
+    public Spliterator<T> reverseSpliterator() {
+        return new DistinctCollectionSpliterator<T>(value, 0, length(value), size(value), true);
     }
 
     @Override

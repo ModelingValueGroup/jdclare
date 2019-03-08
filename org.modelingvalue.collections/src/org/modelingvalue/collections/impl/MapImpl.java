@@ -53,7 +53,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public Spliterator<Entry<K, V>> spliterator() {
-        return new DistinctCollectionSpliterator<Entry<K, V>>(value, 0, length(value), size(value));
+        return new DistinctCollectionSpliterator<Entry<K, V>>(value, 0, length(value), size(value), false);
+    }
+
+    @Override
+    public Spliterator<Entry<K, V>> reverseSpliterator() {
+        return new DistinctCollectionSpliterator<Entry<K, V>>(value, 0, length(value), size(value), true);
     }
 
     @Override

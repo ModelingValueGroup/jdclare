@@ -38,13 +38,13 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
         private static final int ORDERED_CHARACTERISTICS = Spliterator.ORDERED | CHARACTERISTICS;
 
-        private OrderedCollectionSpliterator(Object value, int min, int max, int size) {
-            super(value, min, max, size);
+        private OrderedCollectionSpliterator(Object value, int min, int max, int size, boolean reverse) {
+            super(value, min, max, size, reverse);
         }
 
         @Override
-        protected Spliterator<T> split(Object value, int min, int max, int size) {
-            return new OrderedCollectionSpliterator<>(value, min, max, size);
+        protected Spliterator<T> split(Object value, int min, int max, int size, boolean reverse) {
+            return new OrderedCollectionSpliterator<>(value, min, max, size, reverse);
         }
 
         @Override
@@ -158,7 +158,10 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             int size = 0;
             for (Object e : values) {
                 int s = size(e);
-                hash = (int) Math.pow(3, s) * hash + hash(e);
+                for (int i = 0; i < s; i++) {
+                    hash *= 31;
+                }
+                hash += hash(e);
                 size += s;
                 len += length(e);
                 depth = Math.max(depth, depth(e));
@@ -333,7 +336,12 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
     @Override
     public Spliterator<T> spliterator() {
-        return new OrderedCollectionSpliterator<T>(value, 0, length(value), size(value));
+        return new OrderedCollectionSpliterator<T>(value, 0, length(value), size(value), false);
+    }
+
+    @Override
+    public Spliterator<T> reverseSpliterator() {
+        return new OrderedCollectionSpliterator<T>(value, 0, length(value), size(value), true);
     }
 
     @Override

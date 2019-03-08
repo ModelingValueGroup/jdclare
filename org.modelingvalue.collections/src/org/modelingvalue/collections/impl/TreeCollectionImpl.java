@@ -65,6 +65,11 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     }
 
     @Override
+    public Collection<T> reverse() {
+        return new StreamCollectionImpl<T>(reverseSpliterator(), isParallel());
+    }
+
+    @Override
     public int hashCode() {
         return hash(value);
     }
@@ -158,7 +163,17 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     @Override
     public Iterator<T> iterator() {
-        return new CollectionIterator<T>(value);
+        return new CollectionIterator<T>(value, 0);
+    }
+
+    @Override
+    public ListIterator<T> listIterator() {
+        return new CollectionIterator<T>(value, 0);
+    }
+
+    @Override
+    public ListIterator<T> listIteratorAtEnd() {
+        return new CollectionIterator<T>(value, length(value));
     }
 
     protected static IntStream getIntStream(int min, int max, boolean[] stop, int total) {
@@ -258,16 +273,29 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
+    @SuppressWarnings("unchecked")
+    protected static <T> void reverseVisit(Object v, Consumer<? super T> visitor) {
+        if (v instanceof MultiValue) {
+            ((MultiValue) v).reverseVisit(visitor);
+        } else if (v != null) {
+            visitor.accept((T) v);
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
     protected static abstract class CollectionSpliterator<T> implements Spliterator<T> {
 
-        private Object value;
-        private int    min, max, size;
+        private Object        value;
+        private int           min, max, size;
+        private final boolean reverse;
 
-        protected CollectionSpliterator(Object value, int min, int max, int size) {
+        protected CollectionSpliterator(Object value, int min, int max, int size, boolean reverse) {
             this.value = value;
             this.min = min;
             this.max = max;
             this.size = size;
+            this.reverse = reverse;
         }
 
         @SuppressWarnings("unchecked")
@@ -278,12 +306,14 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
                 if (value instanceof CollectionIterator) {
                     ct = (CollectionIterator<T>) value;
                 } else {
-                    ct = new CollectionIterator<T>(value);
-                    ct.index[0] = min;
+                    ct = new CollectionIterator<T>(value, reverse ? max : min);
                     value = ct;
                 }
-                if (ct.index[0] < max && ct.hasNext()) {
+                if (!reverse && ct.index[0] < max && ct.hasNext()) {
                     visitor.accept(ct.next());
+                    return true;
+                } else if (reverse && ct.index[0] > min && ct.hasPrevious()) {
+                    visitor.accept(ct.previous());
                     return true;
                 }
             }
@@ -292,8 +322,14 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
         @Override
         public void forEachRemaining(Consumer<? super T> visitor) {
-            for (int i = min; i < max; i++) {
-                visit(get(value, i), visitor);
+            if (!reverse) {
+                for (int i = min; i < max; i++) {
+                    visit(get(value, i), visitor);
+                }
+            } else {
+                for (int i = max - 1; i >= min; i--) {
+                    reverseVisit(get(value, i), visitor);
+                }
             }
         }
 
@@ -307,20 +343,37 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
                     amount += size(multi.values[i++]);
                     if (amount >= half && amount < size) {
                         Spliterator<T> prefix;
-                        if (i - min == 1) {
-                            Object element = multi.values[min];
-                            prefix = split(element, 0, length(element), amount);
+                        if (reverse) {
+                            if (max - i == 1) {
+                                Object element = multi.values[i];
+                                prefix = split(element, 0, length(element), size - amount, true);
+                            } else {
+                                prefix = split(multi, i, max, size - amount, true);
+                            }
+                            if (i - min == 1) {
+                                value = multi.values[min];
+                                min = 0;
+                                max = length(value);
+                            } else {
+                                max = i;
+                            }
+                            size = amount;
                         } else {
-                            prefix = split(multi, min, i, amount);
+                            if (i - min == 1) {
+                                Object element = multi.values[min];
+                                prefix = split(element, 0, length(element), amount, false);
+                            } else {
+                                prefix = split(multi, min, i, amount, false);
+                            }
+                            if (max - i == 1) {
+                                value = multi.values[i];
+                                min = 0;
+                                max = length(value);
+                            } else {
+                                min = i;
+                            }
+                            size -= amount;
                         }
-                        if (max - i == 1) {
-                            value = multi.values[i];
-                            min = 0;
-                            max = length(value);
-                        } else {
-                            min = i;
-                        }
-                        size -= amount;
                         return prefix;
                     }
                 }
@@ -333,7 +386,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             return size;
         }
 
-        protected abstract Spliterator<T> split(Object element, int start, int end, int amount);
+        protected abstract Spliterator<T> split(Object element, int start, int end, int amount, boolean reverse);
     }
 
     private static final class CollectionIterator<T> implements ListIterator<T> {
@@ -342,74 +395,69 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         private final Object[] stack;
         private int            level;
 
-        private CollectionIterator(Object value) {
+        private CollectionIterator(Object value, int cursor) {
             index = new int[depth(value)];
             stack = new Object[index.length];
             stack[0] = value;
-        }
-
-        private void goDown(Object v) {
-            stack[++level] = v;
-        }
-
-        private void goUp() {
-            index[level] = 0;
-            stack[level] = null;
-            if (level > 0) {
-                index[--level]++;
-            }
+            index[0] = cursor;
         }
 
         @Override
         public boolean hasNext() {
-            for (Object v = stack[level]; level > 0 || v != null; v = stack[level]) {
-                if (v instanceof MultiValue) {
-                    MultiValue mv = (MultiValue) v;
-                    int i = index[level];
-                    if (i < mv.values.length) {
-                        goDown(mv.values[i]);
-                    } else {
-                        goUp();
-                    }
-                } else if (v != null) {
+            while (true) {
+                if (index[level] < length(stack[level])) {
                     return true;
+                } else if (level > 0) {
+                    stack[level] = null;
+                    index[--level]++;
                 } else {
-                    goUp();
+                    return false;
                 }
             }
-            return false;
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public T next() {
-            for (Object v = stack[level]; level > 0 || v != null; v = stack[level]) {
-                if (v instanceof MultiValue) {
-                    MultiValue mv = (MultiValue) v;
-                    int i = index[level];
-                    if (i < mv.values.length) {
-                        goDown(mv.values[i]);
-                    } else {
-                        goUp();
-                    }
-                } else if (v != null) {
-                    goUp();
-                    return (T) v;
-                } else {
-                    goUp();
+            if (hasNext()) {
+                while (stack[level] instanceof MultiValue) {
+                    stack[level + 1] = ((MultiValue) stack[level]).values[index[level]];
+                    index[++level] = 0;
                 }
+                index[level]++;
+                return (T) stack[level];
+            } else {
+                throw new NoSuchElementException();
             }
-            throw new NoSuchElementException();
         }
 
         @Override
         public boolean hasPrevious() {
-            throw new UnsupportedOperationException();
+            while (true) {
+                if (index[level] > 0) {
+                    return true;
+                } else if (level > 0) {
+                    stack[level] = null;
+                    index[--level]--;
+                } else {
+                    return false;
+                }
+            }
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public T previous() {
-            throw new UnsupportedOperationException();
+            if (hasPrevious()) {
+                while (stack[level] instanceof MultiValue) {
+                    stack[level + 1] = ((MultiValue) stack[level]).values[index[level] - 1];
+                    index[++level] = length(stack[level]);
+                }
+                index[level]--;
+                return (T) stack[level];
+            } else {
+                throw new NoSuchElementException();
+            }
         }
 
         @Override
@@ -477,8 +525,14 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
 
         protected <T> void visit(Consumer<? super T> visitor) {
-            for (Object value2 : values) {
-                TreeCollectionImpl.visit(value2, visitor);
+            for (int i = 0; i < values.length; i++) {
+                TreeCollectionImpl.visit(values[i], visitor);
+            }
+        }
+
+        protected <T> void reverseVisit(Consumer<? super T> visitor) {
+            for (int i = values.length - 1; i >= 0; i--) {
+                TreeCollectionImpl.reverseVisit(values[i], visitor);
             }
         }
 

@@ -59,7 +59,12 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @Override
     public Spliterator<V> spliterator() {
-        return new DistinctCollectionSpliterator<V>(value, 0, length(value), size(value));
+        return new DistinctCollectionSpliterator<V>(value, 0, length(value), size(value), false);
+    }
+
+    @Override
+    public Spliterator<V> reverseSpliterator() {
+        return new DistinctCollectionSpliterator<V>(value, 0, length(value), size(value), true);
     }
 
     @Override

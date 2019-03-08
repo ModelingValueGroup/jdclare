@@ -106,13 +106,13 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
         private static final int DISTINCT_CHARACTERISTICS = Spliterator.DISTINCT | CHARACTERISTICS;
 
-        public DistinctCollectionSpliterator(Object value, int min, int max, int size) {
-            super(value, min, max, size);
+        public DistinctCollectionSpliterator(Object value, int min, int max, int size, boolean reverse) {
+            super(value, min, max, size, reverse);
         }
 
         @Override
-        protected Spliterator<T> split(Object value, int min, int max, int size) {
-            return new DistinctCollectionSpliterator<>(value, min, max, size);
+        protected Spliterator<T> split(Object value, int min, int max, int size, boolean reverse) {
+            return new DistinctCollectionSpliterator<>(value, min, max, size, reverse);
         }
 
         @Override

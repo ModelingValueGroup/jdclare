@@ -98,7 +98,7 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings("rawtypes")
-    public <O> Map<Setable, Object> properties(O object) {
+    <O> Map<Setable, Object> properties(O object) {
         return map == null ? null : map.get(object);
     }
 

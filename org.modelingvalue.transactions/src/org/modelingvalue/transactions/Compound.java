@@ -28,6 +28,7 @@ import org.modelingvalue.transactions.Priority.PrioritySetable;
 public class Compound extends Transaction {
 
     private static final int               MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
+    private boolean                        reverse;
 
     @SuppressWarnings("rawtypes")
     private static final PrioritySetable[] SCHEDULED;
@@ -96,7 +97,8 @@ public class Compound extends Transaction {
                     i++;
                 } else {
                     Priority prio = SCHEDULED[i].prio();
-                    sa[0] = merge(sa[0], ts[0].reduce(sa, (s, t) -> {
+                    reverse = !reverse;
+                    sa[0] = merge(sa[0], (reverse ? ts[0].reverse() : ts[0]).reduce(sa, (s, t) -> {
                         State[] r = s.clone();
                         r[0] = t.run(s[0], root, prio);
                         return r;

@@ -109,6 +109,16 @@ public class ListTest {
 
     }
 
+    @Test
+    public void reverse() throws Exception {
+        List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).toList();
+        List<Integer> list2 = list1.sorted((a, b) -> Integer.compare(b, a)).toList();
+        List<Integer> list3 = list1.reverse().toList();
+        assertEquals(list3.size(), list2.size());
+        assertEquals(list2.hashCode(), list3.hashCode());
+        assertEquals(list2, list3);
+    }
+
     @SuppressWarnings("resource")
     @Test
     public void test() throws Exception {
@@ -123,8 +133,10 @@ public class ListTest {
         assertEquals(list3.get(3), list1.get(2));
         System.err.println(list4);
         assertEquals(list1, list2);
+        assertNotEquals(list1.hashCode(), list3.hashCode());
         assertNotEquals(list1, list3);
         assertNotEquals(list3, list1);
+        assertNotEquals(list1.hashCode(), list4.hashCode());
         assertNotEquals(list1, list4);
         assertNotEquals(list4, list1);
 
