@@ -51,7 +51,11 @@ public class ObserverRun implements Comparable<ObserverRun> {
         });
         Set<ObserverRun> back = backTrace.flatMap(Entry::getValue).toSet();
         Set<ObserverRun> backDone = back.flatMap(ObserverRun::done).toSet();
-        this.backTrace = backTrace.toMap(e -> Entry.of(e.getKey(), e.getValue().removeAll(backDone)));
+        backTrace = backTrace.toMap(e -> Entry.of(e.getKey(), e.getValue().removeAll(backDone)));
+        if (backTrace.anyMatch(e -> e.getValue().anyMatch(w -> !w.observer.equals(observer)))) {
+            backTrace = backTrace.toMap(e -> Entry.of(e.getKey(), e.getValue().filter(w -> !w.observer.equals(observer)).toSet()));
+        }
+        this.backTrace = backTrace;
         this.done = done.addAll(back).addAll(backDone).addAll(previous != null ? previous.done.add(previous) : Set.of());
     }
 
