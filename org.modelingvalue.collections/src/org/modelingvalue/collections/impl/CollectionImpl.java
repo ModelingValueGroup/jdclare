@@ -471,7 +471,7 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     @Override
     public Collection<T> random() {
         int r = ThreadLocalRandom.current().nextInt();
-        return new StreamCollectionImpl<T>(baseStream().sorted((a, b) -> Integer.compare(System.identityHashCode(a) ^ r, System.identityHashCode(b) ^ r)));
+        return new StreamCollectionImpl<T>(baseStream().sorted((a, b) -> Integer.compare(a.hashCode() ^ r, b.hashCode() ^ r)));
     }
 
     @Override
