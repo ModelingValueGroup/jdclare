@@ -16,6 +16,7 @@ package org.modelingvalue.collections.impl;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -465,6 +466,12 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     @Override
     public Collection<T> sorted() {
         return new StreamCollectionImpl<T>(baseStream().sorted());
+    }
+
+    @Override
+    public Collection<T> random() {
+        int r = ThreadLocalRandom.current().nextInt();
+        return new StreamCollectionImpl<T>(baseStream().sorted((a, b) -> Integer.compare(a.hashCode() ^ r, b.hashCode() ^ r)));
     }
 
     @Override

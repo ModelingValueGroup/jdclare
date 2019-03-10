@@ -66,6 +66,8 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @Override
     Collection<T> sorted();
 
+    Collection<T> random();
+
     @Override
     Collection<T> sorted(Comparator<? super T> comparator);
 
