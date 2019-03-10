@@ -110,6 +110,14 @@ public class ListTest {
     }
 
     @Test
+    public void random() throws Exception {
+        List<Integer> list = Collection.of(IntStream.range(0, 64)).toList();
+        for (int i = 0; i < 10; i++) {
+            System.err.println(list.random().toList());
+        }
+    }
+
+    @Test
     public void reverse() throws Exception {
         List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).toList();
         List<Integer> list2 = list1.sorted((a, b) -> Integer.compare(b, a)).toList();
