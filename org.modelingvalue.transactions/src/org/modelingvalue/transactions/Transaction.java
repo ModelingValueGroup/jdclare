@@ -13,14 +13,11 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.Arrays;
-import java.util.ConcurrentModificationException;
 import java.util.Objects;
 
-import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.StringUtil;
 
-public abstract class Transaction implements Mergeable<Transaction> {
+public abstract class Transaction {
 
     private final Object     id;
     protected final Compound parent;
@@ -83,25 +80,5 @@ public abstract class Transaction implements Mergeable<Transaction> {
     }
 
     public abstract boolean isAncestorOf(Transaction child);
-
-    @Override
-    public Transaction merge(Transaction[] branches) {
-        Transaction r = null;
-        for (Transaction b : branches) {
-            if (b != null) {
-                if (r == null) {
-                    r = b;
-                } else if (!r.equals(b)) {
-                    throw new ConcurrentModificationException(this + " -> " + Arrays.toString(branches));
-                }
-            }
-        }
-        return r;
-    }
-
-    @Override
-    public Transaction getMerger() {
-        throw new UnsupportedOperationException();
-    }
 
 }

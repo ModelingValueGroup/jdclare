@@ -22,6 +22,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
+import org.modelingvalue.collections.util.Triple;
 import org.modelingvalue.transactions.Observed.Observers;
 import org.modelingvalue.transactions.Priority.PrioritySetable;
 
@@ -44,9 +45,8 @@ public class Compound extends Transaction {
         return new Compound(id, parent);
     }
 
-    private final Concurrent<Set<Observer>>[] triggered;
-    private final Concurrent<Set<Slot>>       conflicts;
-    private final ReadOnly                    merger;
+    private final Concurrent<Set<AbstractLeaf>>[] triggered;
+    private final ReadOnly                        merger;
 
     @SuppressWarnings("unchecked")
     protected Compound(Object id, Compound parent) {
@@ -55,7 +55,6 @@ public class Compound extends Transaction {
         for (int i = 0; i < triggered.length; i++) {
             triggered[i] = Concurrent.of();
         }
-        conflicts = Concurrent.of();
         merger = ReadOnly.of(Pair.of(this, "merger"), root());
         if (parent != null && parent.ancestorId(id)) {
             throw new Error("Cyclic Compound Transaction id " + id);
@@ -146,7 +145,6 @@ public class Compound extends Transaction {
                 for (int i = 0; i < triggered.length; i++) {
                     triggered[i].init(Set.of());
                 }
-                conflicts.init(Set.of());
                 State state = base.merge((o, ps, psm, psbs) -> {
                     for (Entry<Setable, Object> p : psm) {
                         if (p.getKey() instanceof Observers) {
@@ -171,18 +169,15 @@ public class Compound extends Transaction {
                     }
                 }, (o, p, c, r) -> {
                     if (p instanceof Observed) {
-                        conflicts.change(cs -> cs.add(Slot.of(o, (Observed) p)));
+                        triggered[Priority.mid.nr].change(ts -> ts.add(Leaf.of(Triple.of(o, p, "conflict"), this, () -> ((Observed) p).changed(Leaf.getCurrent(), o, c, r))));
                         return true;
                     } else {
                         return false;
                     }
                 }, branches);
-                for (int i = 0; i < triggered.length; i++) {
-                    state = trigger(state, triggered[i].result(), Priority.values()[i]);
-                }
-                for (Slot slot : conflicts.result()) {
-                    for (Observers<Object, ?> obs : slot.property().observers()) {
-                        state = trigger(state, state.get(slot.object(), obs), obs.prio());
+                for (Priority prio : Priority.values()) {
+                    for (AbstractLeaf leaf : triggered[prio.nr].result()) {
+                        state = state.set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
                     }
                 }
                 return state;
@@ -190,13 +185,6 @@ public class Compound extends Transaction {
         } finally {
             TraceTimer.traceEnd("merge");
         }
-    }
-
-    private State trigger(State state, Set<Observer> leafs, Priority prio) {
-        for (Observer leaf : leafs) {
-            state = state.set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
-        }
-        return state;
     }
 
     @SuppressWarnings("unchecked")
