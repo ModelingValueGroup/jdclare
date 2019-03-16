@@ -85,29 +85,37 @@ public class Compound extends Transaction {
     protected State run(State state, Root root, Priority maxPrio) {
         TraceTimer.traceBegin("compound");
         state = super.run(state, root, maxPrio);
-        Set<Transaction>[] ts = new Set[1];
-        State[] sa = new State[]{state};
-        int i = 0;
         try {
+            Set<Transaction>[] ts = new Set[1];
+            State[] sa = new State[]{state};
+            int i = 0;
+            boolean sequential = false;
             while (i < SCHEDULED.length && SCHEDULED[i].prio().nr <= maxPrio.nr) {
                 sa[0] = sa[0].set(this, SCHEDULED[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     i++;
                 } else {
                     Priority prio = SCHEDULED[i].prio();
-                    try {
-                        sa[0] = merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
-                            State[] r = s.clone();
-                            r[0] = t.run(s[0], root, prio);
-                            return r;
-                        }, (a, b) -> {
-                            State[] r = Arrays.copyOf(a, a.length + b.length);
-                            System.arraycopy(b, 0, r, a.length, b.length);
-                            return r;
-                        }));
-                    } catch (NotMergeableException nme) {
+                    if (sequential) {
                         for (Transaction t : ts[0].random()) {
                             sa[0] = t.run(sa[0], root, prio);
+                        }
+                    } else {
+                        try {
+                            sa[0] = merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
+                                State[] r = s.clone();
+                                r[0] = t.run(s[0], root, prio);
+                                return r;
+                            }, (a, b) -> {
+                                State[] r = Arrays.copyOf(a, a.length + b.length);
+                                System.arraycopy(b, 0, r, a.length, b.length);
+                                return r;
+                            }));
+                        } catch (NotMergeableException nme) {
+                            sequential = true;
+                            for (Transaction t : ts[0].random()) {
+                                sa[0] = t.run(sa[0], root, prio);
+                            }
                         }
                     }
                     sa[0] = schedule(sa[0], maxPrio);
