@@ -15,9 +15,7 @@ package org.modelingvalue.transactions;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.ConcurrentModificationException;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -29,9 +27,9 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.NotMergeableException;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
-import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 
@@ -158,7 +156,7 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public State merge(QuadConsumer<Object, Map<Setable, Object>, Map<Setable, Object>, Map<Setable, Object>[]> changeHandler, QuadFunction<Object, Setable, Object, Object, Boolean> conflictHandler, State... branches) {
+    public State merge(QuadConsumer<Object, Map<Setable, Object>, Map<Setable, Object>, Map<Setable, Object>[]> changeHandler, State... branches) {
         Map<Object, Map<Setable, Object>>[] maps = new Map[branches.length];
         for (int i = 0; i < maps.length; i++) {
             maps[i] = map(branches[i].map);
@@ -175,21 +173,15 @@ public class State implements Serializable {
                     return Objects.equals(result, p.getDefault()) ? null : Entry.of(p, result);
                 } else {
                     vs = val(null, p, evs);
-                    Object conflict = null;
                     Object result = null;
                     for (int i = 0; i < vs.length; i++) {
                         if (vs[i] != null) {
                             if (result != null) {
-                                conflict = vs[i];
-                                break;
+                                throw new NotMergeableException("State merge conflict");
                             } else {
                                 result = vs[i];
                             }
                         }
-                    }
-                    if (conflict != null && (conflictHandler == null || !conflictHandler.apply(o, p, conflict, result))) {
-                        Object stv = v;
-                        throw new ConcurrentModificationException(get(() -> o + "." + p + " = " + stv + " -> " + Arrays.toString(vs)));
                     }
                     return Entry.of(p, result);
                 }

@@ -14,7 +14,6 @@
 package org.modelingvalue.collections.util;
 
 import java.util.Arrays;
-import java.util.ConcurrentModificationException;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
@@ -44,7 +43,7 @@ public interface Mergeables {
                 }
                 return (T) ((Mergeable) (b == null ? merger : b)).merge(bs);
             } else {
-                throw new ConcurrentModificationException(b + " " + Arrays.toString(bs));
+                throw new NotMergeableException(b + " " + Arrays.toString(bs));
             }
         }, branches, l);
     }

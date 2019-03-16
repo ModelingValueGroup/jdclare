@@ -20,9 +20,9 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
+import org.modelingvalue.collections.util.NotMergeableException;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
-import org.modelingvalue.collections.util.Triple;
 import org.modelingvalue.transactions.Observed.Observers;
 import org.modelingvalue.transactions.Priority.PrioritySetable;
 
@@ -95,15 +95,21 @@ public class Compound extends Transaction {
                     i++;
                 } else {
                     Priority prio = SCHEDULED[i].prio();
-                    sa[0] = merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
-                        State[] r = s.clone();
-                        r[0] = t.run(s[0], root, prio);
-                        return r;
-                    }, (a, b) -> {
-                        State[] r = Arrays.copyOf(a, a.length + b.length);
-                        System.arraycopy(b, 0, r, a.length, b.length);
-                        return r;
-                    }));
+                    try {
+                        sa[0] = merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
+                            State[] r = s.clone();
+                            r[0] = t.run(s[0], root, prio);
+                            return r;
+                        }, (a, b) -> {
+                            State[] r = Arrays.copyOf(a, a.length + b.length);
+                            System.arraycopy(b, 0, r, a.length, b.length);
+                            return r;
+                        }));
+                    } catch (NotMergeableException nme) {
+                        for (Transaction t : ts[0].random()) {
+                            sa[0] = t.run(sa[0], root, prio);
+                        }
+                    }
                     sa[0] = schedule(sa[0], maxPrio);
                     i = 0;
                 }
@@ -167,13 +173,6 @@ public class Compound extends Transaction {
                             }
                         }
                     }
-                }, (o, p, c, r) -> {
-                    if (p instanceof Observed) {
-                        triggered[Priority.mid.nr].change(ts -> ts.add(Leaf.of(Triple.of(o, p, "conflict"), this, () -> ((Observed) p).changed(Leaf.getCurrent(), o, c, r))));
-                        return true;
-                    } else {
-                        return false;
-                    }
                 }, branches);
                 for (Priority prio : Priority.values()) {
                     for (AbstractLeaf leaf : triggered[prio.nr].result()) {
@@ -183,6 +182,9 @@ public class Compound extends Transaction {
                 return state;
             }, branches);
         } finally {
+            for (int i = 0; i < triggered.length; i++) {
+                triggered[i].clear();
+            }
             TraceTimer.traceEnd("merge");
         }
     }
