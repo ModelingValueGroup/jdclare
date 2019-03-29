@@ -106,7 +106,8 @@ public class Observer extends Leaf {
                 changes = 0;
                 stopped = false;
                 firstTime = true;
-            } else if (stopped) {
+            }
+            if (stopped || root.isKilled()) {
                 return;
             }
             getted.init(Set.of());

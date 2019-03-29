@@ -92,6 +92,7 @@ public class Root extends Compound {
     private long                                         runCount;
     private int                                          changes;
     private boolean                                      debug;
+    private boolean                                      killed;
     private Throwable                                    error;
 
     protected Root(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
@@ -110,7 +111,7 @@ public class Root extends Compound {
         pre = cycle != null ? Leaf.of("cycle", this, () -> cycle.accept(this)) : null;
         pool.execute(() -> {
             State state = start != null ? start.clone(this) : emptyState;
-            while (true) {
+            while (!killed) {
                 TraceTimer.traceBegin("root");
                 try {
                     changes = 0;
@@ -279,6 +280,14 @@ public class Root extends Compound {
         debug = true;
     }
 
+    public boolean isKilled() {
+        return killed;
+    }
+
+    public void kill() {
+        killed = true;
+    }
+
     public long runCount() {
         return runCount;
     }
@@ -298,6 +307,9 @@ public class Root extends Compound {
             throw new Error(error);
         }
         return changes;
+    }
+
+    public void startPriority(Priority prio) {
     }
 
 }

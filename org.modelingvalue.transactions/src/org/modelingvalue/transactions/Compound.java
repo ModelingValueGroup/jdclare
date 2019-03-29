@@ -90,12 +90,15 @@ public class Compound extends Transaction {
             State[] sa = new State[]{state};
             int i = 0;
             boolean sequential = false;
-            while (i < SCHEDULED.length && SCHEDULED[i].prio().nr <= maxPrio.nr) {
+            while (!root.isKilled() && i < SCHEDULED.length && SCHEDULED[i].prio().nr <= maxPrio.nr) {
                 sa[0] = sa[0].set(this, SCHEDULED[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     i++;
                 } else {
                     Priority prio = SCHEDULED[i].prio();
+                    if (this == root) {
+                        root.startPriority(prio);
+                    }
                     if (sequential) {
                         for (Transaction t : ts[0].random()) {
                             sa[0] = t.run(sa[0], root, prio);
@@ -121,6 +124,9 @@ public class Compound extends Transaction {
                     sa[0] = schedule(sa[0], maxPrio);
                     i = 0;
                 }
+            }
+            if (this == root) {
+                root.startPriority(null);
             }
             return sa[0];
         } catch (TooManyChangesException tmce) {
