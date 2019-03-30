@@ -48,6 +48,10 @@ public class Imperative extends AbstractLeaf {
         this.diffHandler = diffHandler;
     }
 
+    public void stop() {
+        scheduler.accept(() -> AbstractLeaf.setCurrent(null));
+    }
+
     @Override
     protected State run(State last, Root root, Priority prio) {
         throw new UnsupportedOperationException();

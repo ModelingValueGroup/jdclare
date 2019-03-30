@@ -204,19 +204,23 @@ public class ConstantState {
 
     private final ReferenceQueue<Object>                           queue = new ReferenceQueue<>();
     private final AtomicReference<QualifiedSet<Object, Constants>> state = new AtomicReference<>(QualifiedSet.of(cs -> cs.object()));
+    private final Thread                                           remover;
 
     public ConstantState() {
-        Thread remover = new Thread(() -> {
+        remover = new Thread(() -> {
             try {
                 while (true) {
                     removeConstants(((Ref<?>) queue.remove()).constants());
                 }
             } catch (InterruptedException e) {
-                throw new Error(e);
             }
         });
         remover.setDaemon(true);
         remover.start();
+    }
+
+    public void stop() {
+        remover.interrupt();
     }
 
     public <O, V> V get(AbstractLeaf leaf, O object, Constant<O, V> constant) {

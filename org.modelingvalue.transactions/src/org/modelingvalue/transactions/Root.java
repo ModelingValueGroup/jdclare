@@ -155,6 +155,7 @@ public class Root extends Compound {
                 }
             }
             history = history.append(state);
+            constantState.stop();
             putResult(state);
         });
     }
@@ -286,6 +287,7 @@ public class Root extends Compound {
 
     public void kill() {
         killed = true;
+        put(dummy);
     }
 
     public long runCount() {
