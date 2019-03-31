@@ -143,8 +143,12 @@ public class Observer extends Leaf {
         } else {
             OBSERVEDS[1].set(this, gets);
         }
+        checkTooManyObserved(root, sets, gets);
+    }
+
+    protected void checkTooManyObserved(Root root, Set<Slot> sets, Set<Slot> gets) {
         if (root.maxNrOfObserved() < gets.size() + sets.size()) {
-            throw new TooManySubscriptionsException(getId(), null, gets.addAll(sets));
+            throw new TooManySubscriptionsException(this, null, gets.addAll(sets));
         }
     }
 

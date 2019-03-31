@@ -20,11 +20,11 @@ public final class TooManySubscriptionsException extends Error {
 
     private static final long serialVersionUID = 2091236807252565002L;
 
-    private final Object      observer;
-    private final Object      observed;
+    private final Observer    observer;
+    private final Observed    observed;
     private final Set         set;
 
-    public TooManySubscriptionsException(Object observer, Object observed, Set set) {
+    public TooManySubscriptionsException(Observer observer, Observed observed, Set set) {
         this.observer = observer;
         this.observed = observed;
         this.set = set;
@@ -43,11 +43,11 @@ public final class TooManySubscriptionsException extends Error {
         return set.size();
     }
 
-    public Object getObserver() {
+    public Observer getObserver() {
         return observer;
     }
 
-    public Object getObserved() {
+    public Observed getObserved() {
         return observed;
     }
 

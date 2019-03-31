@@ -71,6 +71,13 @@ public abstract class AbstractLeaf extends Transaction {
         }
     }
 
+    @SuppressWarnings("rawtypes")
+    protected void checkTooManyObservers(Root root, Observed observed, Set<Observer> obervsers) {
+        if (root.maxNrOfObservers() < obervsers.size()) {
+            throw new TooManySubscriptionsException(null, observed, obervsers);
+        }
+    }
+
     public abstract <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element);
 
     public abstract <O, T> T set(O object, Setable<O, T> property, T post);
