@@ -123,10 +123,10 @@ public class Compound extends Transaction {
                     }
                     sa[0] = schedule(sa[0], maxPrio);
                     i = 0;
+                    if (this == root) {
+                        root.endPriority(prio);
+                    }
                 }
-            }
-            if (this == root) {
-                root.startPriority(null);
             }
             return sa[0];
         } catch (TooManyChangesException tmce) {
@@ -161,7 +161,7 @@ public class Compound extends Transaction {
     private State merge(State base, State[] branches) {
         TraceTimer.traceBegin("merge");
         try {
-            return merger.get(() -> {
+            return root().isKilled() ? base : merger.get(() -> {
                 for (int i = 0; i < triggered.length; i++) {
                     triggered[i].init(Set.of());
                 }

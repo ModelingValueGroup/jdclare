@@ -209,6 +209,16 @@ public class State implements Serializable {
         });
     }
 
+    public Map<Class<?>, Integer> count() {
+        return get(() -> map(map).reduce(Map.<Class<?>, Integer> of(), (m, e) -> {
+            Class<?> cls = e.getKey().getClass();
+            Integer cnt = m.get(cls);
+            return m.put(cls, cnt == null ? 1 : cnt + 1);
+        }, (a, b) -> {
+            return a.mergeAll(b, (k, x, y) -> Entry.of(k, x.getValue() + y.getValue()));
+        }));
+    }
+
     public <R> R get(Supplier<R> supplier) {
         return ReadOnly.of(Pair.of(this, "getOnState"), root).get(supplier, this);
     }

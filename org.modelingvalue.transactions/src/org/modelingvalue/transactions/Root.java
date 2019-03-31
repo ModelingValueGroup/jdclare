@@ -139,8 +139,10 @@ public class Root extends Compound {
                         }
                         state = post(run(schedule(pre(state), leaf, leaf.initPrio())));
                     }
-                    state = run(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.high));
-                    if (inQueue.isEmpty()) {
+                    if (!killed) {
+                        state = run(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.high));
+                    }
+                    if (!killed && inQueue.isEmpty()) {
                         if (isStopped(state)) {
                             break;
                         } else if (pre != null) {
@@ -312,6 +314,9 @@ public class Root extends Compound {
     }
 
     public void startPriority(Priority prio) {
+    }
+
+    public void endPriority(Priority prio) {
     }
 
 }
