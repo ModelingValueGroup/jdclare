@@ -28,46 +28,48 @@ public class Root extends Compound {
     public static final int MAX_IN_IN_QUEUE         = Integer.getInteger("MAX_IN_IN_QUEUE", 100);
     public static final int MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 128000);
     public static final int MAX_NR_OF_CHANGES       = Integer.getInteger("MAX_NR_OF_CHANGES", 32);
+    public static final int MAX_NR_OF_OBSERVED      = Integer.getInteger("MAX_NR_OF_OBSERVED", 512);
+    public static final int MAX_NR_OF_OBSERVERS     = Integer.getInteger("MAX_NR_OF_OBSERVERS", 2048);
     public static final int MAX_NR_OF_HISTORY       = Integer.getInteger("MAX_NR_OF_HISTORY", 64) + 3;
 
-    public static Root of(Object id, ContextPool pool, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory) {
-        return new Root(id, pool, null, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, null);
+    public static Root of(Object id, ContextPool pool, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfObserved, int maxNrOfObservers, int maxNrOfHistory) {
+        return new Root(id, pool, null, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfObserved, maxNrOfObservers, maxNrOfHistory, null);
     }
 
-    public static Root of(Object id, ContextPool pool, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
-        return new Root(id, pool, null, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, cycle);
+    public static Root of(Object id, ContextPool pool, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfObserved, int maxNrOfObservers, int maxNrOfHistory, Consumer<Root> cycle) {
+        return new Root(id, pool, null, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfObserved, maxNrOfObservers, maxNrOfHistory, cycle);
     }
 
     public static Root of(Object id, ContextPool pool) {
-        return new Root(id, pool, null, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        return new Root(id, pool, null, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, null);
     }
 
     public static Root of(Object id, ContextPool pool, int maxInInQueue, Consumer<Root> cycle) {
-        return new Root(id, pool, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, cycle);
+        return new Root(id, pool, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, cycle);
     }
 
     public static Root of(Object id, ContextPool pool, int maxInInQueue) {
-        return new Root(id, pool, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        return new Root(id, pool, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, null);
     }
 
-    public static Root of(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory) {
-        return new Root(id, pool, start, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, null);
+    public static Root of(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfObserved, int maxNrOfObservers, int maxNrOfHistory) {
+        return new Root(id, pool, start, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfObserved, maxNrOfObservers, maxNrOfHistory, null);
     }
 
-    public static Root of(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
-        return new Root(id, pool, start, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfHistory, cycle);
+    public static Root of(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfObserved, int maxNrOfObservers, int maxNrOfHistory, Consumer<Root> cycle) {
+        return new Root(id, pool, start, maxInInQueue, maxTotalNrOfChanges, maxNrOfChanges, maxNrOfObserved, maxNrOfObservers, maxNrOfHistory, cycle);
     }
 
     public static Root of(Object id, ContextPool pool, State start) {
-        return new Root(id, pool, start, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        return new Root(id, pool, start, MAX_IN_IN_QUEUE, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, null);
     }
 
     public static Root of(Object id, ContextPool pool, State start, int maxInInQueue, Consumer<Root> cycle) {
-        return new Root(id, pool, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, cycle);
+        return new Root(id, pool, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, cycle);
     }
 
     public static Root of(Object id, ContextPool pool, State start, int maxInInQueue) {
-        return new Root(id, pool, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        return new Root(id, pool, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, null);
     }
 
     public static final Setable<Root, Boolean>           STOPPED       = Setable.of("stopped", false);
@@ -83,6 +85,8 @@ public class Root extends Compound {
     private final State                                  emptyState    = new State(this, null);
     private final int                                    maxTotalNrOfChanges;
     private final int                                    maxNrOfChanges;
+    private final int                                    maxNrOfObserved;
+    private final int                                    maxNrOfObservers;
 
     private List<State>                                  history       = List.of();
     private List<State>                                  future        = List.of();
@@ -95,10 +99,12 @@ public class Root extends Compound {
     private boolean                                      killed;
     private Throwable                                    error;
 
-    protected Root(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfHistory, Consumer<Root> cycle) {
+    protected Root(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfObserved, int maxNrOfObservers, int maxNrOfHistory, Consumer<Root> cycle) {
         super(id);
         this.maxTotalNrOfChanges = maxTotalNrOfChanges;
         this.maxNrOfChanges = maxNrOfChanges;
+        this.maxNrOfObserved = maxNrOfObserved;
+        this.maxNrOfObservers = maxNrOfObservers;
         inQueue = new LinkedBlockingQueue<>(maxInInQueue);
         resultQueue = new LinkedBlockingQueue<>(1);
         stop = Leaf.of("stop", this, () -> STOPPED.set(this, true));
@@ -219,7 +225,7 @@ public class Root extends Compound {
             State state = resultQueue.take();
             resultQueue.put(state);
             if (error != null) {
-                throw new Error("Error in engine ", error);
+                throw new Error("Error in engine " + state.get(() -> error.getMessage()), error);
             }
             return state;
         } catch (InterruptedException e) {
@@ -273,6 +279,14 @@ public class Root extends Compound {
 
     public int maxNrOfChanges() {
         return maxNrOfChanges;
+    }
+
+    public int maxNrOfObserved() {
+        return maxNrOfObserved;
+    }
+
+    public int maxNrOfObservers() {
+        return maxNrOfObservers;
     }
 
     public boolean isDebugging() {

@@ -209,11 +209,11 @@ public class State implements Serializable {
         });
     }
 
-    public Map<Class<?>, Integer> count() {
-        return get(() -> map(map).reduce(Map.<Class<?>, Integer> of(), (m, e) -> {
-            Class<?> cls = e.getKey().getClass();
-            Integer cnt = m.get(cls);
-            return m.put(cls, cnt == null ? 1 : cnt + 1);
+    @SuppressWarnings("rawtypes")
+    public Map<Setable, Integer> count() {
+        return get(() -> map(map).toValues().flatMap(m -> m).reduce(Map.of(), (m, e) -> {
+            Integer cnt = m.get(e.getKey());
+            return m.put(e.getKey(), cnt == null ? 1 : cnt + 1);
         }, (a, b) -> {
             return a.mergeAll(b, (k, x, y) -> Entry.of(k, x.getValue() + y.getValue()));
         }));

@@ -135,12 +135,16 @@ public class Observer extends Leaf {
         }
     }
 
-    private void observe(Root root, Set<Slot> sets, Set<Slot> gets) {
+    protected void observe(Root root, Set<Slot> sets, Set<Slot> gets) {
+        gets = gets.removeAll(sets);
         OBSERVEDS[2].set(this, sets);
         if (initPrio() == Priority.high) {
-            OBSERVEDS[0].set(this, gets.removeAll(sets));
+            OBSERVEDS[0].set(this, gets);
         } else {
-            OBSERVEDS[1].set(this, gets.removeAll(sets));
+            OBSERVEDS[1].set(this, gets);
+        }
+        if (root.maxNrOfObserved() < gets.size() + sets.size()) {
+            throw new TooManySubscriptionsException(getId(), null, gets.addAll(sets));
         }
     }
 
@@ -183,7 +187,7 @@ public class Observer extends Leaf {
     @SuppressWarnings("rawtypes")
     @Override
     protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
-        super.changed(object, setable, preValue, postValue);
+        runNonObserving(() -> super.changed(object, setable, preValue, postValue));
         if (setable instanceof Observed) {
             countChanges((Observed) setable);
             trigger(this, Priority.low);
@@ -217,14 +221,19 @@ public class Observer extends Leaf {
 
     @Override
     public void runNonObserving(Runnable action) {
-        Set<Slot> s = setted.get();
-        Set<Slot> g = getted.get();
-        try {
+        if (getted.isInitialized() && setted.isInitialized()) {
+            Set<Slot> s = setted.get();
+            Set<Slot> g = getted.get();
+            try {
+                super.runNonObserving(action);
+            } finally {
+                setted.set(s);
+                getted.set(g);
+            }
+        } else {
             super.runNonObserving(action);
-        } finally {
-            setted.set(s);
-            getted.set(g);
         }
+
     }
 
 }

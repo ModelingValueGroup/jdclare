@@ -1394,7 +1394,7 @@ public final class DClare<U extends DUniverse> extends Root {
     private Timer                       timer;
 
     private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, Clock clock, int maxInInQueue) {
-        super(dStruct(universeClass), THE_POOL, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, null);
+        super(dStruct(universeClass), THE_POOL, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, MAX_NR_OF_HISTORY, null);
         this.checkFatals = checkFatals ? Leaf.of("checkFatals", this, this::checkFatals) : null;
         this.clock = clock;
     }

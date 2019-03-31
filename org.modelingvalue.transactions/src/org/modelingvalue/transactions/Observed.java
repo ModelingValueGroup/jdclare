@@ -101,7 +101,11 @@ public class Observed<O, T> extends Setable<O, T> {
         }
 
         private Observers(Object id, Priority prio) {
-            super(id, Set.of(), null);
+            super(id, Set.of(), (tx, o, b, a) -> {
+                if (tx.root().maxNrOfObservers() < a.size()) {
+                    throw new TooManySubscriptionsException(null, id, a);
+                }
+            });
             this.prio = prio;
         }
 

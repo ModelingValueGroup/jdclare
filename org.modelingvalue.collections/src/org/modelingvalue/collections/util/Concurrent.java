@@ -38,6 +38,10 @@ public class Concurrent<T> {
     protected Concurrent() {
     }
 
+    public boolean isInitialized() {
+        return pre != null;
+    }
+
     public boolean change(UnaryOperator<T> oper) {
         if (pre == null) {
             throw new ConcurrentModificationException();

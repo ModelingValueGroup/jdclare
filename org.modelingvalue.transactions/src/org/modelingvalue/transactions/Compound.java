@@ -131,6 +131,8 @@ public class Compound extends Transaction {
             return sa[0];
         } catch (TooManyChangesException tmce) {
             throw tmce;
+        } catch (TooManySubscriptionsException tmse) {
+            throw tmse;
         } catch (Throwable t) {
             Error error = new TransactionException("Exception in transaction \"" + state.get(() -> toString()) + "\"", t);
             StackTraceElement[] est = error.getStackTrace();
