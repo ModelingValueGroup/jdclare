@@ -199,7 +199,7 @@ public class Observer extends Leaf {
 
         @SuppressWarnings("rawtypes")
         private <O, T> void observe(O object, Getable<O, T> property, boolean set) {
-            if (property instanceof Observed) {
+            if (property instanceof Observed && getted.isInitialized() && setted.isInitialized()) {
                 Slot slot = Slot.of(object, (Observed) property);
                 if (set) {
                     setted.change(o -> o.add(slot));
