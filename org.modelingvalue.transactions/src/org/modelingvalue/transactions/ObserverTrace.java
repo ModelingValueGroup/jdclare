@@ -21,17 +21,17 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.TriConsumer;
 
-public class ObserverRun implements Comparable<ObserverRun> {
+public class ObserverTrace implements Comparable<ObserverTrace> {
 
-    private final Observer                    observer;
-    private final int                         nrOfChanges;
-    private final ObserverRun                 previous;
-    private final Map<Slot, Object>           read;
-    private final Map<Slot, Object>           written;
-    private final Set<ObserverRun>            done;
-    private final Map<Slot, Set<ObserverRun>> backTrace;
+    private final Observer                      observer;
+    private final int                           nrOfChanges;
+    private final ObserverTrace                 previous;
+    private final Map<Slot, Object>             read;
+    private final Map<Slot, Object>             written;
+    private final Set<ObserverTrace>            done;
+    private final Map<Slot, Set<ObserverTrace>> backTrace;
 
-    protected ObserverRun(Observer observer, ObserverRun previous, int nrOfChanges, Map<Slot, Object> read, Map<Slot, Object> written) {
+    protected ObserverTrace(Observer observer, ObserverTrace previous, int nrOfChanges, Map<Slot, Object> read, Map<Slot, Object> written) {
         this.observer = observer;
         this.nrOfChanges = nrOfChanges;
         this.previous = previous;
@@ -43,14 +43,14 @@ public class ObserverRun implements Comparable<ObserverRun> {
         for (Entry<Slot, Object> e : written) {
             e.getKey().observed().writers().set(e.getKey().object(), Set::add, this);
         }
-        Set<ObserverRun> done = previous != null ? previous.done : Set.of();
-        Map<Slot, Set<ObserverRun>> backTrace = read.toMap(e -> {
+        Set<ObserverTrace> done = previous != null ? previous.done : Set.of();
+        Map<Slot, Set<ObserverTrace>> backTrace = read.toMap(e -> {
             Slot slot = e.getKey();
-            Set<ObserverRun> writers = slot.observed().writers().get(slot.object());
+            Set<ObserverTrace> writers = slot.observed().writers().get(slot.object());
             return Entry.of(slot, writers.removeAll(done).remove(this));
         });
-        Set<ObserverRun> back = backTrace.flatMap(Entry::getValue).toSet();
-        Set<ObserverRun> backDone = back.flatMap(ObserverRun::done).toSet();
+        Set<ObserverTrace> back = backTrace.flatMap(Entry::getValue).toSet();
+        Set<ObserverTrace> backDone = back.flatMap(ObserverTrace::done).toSet();
         backTrace = backTrace.toMap(e -> Entry.of(e.getKey(), e.getValue().removeAll(backDone)));
         if (backTrace.anyMatch(e -> e.getValue().anyMatch(w -> !w.observer.equals(observer)))) {
             backTrace = backTrace.toMap(e -> Entry.of(e.getKey(), e.getValue().filter(w -> !w.observer.equals(observer)).toSet()));
@@ -67,7 +67,7 @@ public class ObserverRun implements Comparable<ObserverRun> {
         return nrOfChanges;
     }
 
-    public Set<ObserverRun> done() {
+    public Set<ObserverTrace> done() {
         return done;
     }
 
@@ -79,11 +79,11 @@ public class ObserverRun implements Comparable<ObserverRun> {
         return written;
     }
 
-    public ObserverRun previous() {
+    public ObserverTrace previous() {
         return previous;
     }
 
-    public Map<Slot, Set<ObserverRun>> backTrace() {
+    public Map<Slot, Set<ObserverTrace>> backTrace() {
         return backTrace;
     }
 
@@ -93,7 +93,7 @@ public class ObserverRun implements Comparable<ObserverRun> {
     }
 
     @Override
-    public int compareTo(ObserverRun o) {
+    public int compareTo(ObserverTrace o) {
         return Integer.compare(o.nrOfChanges, nrOfChanges);
     }
 
@@ -111,18 +111,18 @@ public class ObserverRun implements Comparable<ObserverRun> {
     }
 
     @SuppressWarnings("unchecked")
-    public <C> void trace(C context, BiConsumer<C, ObserverRun> runHandler, TriConsumer<C, ObserverRun, Slot> readHandler, TriConsumer<C, ObserverRun, Slot> writeHandler, Function<C, C> traceHandler, int length) {
+    public <C> void trace(C context, BiConsumer<C, ObserverTrace> runHandler, TriConsumer<C, ObserverTrace, Slot> readHandler, TriConsumer<C, ObserverTrace, Slot> writeHandler, Function<C, C> traceHandler, int length) {
         trace(context, runHandler, readHandler, writeHandler, traceHandler, new Set[]{Set.of()}, length);
     }
 
-    private <C> void trace(C context, BiConsumer<C, ObserverRun> runHandler, TriConsumer<C, ObserverRun, Slot> readHandler, TriConsumer<C, ObserverRun, Slot> writeHandler, Function<C, C> traceHandler, Set<ObserverRun>[] done, int length) {
+    private <C> void trace(C context, BiConsumer<C, ObserverTrace> runHandler, TriConsumer<C, ObserverTrace, Slot> readHandler, TriConsumer<C, ObserverTrace, Slot> writeHandler, Function<C, C> traceHandler, Set<ObserverTrace>[] done, int length) {
         runHandler.accept(context, this);
         if (done[0].size() < length && !done[0].contains(this)) {
             done[0] = done[0].add(this);
-            for (Entry<Slot, Set<ObserverRun>> e : backTrace()) {
+            for (Entry<Slot, Set<ObserverTrace>> e : backTrace()) {
                 if (!e.getValue().isEmpty()) {
                     readHandler.accept(context, this, e.getKey());
-                    for (ObserverRun writer : e.getValue()) {
+                    for (ObserverTrace writer : e.getValue()) {
                         writeHandler.accept(context, writer, e.getKey());
                         writer.trace(traceHandler.apply(context), runHandler, readHandler, writeHandler, traceHandler, done, length);
                     }

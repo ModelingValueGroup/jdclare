@@ -13,6 +13,7 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.ConcurrentModificationException;
 import java.util.Objects;
 
 import org.modelingvalue.collections.util.StringUtil;
@@ -80,5 +81,56 @@ public abstract class Transaction {
     }
 
     public abstract boolean isAncestorOf(Transaction child);
+
+    protected abstract <T extends Transaction> TransactionRun<? extends T> startRun();
+
+    protected abstract void stopRun(TransactionRun<?> run);
+
+    public abstract static class TransactionRun<T extends Transaction> {
+
+        private T transaction;
+
+        protected TransactionRun() {
+        }
+
+        public boolean isOpen() {
+            return transaction != null;
+        }
+
+        public Root root() {
+            return transaction().root();
+        }
+
+        public Compound parent() {
+            return transaction().parent();
+        }
+
+        public T transaction() {
+            if (this.transaction == null) {
+                throw new ConcurrentModificationException();
+            }
+            return transaction;
+        }
+
+        protected void start(T transaction) {
+            if (this.transaction != null) {
+                throw new ConcurrentModificationException();
+            }
+            this.transaction = transaction;
+        }
+
+        protected void stop() {
+            if (this.transaction == null) {
+                throw new ConcurrentModificationException();
+            }
+            this.transaction = null;
+        }
+
+        @Override
+        public String toString() {
+            return transaction != null ? (transaction + "#Run") : super.toString();
+        }
+
+    }
 
 }

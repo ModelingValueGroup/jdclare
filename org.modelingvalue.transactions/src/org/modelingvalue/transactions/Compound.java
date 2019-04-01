@@ -45,17 +45,8 @@ public class Compound extends Transaction {
         return new Compound(id, parent);
     }
 
-    private final Concurrent<Set<AbstractLeaf>>[] triggered;
-    private final ReadOnly                        merger;
-
-    @SuppressWarnings("unchecked")
     protected Compound(Object id, Compound parent) {
         super(id, parent);
-        triggered = new Concurrent[Priority.values().length];
-        for (int i = 0; i < triggered.length; i++) {
-            triggered[i] = Concurrent.of();
-        }
-        merger = ReadOnly.of(Pair.of(this, "merger"), root());
         if (parent != null && parent.ancestorId(id)) {
             throw new Error("Cyclic Compound Transaction id " + id);
         }
@@ -85,6 +76,7 @@ public class Compound extends Transaction {
     protected State run(State state, Root root, Priority maxPrio) {
         TraceTimer.traceBegin("compound");
         state = super.run(state, root, maxPrio);
+        CompoundRun run = startRun();
         try {
             Set<Transaction>[] ts = new Set[1];
             State[] sa = new State[]{state};
@@ -105,7 +97,7 @@ public class Compound extends Transaction {
                         }
                     } else {
                         try {
-                            sa[0] = merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
+                            sa[0] = run.merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
                                 State[] r = s.clone();
                                 r[0] = t.run(s[0], root, prio);
                                 return r;
@@ -144,6 +136,7 @@ public class Compound extends Transaction {
             }
             throw error;
         } finally {
+            stopRun(run);
             TraceTimer.traceEnd("compound");
         }
     }
@@ -157,52 +150,6 @@ public class Compound extends Transaction {
             }
         }
         return inner.length;
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private State merge(State base, State[] branches) {
-        TraceTimer.traceBegin("merge");
-        try {
-            return root().isKilled() ? base : merger.get(() -> {
-                for (int i = 0; i < triggered.length; i++) {
-                    triggered[i].init(Set.of());
-                }
-                State state = base.merge((o, ps, psm, psbs) -> {
-                    for (Entry<Setable, Object> p : psm) {
-                        if (p.getKey() instanceof Observers) {
-                            Observers<?, ?> observersProp = (Observers) p.getKey();
-                            Set<Observer> baseObservers = State.get(ps, observersProp);
-                            Set<Observer> observers = (Set) p.getValue();
-                            observers = observers.removeAll(baseObservers);
-                            if (!observers.isEmpty()) {
-                                Observed<?, ?> observedProp = observersProp.observed();
-                                Object baseValue = State.get(ps, observedProp);
-                                for (Map<Setable, Object> psb : psbs) {
-                                    Object branchValue = State.get(psb, observedProp);
-                                    if (!Objects.equals(branchValue, baseValue)) {
-                                        Set<Observer> addedObservers = observers.removeAll(State.get(psb, observersProp));
-                                        if (!addedObservers.isEmpty()) {
-                                            triggered[observersProp.prio().nr].change(ts -> ts.addAll(addedObservers));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }, branches);
-                for (Priority prio : Priority.values()) {
-                    for (AbstractLeaf leaf : triggered[prio.nr].result()) {
-                        state = state.set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
-                    }
-                }
-                return state;
-            }, branches);
-        } finally {
-            for (int i = 0; i < triggered.length; i++) {
-                triggered[i].clear();
-            }
-            TraceTimer.traceEnd("merge");
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -236,6 +183,91 @@ public class Compound extends Transaction {
             p = p.parent;
         }
         return state;
+    }
+
+    @Override
+    protected CompoundRun startRun() {
+        return root().compoundRuns.get().open(this);
+    }
+
+    @Override
+    protected void stopRun(TransactionRun<?> run) {
+        root().compoundRuns.get().close((CompoundRun) run);
+    }
+
+    protected static class CompoundRun extends TransactionRun<Compound> {
+
+        private final Concurrent<Set<AbstractLeaf>>[] triggered;
+        private ReadOnly                              merger;
+
+        @SuppressWarnings("unchecked")
+        protected CompoundRun() {
+            super();
+            triggered = new Concurrent[Priority.values().length];
+            for (int i = 0; i < triggered.length; i++) {
+                triggered[i] = Concurrent.of();
+            }
+        }
+
+        @Override
+        protected void start(Compound transaction) {
+            super.start(transaction);
+            merger = ReadOnly.of(Pair.of(transaction, "merger"), transaction.root());
+        }
+
+        @Override
+        protected void stop() {
+            merger = null;
+            super.stop();
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private State merge(State base, State[] branches) {
+            TraceTimer.traceBegin("merge");
+            try {
+                Compound transaction = transaction();
+                return transaction.root().isKilled() ? base : merger.get(() -> {
+                    for (int i = 0; i < triggered.length; i++) {
+                        triggered[i].init(Set.of());
+                    }
+                    State state = base.merge((o, ps, psm, psbs) -> {
+                        for (Entry<Setable, Object> p : psm) {
+                            if (p.getKey() instanceof Observers) {
+                                Observers<?, ?> observersProp = (Observers) p.getKey();
+                                Set<Observer> baseObservers = State.get(ps, observersProp);
+                                Set<Observer> observers = (Set) p.getValue();
+                                observers = observers.removeAll(baseObservers);
+                                if (!observers.isEmpty()) {
+                                    Observed<?, ?> observedProp = observersProp.observed();
+                                    Object baseValue = State.get(ps, observedProp);
+                                    for (Map<Setable, Object> psb : psbs) {
+                                        Object branchValue = State.get(psb, observedProp);
+                                        if (!Objects.equals(branchValue, baseValue)) {
+                                            Set<Observer> addedObservers = observers.removeAll(State.get(psb, observersProp));
+                                            if (!addedObservers.isEmpty()) {
+                                                triggered[observersProp.prio().nr].change(ts -> ts.addAll(addedObservers));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }, branches);
+                    for (Priority prio : Priority.values()) {
+                        for (AbstractLeaf leaf : triggered[prio.nr].result()) {
+                            state = state.set(transaction.commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
+                        }
+                    }
+                    return state;
+                }, branches);
+            } finally {
+                for (int i = 0; i < triggered.length; i++) {
+                    triggered[i].clear();
+                }
+                TraceTimer.traceEnd("merge");
+            }
+        }
+
     }
 
 }

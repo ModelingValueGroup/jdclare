@@ -22,9 +22,9 @@ import org.modelingvalue.collections.util.TraceTimer;
 
 public class Observer extends Leaf {
 
-    public static final Setable<Observer, Set<ObserverRun>> RUNS = Setable.of("RUNS", Set.of());
+    public static final Setable<Observer, Set<ObserverTrace>> TRACES = Setable.of("TRACES", Set.of());
 
-    private static final Observerds[]                       OBSERVEDS;
+    private static final Observerds[]                         OBSERVEDS;
     static {
         OBSERVEDS = new Observerds[Priority.values().length];
         for (int i = 0; i < OBSERVEDS.length; i++) {
@@ -40,52 +40,13 @@ public class Observer extends Leaf {
         return new Observer(id, parent, action, initPrio);
     }
 
-    private final Concurrent<Set<Slot>> getted    = Concurrent.of();
-    private final Concurrent<Set<Slot>> setted    = Concurrent.of();
-    private long                        runCount  = -1;
-    private int                         changes;
-    private boolean                     changed;
-    private boolean                     stopped;
-    private boolean                     firstTime = true;
+    private long    runCount  = -1;
+    private int     changes;
+    private boolean stopped;
+    private boolean firstTime = true;
 
     public Observer(Object id, Compound parent, Runnable action, Priority initPrio) {
         super(id, parent, action, initPrio);
-    }
-
-    @Override
-    public <O, T> T get(O object, Getable<O, T> property) {
-        observe(object, property, false);
-        return super.get(object, property);
-    }
-
-    @Override
-    public <O, T> T pre(O object, Getable<O, T> property) {
-        observe(object, property, false);
-        return super.pre(object, property);
-    }
-
-    @Override
-    public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        observe(object, property, true);
-        return super.set(object, property, function, element);
-    }
-
-    @Override
-    public <O, T> T set(O object, Setable<O, T> property, T value) {
-        observe(object, property, true);
-        return super.set(object, property, value);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private <O, T> void observe(O object, Getable<O, T> property, boolean set) {
-        if (property instanceof Observed) {
-            Slot slot = Slot.of(object, (Observed) property);
-            if (set) {
-                setted.change(o -> o.add(slot));
-            } else {
-                getted.change(o -> o.add(slot));
-            }
-        }
     }
 
     @Override
@@ -98,7 +59,8 @@ public class Observer extends Leaf {
     }
 
     @Override
-    protected void run(State pre, Root root) {
+    protected void run(LeafRun<?> leaf, State pre, Root root) {
+        ObserverRun run = (ObserverRun) leaf;
         try {
             long rootCount = root.runCount();
             if (runCount < rootCount) {
@@ -110,32 +72,32 @@ public class Observer extends Leaf {
             if (stopped || root.isKilled()) {
                 return;
             }
-            getted.init(Set.of());
-            setted.init(Set.of());
-            super.run(pre, root);
-            Set<Slot> gets = getted.result();
-            Set<Slot> sets = setted.result();
-            if (changed) {
-                checkTooManyChanges(pre, root, sets, gets);
+            run.getted.init(Set.of());
+            run.setted.init(Set.of());
+            super.run(run, pre, root);
+            Set<Slot> gets = run.getted.result();
+            Set<Slot> sets = run.setted.result();
+            if (run.changed) {
+                checkTooManyChanges(run, pre, sets, gets);
             }
-            observe(root, sets, gets);
+            observe(run, sets, gets);
         } catch (EmptyMandatoryException soe) {
-            clear();
-            init(pre);
-            observe(root, setted.result(), getted.result());
+            run.clear();
+            run.init(pre);
+            observe(run, run.setted.result(), run.getted.result());
         } catch (StopObserverException soe) {
             stopped = true;
-            observe(root, Set.of(), Set.of());
+            observe(run, Set.of(), Set.of());
         } finally {
-            changed = false;
+            run.changed = false;
             firstTime = false;
-            getted.clear();
-            setted.clear();
+            run.getted.clear();
+            run.setted.clear();
             TraceTimer.traceEnd("observer");
         }
     }
 
-    protected void observe(Root root, Set<Slot> sets, Set<Slot> gets) {
+    protected void observe(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
         gets = gets.removeAll(sets);
         OBSERVEDS[2].set(this, sets);
         if (initPrio() == Priority.high) {
@@ -143,64 +105,137 @@ public class Observer extends Leaf {
         } else {
             OBSERVEDS[1].set(this, gets);
         }
-        checkTooManyObserved(root, sets, gets);
+        checkTooManyObserved(run, sets, gets);
     }
 
-    protected void checkTooManyObserved(Root root, Set<Slot> sets, Set<Slot> gets) {
-        if (root.maxNrOfObserved() < gets.size() + sets.size()) {
+    protected void checkTooManyObserved(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
+        if (run.root().maxNrOfObserved() < gets.size() + sets.size()) {
             throw new TooManySubscriptionsException(this, null, gets.addAll(sets));
         }
     }
 
     @SuppressWarnings("unchecked")
-    protected void checkTooManyChanges(State pre, Root root, Set<Slot> sets, Set<Slot> gets) {
+    protected void checkTooManyChanges(ObserverRun run, State pre, Set<Slot> sets, Set<Slot> gets) {
+        Root root = run.root();
         if (root.isDebugging()) {
-            State post = result();
-            init(post);
-            Set<ObserverRun> runs = RUNS.get(this);
-            ObserverRun run = new ObserverRun(this, runs.sorted().findFirst().orElse(null), changes, //
+            State post = run.result();
+            run.init(post);
+            Set<ObserverTrace> traces = TRACES.get(this);
+            ObserverTrace trace = new ObserverTrace(this, traces.sorted().findFirst().orElse(null), changes, //
                     gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
                     sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
-            RUNS.set(this, runs.add(run));
+            TRACES.set(this, traces.add(trace));
         }
         int totalChanges = root.countTotalChanges();
         if (++changes > root.maxNrOfChanges()) {
             root.setDebugging();
             if (changes > root.maxNrOfChanges() * 2) {
-                hadleTooManyChanges(root, changes);
+                hadleTooManyChanges(run, changes);
             }
         } else if (totalChanges > root.maxTotalNrOfChanges()) {
             root.setDebugging();
             if (totalChanges > root.maxTotalNrOfChanges() + root.maxNrOfChanges()) {
-                hadleTooManyChanges(root, totalChanges);
+                hadleTooManyChanges(run, totalChanges);
             }
         }
     }
 
-    private void hadleTooManyChanges(Root root, int changes) {
-        State result = result();
-        init(result);
-        ObserverRun last = result.get(this, Observer.RUNS).sorted().findFirst().get();
-        if (last.done().size() >= root.maxNrOfChanges()) {
-            getted.init(Set.of());
-            setted.init(Set.of());
+    private void hadleTooManyChanges(ObserverRun run, int changes) {
+        State result = run.result();
+        run.init(result);
+        ObserverTrace last = result.get(this, Observer.TRACES).sorted().findFirst().get();
+        if (last.done().size() >= run.root().maxNrOfChanges()) {
+            run.getted.init(Set.of());
+            run.setted.init(Set.of());
             throw new TooManyChangesException(result, last, changes);
         }
     }
 
     @SuppressWarnings("rawtypes")
-    @Override
-    protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
-        runNonObserving(() -> super.changed(object, setable, preValue, postValue));
-        if (setable instanceof Observed) {
-            countChanges((Observed) setable);
-            trigger(this, Priority.low);
-        }
+    protected void countChanges(ObserverRun run, Observed observed) {
+        run.changed = true;
     }
 
-    @SuppressWarnings("rawtypes")
-    protected void countChanges(Observed observed) {
-        changed = true;
+    @Override
+    protected ObserverRun startRun() {
+        return root().observerRuns.get().open(this);
+    }
+
+    @Override
+    protected void stopRun(TransactionRun<?> run) {
+        root().observerRuns.get().close((ObserverRun) run);
+    }
+
+    public static class ObserverRun extends LeafRun<Observer> {
+
+        private final Concurrent<Set<Slot>> getted = Concurrent.of();
+        private final Concurrent<Set<Slot>> setted = Concurrent.of();
+
+        private boolean                     changed;
+
+        @Override
+        public <O, T> T get(O object, Getable<O, T> property) {
+            observe(object, property, false);
+            return super.get(object, property);
+        }
+
+        @Override
+        public <O, T> T pre(O object, Getable<O, T> property) {
+            observe(object, property, false);
+            return super.pre(object, property);
+        }
+
+        @Override
+        public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
+            observe(object, property, true);
+            return super.set(object, property, function, element);
+        }
+
+        @Override
+        public <O, T> T set(O object, Setable<O, T> property, T value) {
+            observe(object, property, true);
+            return super.set(object, property, value);
+        }
+
+        @SuppressWarnings("rawtypes")
+        private <O, T> void observe(O object, Getable<O, T> property, boolean set) {
+            if (property instanceof Observed) {
+                Slot slot = Slot.of(object, (Observed) property);
+                if (set) {
+                    setted.change(o -> o.add(slot));
+                } else {
+                    getted.change(o -> o.add(slot));
+                }
+            }
+        }
+
+        @Override
+        public void runNonObserving(Runnable action) {
+            if (getted.isInitialized() && setted.isInitialized()) {
+                Set<Slot> s = setted.get();
+                Set<Slot> g = getted.get();
+                try {
+                    super.runNonObserving(action);
+                } finally {
+                    setted.set(s);
+                    getted.set(g);
+                }
+            } else {
+                super.runNonObserving(action);
+            }
+
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
+            runNonObserving(() -> super.changed(object, setable, preValue, postValue));
+            if (setable instanceof Observed) {
+                transaction().countChanges(this, (Observed) setable);
+                trigger(transaction(), Priority.low);
+            }
+        }
+
     }
 
     private static final class Observerds extends Setable<Observer, Set<Slot>> {
@@ -219,23 +254,6 @@ public class Observer extends Leaf {
                     d[0].forEach(o -> $.set(o.object(), o.property().observers(prio), Set<Leaf>::remove, constr));
                 }
             }));
-        }
-
-    }
-
-    @Override
-    public void runNonObserving(Runnable action) {
-        if (getted.isInitialized() && setted.isInitialized()) {
-            Set<Slot> s = setted.get();
-            Set<Slot> g = getted.get();
-            try {
-                super.runNonObserving(action);
-            } finally {
-                setted.set(s);
-                getted.set(g);
-            }
-        } else {
-            super.runNonObserving(action);
         }
 
     }

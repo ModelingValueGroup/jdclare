@@ -15,6 +15,7 @@ import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 @SuppressWarnings("rawtypes")
 public class ConstantState {
@@ -94,7 +95,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V get(AbstractLeaf leaf, O object, Constant<O, V> constant) {
+        public <V> V get(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
@@ -109,7 +110,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, V soll) {
+        public <V> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, V soll) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
@@ -122,7 +123,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        public <V, E> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> function, E element) {
+        public <V, E> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> function, E element) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             V soll = function.apply(constant.getDefault(), element);
@@ -151,7 +152,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        private <V> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
+        private <V> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
             V ist;
             Map<Constant<O, ?>, Object> next = prev.put(constant, soll);
             while (!UPDATOR.compareAndSet(this, prev, next)) {
@@ -167,7 +168,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings({"unchecked", "resource"})
-        private <V> V derive(AbstractLeaf leaf, O object, Constant<O, V> constant) {
+        private <V> V derive(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant) {
             int depth = Constant.DEPTH.get();
             List<Pair<Object, Constant>> list = List.of();
             while (true) {
@@ -223,20 +224,20 @@ public class ConstantState {
         remover.interrupt();
     }
 
-    public <O, V> V get(AbstractLeaf leaf, O object, Constant<O, V> constant) {
+    public <O, V> V get(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant) {
         return getConstants(leaf, object).get(leaf, object, constant);
     }
 
-    public <O, V> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, V value) {
+    public <O, V> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, V value) {
         return getConstants(leaf, object).set(leaf, object, constant, value);
     }
 
-    public <O, V, E> V set(AbstractLeaf leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> deriver, E element) {
+    public <O, V, E> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> deriver, E element) {
         return getConstants(leaf, object).set(leaf, object, constant, deriver, element);
     }
 
     @SuppressWarnings("unchecked")
-    private <O> Constants<O> getConstants(AbstractLeaf leaf, O object) {
+    private <O> Constants<O> getConstants(AbstractLeafRun<?> leaf, O object) {
         QualifiedSet<Object, Constants> prev = state.get();
         Constants constants = prev.get(object);
         if (constants == null) {

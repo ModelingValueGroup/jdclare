@@ -19,9 +19,13 @@ import java.util.function.Consumer;
 
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.collections.util.TriConsumer;
+import org.modelingvalue.transactions.Leaf.LeafRun;
+import org.modelingvalue.transactions.Observer.ObserverRun;
+import org.modelingvalue.transactions.ReadOnly.ReadOnlyRun;
 
 public class Root extends Compound {
 
@@ -72,32 +76,37 @@ public class Root extends Compound {
         return new Root(id, pool, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_HISTORY, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, null);
     }
 
-    public static final Setable<Root, Boolean>           STOPPED       = Setable.of("stopped", false);
-    public static final Setable<Root, Set<AbstractLeaf>> INTEGRATIONS  = Setable.of("integrations", Set.of());
+    public static final Setable<Root, Boolean>                             STOPPED       = Setable.of("stopped", false);
+    public static final Setable<Root, Set<AbstractLeaf>>                   INTEGRATIONS  = Setable.of("integrations", Set.of());
 
-    private final Leaf                                   pre;
-    private final Leaf                                   dummy;
-    private final Leaf                                   stop;
-    private final Leaf                                   backward;
-    private final Leaf                                   forward;
-    protected final BlockingQueue<Leaf>                  inQueue;
-    private final BlockingQueue<State>                   resultQueue;
-    private final State                                  emptyState    = new State(this, null);
-    private final int                                    maxTotalNrOfChanges;
-    private final int                                    maxNrOfChanges;
-    private final int                                    maxNrOfObserved;
-    private final int                                    maxNrOfObservers;
+    protected final Concurrent<TransactionRunsList<Leaf, LeafRun<Leaf>>>   leafRuns;
+    protected final Concurrent<TransactionRunsList<Observer, ObserverRun>> observerRuns;
+    protected final Concurrent<TransactionRunsList<Compound, CompoundRun>> compoundRuns;
+    protected final Concurrent<TransactionRunsList<ReadOnly, ReadOnlyRun>> readOnlyRuns;
 
-    private List<State>                                  history       = List.of();
-    private List<State>                                  future        = List.of();
-    private State                                        preState;
-    protected ConstantState                              constantState = new ConstantState();
-    protected Leaf                                       leaf;
-    private long                                         runCount;
-    private int                                          changes;
-    private boolean                                      debug;
-    private boolean                                      killed;
-    private Throwable                                    error;
+    private final Leaf                                                     pre;
+    private final Leaf                                                     dummy;
+    private final Leaf                                                     stop;
+    private final Leaf                                                     backward;
+    private final Leaf                                                     forward;
+    protected final BlockingQueue<Leaf>                                    inQueue;
+    private final BlockingQueue<State>                                     resultQueue;
+    private final State                                                    emptyState    = new State(this, null);
+    private final int                                                      maxTotalNrOfChanges;
+    private final int                                                      maxNrOfChanges;
+    private final int                                                      maxNrOfObserved;
+    private final int                                                      maxNrOfObservers;
+
+    private List<State>                                                    history       = List.of();
+    private List<State>                                                    future        = List.of();
+    private State                                                          preState;
+    protected ConstantState                                                constantState = new ConstantState();
+    protected Leaf                                                         leaf;
+    private long                                                           runCount;
+    private int                                                            changes;
+    private boolean                                                        debug;
+    private boolean                                                        killed;
+    private Throwable                                                      error;
 
     protected Root(Object id, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfObserved, int maxNrOfObservers, int maxNrOfHistory, Consumer<Root> cycle) {
         super(id);
@@ -105,16 +114,20 @@ public class Root extends Compound {
         this.maxNrOfChanges = maxNrOfChanges;
         this.maxNrOfObserved = maxNrOfObserved;
         this.maxNrOfObservers = maxNrOfObservers;
-        inQueue = new LinkedBlockingQueue<>(maxInInQueue);
-        resultQueue = new LinkedBlockingQueue<>(1);
-        stop = Leaf.of("stop", this, () -> STOPPED.set(this, true));
-        dummy = Leaf.of("dummy", this, () -> {
+        this.leafRuns = Concurrent.of(() -> new TransactionRunsList<>(() -> new LeafRun<Leaf>()));
+        this.observerRuns = Concurrent.of(() -> new TransactionRunsList<>(() -> new ObserverRun()));
+        this.compoundRuns = Concurrent.of(() -> new TransactionRunsList<>(() -> new CompoundRun()));
+        this.readOnlyRuns = Concurrent.of(() -> new TransactionRunsList<>(() -> new ReadOnlyRun()));
+        this.inQueue = new LinkedBlockingQueue<>(maxInInQueue);
+        this.resultQueue = new LinkedBlockingQueue<>(1);
+        this.stop = Leaf.of("stop", this, () -> STOPPED.set(this, true));
+        this.dummy = Leaf.of("dummy", this, () -> {
         });
-        backward = Leaf.of("backward", this, () -> {
+        this.backward = Leaf.of("backward", this, () -> {
         });
-        forward = Leaf.of("forward", this, () -> {
+        this.forward = Leaf.of("forward", this, () -> {
         });
-        pre = cycle != null ? Leaf.of("cycle", this, () -> cycle.accept(this)) : null;
+        this.pre = cycle != null ? Leaf.of("cycle", this, () -> cycle.accept(this)) : null;
         pool.execute(() -> {
             State state = start != null ? start.clone(this) : emptyState;
             while (!killed) {

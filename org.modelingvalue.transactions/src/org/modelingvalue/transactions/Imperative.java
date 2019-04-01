@@ -28,28 +28,32 @@ public class Imperative extends AbstractLeaf {
         return new Imperative(id, init, root, scheduler, diffHandler);
     }
 
-    private static Setable<Imperative, Long>         CHANGE_NR = Setable.of("CHANGE_NR", 0l);
+    private static Setable<Imperative, Long> CHANGE_NR = Setable.of("CHANGE_NR", 0l);
 
-    private final Consumer<Runnable>                 scheduler;
-    private final TriConsumer<State, State, Boolean> diffHandler;
-    private State                                    pre;
-    private State                                    state;
-    @SuppressWarnings("rawtypes")
-    private Set<Pair<Object, Setable>>               setted    = Set.of();
+    private final Consumer<Runnable>         scheduler;
+    private final ImperativeRun              run;
 
     private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
         super(id, root, Priority.mid);
-        this.state = init;
-        this.pre = state();
+        this.run = startRun();
+        run.pre = init;
+        run.state = init;
+        run.diffHandler = diffHandler;
         this.scheduler = r -> scheduler.accept(() -> {
-            AbstractLeaf.setCurrent(this);
+            AbstractLeaf.setCurrent(run);
             r.run();
         });
-        this.diffHandler = diffHandler;
     }
 
     public void stop() {
-        scheduler.accept(() -> AbstractLeaf.setCurrent(null));
+        scheduler.accept(() -> {
+            AbstractLeaf.setCurrent(null);
+            stopRun(run);
+        });
+    }
+
+    public void schedule(Runnable action) {
+        scheduler.accept(action);
     }
 
     @Override
@@ -58,92 +62,120 @@ public class Imperative extends AbstractLeaf {
     }
 
     public void commit(State post, boolean timeTraveling) {
-        extern2intern();
-        intern2extern(post, timeTraveling);
+        run.extern2intern();
+        run.intern2extern(post, timeTraveling);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void extern2intern() {
-        if (pre != state) {
-            State finalPre = pre;
-            CHANGE_NR.set(Imperative.this, (n, i) -> n + i, 1);
-            State finalState = state;
-            pre = finalState;
-            root().put(Pair.of(this, "toDClare"), () -> {
-                finalPre.diff(finalState, o -> true, s -> true).forEach(s -> {
-                    Object o = s.getKey();
-                    for (Entry<Setable, Pair<Object, Object>> d : s.getValue()) {
-                        d.getKey().set(o, d.getValue().b());
-                    }
-                });
-            });
+    @Override
+    protected ImperativeRun startRun() {
+        ImperativeRun run = new ImperativeRun();
+        run.start(this);
+        return run;
+    }
+
+    @Override
+    protected void stopRun(TransactionRun<?> run) {
+        run.stop();
+    }
+
+    protected static class ImperativeRun extends AbstractLeafRun<Imperative> {
+
+        @SuppressWarnings("rawtypes")
+        private Set<Pair<Object, Setable>>         setted = Set.of();
+
+        private State                              pre;
+        private State                              state;
+        private TriConsumer<State, State, Boolean> diffHandler;
+
+        @Override
+        protected void trigger(AbstractLeaf leaf, Priority prio) {
+            // Do nothing
         }
-    }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void intern2extern(State post, boolean timeTraveling) {
-        if (pre != post) {
-            State finalState = state;
-            boolean last = post.get(this, CHANGE_NR).equals(finalState.get(this, CHANGE_NR));
-            if (last) {
-                setted = Set.of();
-            } else {
-                for (Pair<Object, Setable> slot : setted) {
-                    post = post.set(slot.a(), slot.b(), finalState.get(slot.a(), slot.b()));
+        @Override
+        protected void stop() {
+            super.stop();
+            pre = null;
+            state = null;
+            setted = null;
+            diffHandler = null;
+        }
+
+        @Override
+        public State state() {
+            return state;
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private void extern2intern() {
+            if (pre != state) {
+                State finalPre = pre;
+                CHANGE_NR.set(transaction(), (n, i) -> n + i, 1);
+                State finalState = state;
+                pre = finalState;
+                transaction().root().put(Pair.of(this, "toDClare"), () -> {
+                    finalPre.diff(finalState, o -> true, s -> true).forEach(s -> {
+                        Object o = s.getKey();
+                        for (Entry<Setable, Pair<Object, Object>> d : s.getValue()) {
+                            d.getKey().set(o, d.getValue().b());
+                        }
+                    });
+                });
+            }
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private void intern2extern(State post, boolean timeTraveling) {
+            if (pre != post) {
+                State finalState = state;
+                Imperative transaction = transaction();
+                boolean last = post.get(transaction, CHANGE_NR).equals(finalState.get(transaction, CHANGE_NR));
+                if (last) {
+                    setted = Set.of();
+                } else {
+                    for (Pair<Object, Setable> slot : setted) {
+                        post = post.set(slot.a(), slot.b(), finalState.get(slot.a(), slot.b()));
+                    }
+                }
+                state = post;
+                if (!timeTraveling) {
+                    pre = state;
+                }
+                diffHandler.accept(finalState, post, last);
+                if (timeTraveling) {
+                    pre = state;
                 }
             }
-            state = post;
-            if (!timeTraveling) {
-                pre = state;
-            }
-            diffHandler.accept(finalState, post, last);
-            if (timeTraveling) {
-                pre = state;
-            }
         }
-    }
 
-    @Override
-    protected void trigger(AbstractLeaf leaf, Priority prio) {
-        // Do nothing
-    }
+        @SuppressWarnings("unchecked")
+        @Override
+        public <O, T> T set(O object, Setable<O, T> property, T post) {
+            T[] old = (T[]) new Object[1];
+            boolean first = pre == state;
+            state = state.set(object, property, post, old);
+            changed(object, property, old[0], post, first);
+            return old[0];
+        }
 
-    public void schedule(Runnable action) {
-        scheduler.accept(action);
-    }
+        @SuppressWarnings("unchecked")
+        @Override
+        public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
+            T[] oldNew = (T[]) new Object[2];
+            boolean first = pre == state;
+            state = state.set(object, property, function, element, oldNew);
+            changed(object, property, oldNew[0], oldNew[1], first);
+            return oldNew[0];
+        }
 
-    @Override
-    public State state() {
-        return state;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <O, T> T set(O object, Setable<O, T> property, T post) {
-        T[] old = (T[]) new Object[1];
-        boolean first = pre == state;
-        state = state.set(object, property, post, old);
-        changed(object, property, old[0], post, first);
-        return old[0];
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        T[] oldNew = (T[]) new Object[2];
-        boolean first = pre == state;
-        state = state.set(object, property, function, element, oldNew);
-        changed(object, property, oldNew[0], oldNew[1], first);
-        return oldNew[0];
-    }
-
-    private <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue, boolean first) {
-        if (!Objects.equals(preValue, postValue)) {
-            setted = setted.add(Pair.of(object, property));
-            if (first) {
-                root().dummy();
+        private <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue, boolean first) {
+            if (!Objects.equals(preValue, postValue)) {
+                setted = setted.add(Pair.of(object, property));
+                if (first) {
+                    root().dummy();
+                }
+                changed(object, property, preValue, postValue);
             }
-            changed(object, property, preValue, postValue);
         }
     }
 

@@ -16,11 +16,16 @@ package org.modelingvalue.collections.util;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public class Concurrent<T> {
 
     public static <V> Concurrent<V> of(V value) {
+        return new Concurrent<V>(value);
+    }
+
+    public static <V> Concurrent<V> of(Supplier<V> value) {
         return new Concurrent<V>(value);
     }
 
@@ -32,6 +37,10 @@ public class Concurrent<T> {
     private T[] states;
 
     private Concurrent(T value) {
+        init(value);
+    }
+
+    private Concurrent(Supplier<T> value) {
         init(value);
     }
 
@@ -115,9 +124,23 @@ public class Concurrent<T> {
         }
         pre = value;
         if (states == null) {
-            states = (T[]) Array.newInstance(value.getClass(), ContextThread.POOL_SIZE + 1);
+            states = (T[]) Array.newInstance(pre.getClass(), ContextThread.POOL_SIZE + 1);
         }
         Arrays.fill(states, value);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void init(Supplier<T> value) {
+        if (pre != null) {
+            throw new ConcurrentModificationException();
+        }
+        pre = value.get();
+        if (states == null) {
+            states = (T[]) Array.newInstance(pre.getClass(), ContextThread.POOL_SIZE + 1);
+        }
+        for (int i = 0; i < states.length; i++) {
+            states[i] = value.get();
+        }
     }
 
     public T result() {

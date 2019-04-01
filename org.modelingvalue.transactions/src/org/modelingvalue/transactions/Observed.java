@@ -16,6 +16,7 @@ package org.modelingvalue.transactions;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
+import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public class Observed<O, T> extends Setable<O, T> {
 
@@ -23,16 +24,16 @@ public class Observed<O, T> extends Setable<O, T> {
         return of(id, def, null);
     }
 
-    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<AbstractLeaf, C, V, V> changed) {
+    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
         return new Observed<C, V>(id, def, changed);
     }
 
-    private final Setable<Object, Set<ObserverRun>> readers = Setable.of(Pair.of(this, "readers"), Set.of());
-    private final Setable<Object, Set<ObserverRun>> writers = Setable.of(Pair.of(this, "writers"), Set.of());
-    private final Observers<O, T>[]                 observers;
+    private final Setable<Object, Set<ObserverTrace>> readers = Setable.of(Pair.of(this, "readers"), Set.of());
+    private final Setable<Object, Set<ObserverTrace>> writers = Setable.of(Pair.of(this, "writers"), Set.of());
+    private final Observers<O, T>[]                   observers;
 
     @SuppressWarnings("unchecked")
-    protected Observed(Object id, T def, QuadConsumer<AbstractLeaf, O, T, T> changed) {
+    protected Observed(Object id, T def, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
         this(id, def, observers(id), changed);
     }
 
@@ -46,7 +47,7 @@ public class Observed<O, T> extends Setable<O, T> {
         return observers;
     }
 
-    private Observed(Object id, T def, Observers<O, T>[] observers, QuadConsumer<AbstractLeaf, O, T, T> changed) {
+    private Observed(Object id, T def, Observers<O, T>[] observers, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
         super(id, def, null);
         this.changed = (l, o, p, n) -> {
             if (changed != null) {
@@ -74,16 +75,16 @@ public class Observed<O, T> extends Setable<O, T> {
         return observers;
     }
 
-    public Setable<Object, Set<ObserverRun>> readers() {
+    public Setable<Object, Set<ObserverTrace>> readers() {
         return readers;
     }
 
-    public Setable<Object, Set<ObserverRun>> writers() {
+    public Setable<Object, Set<ObserverTrace>> writers() {
         return writers;
     }
 
     public int getNrOfObservers(O object) {
-        AbstractLeaf leaf = AbstractLeaf.getCurrent();
+        AbstractLeafRun<?> leaf = AbstractLeaf.getCurrent();
         int nr = 0;
         for (Observers<O, T> observ : observers) {
             nr += leaf.get(object, observ).size();
@@ -102,7 +103,7 @@ public class Observed<O, T> extends Setable<O, T> {
 
         private Observers(Object id, Priority prio) {
             super(id, Set.of(), null);
-            changed = (tx, o, b, a) -> tx.checkTooManyObservers(tx.root(), observed, a);
+            changed = (tx, o, b, a) -> tx.transaction().checkTooManyObservers(tx, observed, a);
             this.prio = prio;
         }
 

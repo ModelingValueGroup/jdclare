@@ -25,9 +25,9 @@ import org.modelingvalue.collections.util.Context;
 
 public abstract class AbstractLeaf extends Transaction {
 
-    protected static final Context<AbstractLeaf> CURRENT = Context.of();
+    protected static final Context<AbstractLeafRun<?>> CURRENT = Context.of();
 
-    private final Priority                       initPrio;
+    private final Priority                             initPrio;
 
     protected AbstractLeaf(Object id, Compound parent, Priority initPrio) {
         super(id, parent);
@@ -39,75 +39,100 @@ public abstract class AbstractLeaf extends Transaction {
     }
 
     public void trigger() {
-        AbstractLeaf leaf = getCurrent();
+        AbstractLeafRun<?> leaf = getCurrent();
         leaf.trigger(this, initPrio);
     }
-
-    public abstract State state();
 
     @Override
     public boolean isAncestorOf(Transaction child) {
         return false;
     }
 
-    public <O, T> T get(O object, Getable<O, T> property) {
-        if (property instanceof Observed && Constant.DEPTH.get() > 0) {
-            throw new NonDeterministicException("Reading observed '" + property + "' while initializing constant");
-        }
-        return state().get(object, property);
-    }
-
-    public <O, T> T pre(O object, Getable<O, T> property) {
-        return root().preState().get(object, property);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public <O> void clear(O object) {
-        Map<Setable, Object> properties = state().properties(object);
-        if (properties != null) {
-            for (Entry<Setable, Object> e : properties) {
-                set(object, e.getKey(), e.getKey().getDefault());
-            }
-        }
-    }
-
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyObservers(Root root, Observed observed, Set<Observer> obervsers) {
-        if (root.maxNrOfObservers() < obervsers.size()) {
+    protected void checkTooManyObservers(AbstractLeafRun<?> run, Observed observed, Set<Observer> obervsers) {
+        if (run.root().maxNrOfObservers() < obervsers.size()) {
             throw new TooManySubscriptionsException(null, observed, obervsers);
         }
     }
 
-    public abstract <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element);
-
-    public abstract <O, T> T set(O object, Setable<O, T> property, T post);
-
-    protected void trigger(AbstractLeaf leaf, Priority prio) {
-        set(commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
-    }
-
-    protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
-        property.changed(this, object, preValue, postValue);
-    }
-
-    public static Consumer<AbstractLeaf> consumer(Runnable action) {
-        return $ -> CURRENT.run($, action);
-    }
-
-    public static <R> Function<AbstractLeaf, R> function(Supplier<R> supplier) {
-        return $ -> CURRENT.get($, supplier);
-    }
-
-    public static AbstractLeaf getCurrent() {
+    public static AbstractLeafRun<?> getCurrent() {
         return CURRENT.get();
     }
 
-    public static void setCurrent(AbstractLeaf t) {
+    public static Consumer<AbstractLeaf> consumer(Runnable action) {
+        return tx -> {
+            AbstractLeafRun<?> run = tx.startRun();
+            try {
+                CURRENT.run(run, action);
+            } finally {
+                run.stop();
+            }
+        };
+    }
+
+    public static <R> Function<AbstractLeaf, R> function(Supplier<R> supplier) {
+        return tx -> {
+            AbstractLeafRun<?> run = tx.startRun();
+            try {
+                return CURRENT.get(run, supplier);
+            } finally {
+                run.stop();
+            }
+        };
+    }
+
+    public static void setCurrent(AbstractLeafRun<?> t) {
         CURRENT.set(t);
     }
 
-    public void runNonObserving(Runnable action) {
-        action.run();
+    @Override
+    protected abstract AbstractLeafRun<?> startRun();
+
+    public abstract static class AbstractLeafRun<L extends AbstractLeaf> extends TransactionRun<L> {
+
+        protected AbstractLeafRun() {
+            super();
+        }
+
+        public abstract State state();
+
+        public abstract <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element);
+
+        public abstract <O, T> T set(O object, Setable<O, T> property, T post);
+
+        public <O, T> T get(O object, Getable<O, T> property) {
+            if (property instanceof Observed && Constant.DEPTH.get() > 0) {
+                throw new NonDeterministicException("Reading observed '" + property + "' while initializing constant");
+            }
+            return state().get(object, property);
+        }
+
+        public <O, T> T pre(O object, Getable<O, T> property) {
+            return root().preState().get(object, property);
+        }
+
+        protected <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue) {
+            property.changed(this, object, preValue, postValue);
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <O> void clear(O object) {
+            Map<Setable, Object> properties = state().properties(object);
+            if (properties != null) {
+                for (Entry<Setable, Object> e : properties) {
+                    set(object, e.getKey(), e.getKey().getDefault());
+                }
+            }
+        }
+
+        protected void trigger(AbstractLeaf leaf, Priority prio) {
+            set(transaction().commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
+        }
+
+        public void runNonObserving(Runnable action) {
+            action.run();
+        }
+
     }
 
 }

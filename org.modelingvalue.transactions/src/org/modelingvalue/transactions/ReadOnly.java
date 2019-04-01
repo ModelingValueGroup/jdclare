@@ -22,8 +22,6 @@ public class ReadOnly extends AbstractLeaf {
         return new ReadOnly(id, root);
     }
 
-    private State[] states;
-
     private ReadOnly(Object id, Root root) {
         super(id, root, Priority.mid);
     }
@@ -34,53 +32,80 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     public <R> R get(Supplier<R> action, State... states) {
-        this.states = states;
+        ReadOnlyRun run = startRun();
+        run.states = states;
         try {
-            return CURRENT.get(this, action);
+            return CURRENT.get(run, action);
         } finally {
-            this.states = null;
+            stopRun(run);
         }
     }
 
     public void run(Runnable action, State... states) {
-        this.states = states;
+        ReadOnlyRun run = startRun();
+        run.states = states;
         try {
-            CURRENT.run(this, action);
+            CURRENT.run(run, action);
         } finally {
-            this.states = null;
+            stopRun(run);
         }
     }
 
     @Override
-    public State state() {
-        return states[0];
+    protected ReadOnlyRun startRun() {
+        return root().readOnlyRuns.get().open(this);
     }
 
     @Override
-    public <O, T> T get(O object, Getable<O, T> property) {
-        T def = property.getDefault();
-        for (State state : states) {
-            T val = state.get(object, property);
-            if (val != def) {
-                return val;
+    protected void stopRun(TransactionRun<?> run) {
+        root().readOnlyRuns.get().close((ReadOnlyRun) run);
+    }
+
+    protected static class ReadOnlyRun extends AbstractLeafRun<ReadOnly> {
+        private State[] states;
+
+        protected ReadOnlyRun() {
+            super();
+        }
+
+        @Override
+        public State state() {
+            return states[0];
+        }
+
+        @Override
+        public <O, T> T get(O object, Getable<O, T> property) {
+            T def = property.getDefault();
+            for (State state : states) {
+                T val = state.get(object, property);
+                if (val != def) {
+                    return val;
+                }
             }
+            return def;
         }
-        return def;
-    }
 
-    @Override
-    public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        throw new UnsupportedOperationException();
-    }
+        @Override
+        public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
+            throw new UnsupportedOperationException();
+        }
 
-    @Override
-    public <O, T> T set(O object, Setable<O, T> property, T post) {
-        throw new UnsupportedOperationException();
-    }
+        @Override
+        public <O, T> T set(O object, Setable<O, T> property, T post) {
+            throw new UnsupportedOperationException();
+        }
 
-    @Override
-    protected void trigger(AbstractLeaf leaf, Priority prio) {
-        // Do nothing
+        @Override
+        protected void trigger(AbstractLeaf leaf, Priority prio) {
+            // Do nothing
+        }
+
+        @Override
+        protected void stop() {
+            super.stop();
+            states = null;
+        }
+
     }
 
 }

@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.util.QuadConsumer;
+import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public class Setable<O, T> extends Getable<O, T> {
 
@@ -25,18 +26,18 @@ public class Setable<O, T> extends Getable<O, T> {
         return of(id, def, null);
     }
 
-    public static <C, V> Setable<C, V> of(Object id, V def, QuadConsumer<AbstractLeaf, C, V, V> changed) {
+    public static <C, V> Setable<C, V> of(Object id, V def, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
         return new Setable<C, V>(id, def, changed);
     }
 
-    protected QuadConsumer<AbstractLeaf, O, T, T> changed;
+    protected QuadConsumer<AbstractLeafRun<?>, O, T, T> changed;
 
-    protected Setable(Object id, T def, QuadConsumer<AbstractLeaf, O, T, T> changed) {
+    protected Setable(Object id, T def, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
         super(id, def);
         this.changed = changed;
     }
 
-    protected void changed(AbstractLeaf $, O object, T preValue, T postValue) {
+    protected void changed(AbstractLeafRun<?> $, O object, T preValue, T postValue) {
         if (changed != null) {
             changed.accept($, object, preValue, postValue);
         }

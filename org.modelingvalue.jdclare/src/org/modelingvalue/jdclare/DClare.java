@@ -94,6 +94,7 @@ import org.modelingvalue.jdclare.types.DType;
 import org.modelingvalue.jdclare.types.DTypeParameterReference;
 import org.modelingvalue.jdclare.types.DWildcardType;
 import org.modelingvalue.transactions.AbstractLeaf;
+import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 import org.modelingvalue.transactions.Compound;
 import org.modelingvalue.transactions.Constant;
 import org.modelingvalue.transactions.Getable;
@@ -122,7 +123,7 @@ public final class DClare<U extends DUniverse> extends Root {
     private static final String                                                  DEFAULT                      = "DEFAULT";
     private static final String                                                  CONSTRAINTS                  = "CONSTRAINTS";
 
-    private static final Set<Class<?>>                                           DSTRUCTS                     = Set.of(DStruct0.class, DStruct1.class, DStruct2.class, DStruct3.class, DStruct4.class,                                        //
+    private static final Set<Class<?>>                                           DSTRUCTS                     = Set.of(DStruct0.class, DStruct1.class, DStruct2.class, DStruct3.class, DStruct4.class,                                              //
             DStruct5.class, DStruct6.class, DStruct7.class, DStruct8.class, DStruct9.class, DStruct10.class);
 
     private static final Method                                                  HASH_CODE                    = method(Object::hashCode);
@@ -156,8 +157,8 @@ public final class DClare<U extends DUniverse> extends Root {
     public static final Setable<DObject, Compound>                               TRANSACTION                  = Setable.of("dTransaction", null);
 
     private static final Setable<Compound, Set<Compound>>                        CHILDREN_TRANSACTIONS        = Setable.of("dChildrenTransactions", Set.of(), ($, o, b, a) -> {
-                                                                                                                  Setable.<Set<Compound>, Compound> diff(Set.<Compound> of(), b, a,                                                           //
-                                                                                                                          nc -> start((DObject) nc.getId(), nc),                                                                              //
+                                                                                                                  Setable.<Set<Compound>, Compound> diff(Set.<Compound> of(), b, a,                                                                 //
+                                                                                                                          nc -> start((DObject) nc.getId(), nc),                                                                                    //
                                                                                                                           oc -> stop((DObject) oc.getId(), oc));
                                                                                                               });
 
@@ -188,7 +189,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                               });
 
     private static final Constant<Method, DProperty>                             PROPERTY                     = Constant.of("dProperty", (Method m) -> {
-                                                                                                                  if (m.getReturnType() != Void.TYPE && !m.isSynthetic() && m.getParameterCount() == 0 &&                                     //
+                                                                                                                  if (m.getReturnType() != Void.TYPE && !m.isSynthetic() && m.getParameterCount() == 0 &&                                           //
                                                                                                                   (ann(m, Property.class) != null || extend(m, JProperty.class) != JProperty.class)) {
                                                                                                                       dClass(m.getDeclaringClass());
                                                                                                                       return dclare(extend(m, JProperty.class), m);
@@ -199,19 +200,19 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static final Constant<DProperty, Getable>                            GETABLE                      = Constant.of("dGetable", p -> {
                                                                                                                   Object d = p.key() ? null : p.defaultValue();
-                                                                                                                  QuadConsumer<AbstractLeaf, DStruct, Object, Object> changed =                                                               //                                                          //
-                                                                                                                          p.containment() ? ($, o, b, a) -> containment($, o, p, d, b, a) :                                                   //
+                                                                                                                  QuadConsumer<AbstractLeafRun<?>, DStruct, Object, Object> changed =                                                               //                                                          //
+                                                                                                                          p.containment() ? ($, o, b, a) -> containment($, o, p, d, b, a) :                                                         //
                                                                                                                   p.opposite() != null ? ($, o, b, a) -> opposite($, p.opposite(), o, d, b, a) : null;
-                                                                                                                  return p.key() ? new KeyGetable(p, p.keyNr(), changed) : p.constant() ?                                                     //
-                                                                                                                  Constant.of(p, d, p.derived() ? p.deriver() : null, changed) :                                                              //
-                                                                                                                  (p.mandatory() && (d == null || d instanceof ContainingCollection)) ?                                                       //
+                                                                                                                  return p.key() ? new KeyGetable(p, p.keyNr(), changed) : p.constant() ?                                                           //
+                                                                                                                  Constant.of(p, d, p.derived() ? p.deriver() : null, changed) :                                                                    //
+                                                                                                                  (p.mandatory() && (d == null || d instanceof ContainingCollection)) ?                                                             //
                                                                                                                   MandatoryObserved.of(p, d, changed) : Observed.of(p, d, changed);
                                                                                                               });
 
     public static final Getable<Method, JRule>                                   RULE                         = Constant.of("dRule", (Method m) -> {
-                                                                                                                  if (m.getParameterCount() == 0 && !m.isSynthetic() && (m.isDefault() || Modifier.isPrivate(m.getModifiers())) &&            //
-                                                                                                                  (ann(m, Property.class) != null || ann(m, Rule.class) != null ||                                                            //
-                                                                                                                  extend(m, JProperty.class) != JProperty.class || extend(m, JRule.class) != JRule.class) &&                                  //
+                                                                                                                  if (m.getParameterCount() == 0 && !m.isSynthetic() && (m.isDefault() || Modifier.isPrivate(m.getModifiers())) &&                  //
+                                                                                                                  (ann(m, Property.class) != null || ann(m, Rule.class) != null ||                                                                  //
+                                                                                                                  extend(m, JProperty.class) != JProperty.class || extend(m, JRule.class) != JRule.class) &&                                        //
                                                                                                                   !m.isAnnotationPresent(Default.class) && !qual(m, constant)) {
                                                                                                                       return dclare(extend(m, JRule.class), m);
                                                                                                                   } else {
@@ -221,8 +222,8 @@ public final class DClare<U extends DUniverse> extends Root {
 
     public static final Getable<Pair<Method, List<Class>>, JFunction>            FUNCTION                     = Constant.of("dFunction", (Pair<Method, List<Class>> p) -> {
                                                                                                                   Method m = p.a();
-                                                                                                                  if (m.getReturnType() != Void.TYPE && !m.isSynthetic() && ann(m, Constraints.class) == null &&                              //
-                                                                                                                  ann(m, Property.class) == null && extend(m, JProperty.class) == JProperty.class &&                                          //
+                                                                                                                  if (m.getReturnType() != Void.TYPE && !m.isSynthetic() && ann(m, Constraints.class) == null &&                                    //
+                                                                                                                  ann(m, Property.class) == null && extend(m, JProperty.class) == JProperty.class &&                                                //
                                                                                                                   (m.getModifiers() & (Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC) {
                                                                                                                       return dclare(extend(m, JFunction.class), m);
                                                                                                                   } else {
@@ -232,8 +233,8 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static final Getable<Pair<Method, List<Class>>, JConstraint>         CONSTRAINT                   = Constant.of("dConstraint", (Pair<Method, List<Class>> p) -> {
                                                                                                                   Method m = p.a();
-                                                                                                                  if (m.getReturnType() == Void.TYPE && !m.isSynthetic() && ann(m, Constraints.class) == null &&                              //
-                                                                                                                  !m.isAnnotationPresent(Rule.class) && extend(m, JRule.class) == JRule.class &&                                              //
+                                                                                                                  if (m.getReturnType() == Void.TYPE && !m.isSynthetic() && ann(m, Constraints.class) == null &&                                    //
+                                                                                                                  !m.isAnnotationPresent(Rule.class) && extend(m, JRule.class) == JRule.class &&                                                    //
                                                                                                                   (m.getModifiers() & (Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC) {
                                                                                                                       return dclare(extend(m, JConstraint.class), m);
                                                                                                                   } else {
@@ -243,7 +244,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static final Getable<Pair<Method, List<Class>>, SFunction>           STATIC_FUNCTION              = Constant.of("dStaticFunction", (Pair<Method, List<Class>> p) -> {
                                                                                                                   Method m = p.a();
-                                                                                                                  if (m.getParameterCount() > 0 && m.getReturnType() != Void.TYPE &&                                                          //
+                                                                                                                  if (m.getParameterCount() > 0 && m.getReturnType() != Void.TYPE &&                                                                //
                                                                                                                   (m.getModifiers() & Modifier.STATIC) != 0 && ann(m, Constraints.class) == null) {
                                                                                                                       return dclare(extend(m, SFunction.class), m);
                                                                                                                   } else {
@@ -256,13 +257,13 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   if (i > 0) {
                                                                                                                       DPackage pp = DClare.PACKAGE.get(n.substring(0, i));
                                                                                                                       SPackage d = dclare(SPackage.class, pp, n.substring(i + 1));
-                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                  //
+                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                        //
                                                                                                                               () -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d)).trigger();
                                                                                                                       return d;
                                                                                                                   } else {
                                                                                                                       DUniverse universe = dUniverse();
                                                                                                                       SPackage d = dclare(SPackage.class, universe, n);
-                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                  //
+                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                        //
                                                                                                                               () -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d)).trigger();
                                                                                                                       return d;
                                                                                                                   }
@@ -378,7 +379,7 @@ public final class DClare<U extends DUniverse> extends Root {
     }
 
     public static DClare<?> dClare() {
-        return dClare(Leaf.getCurrent());
+        return dClare(Leaf.getCurrent().transaction());
     }
 
     public static DClare<?> dClare(Transaction tx) {
@@ -673,7 +674,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static void stop(DObject dObject, Compound tx) {
         TRANSACTION.set(dObject, (t, ptx) -> Objects.equals(ptx, t) ? null : t, tx);
-        AbstractLeaf current = AbstractLeaf.getCurrent();
+        AbstractLeafRun<?> current = AbstractLeaf.getCurrent();
         current.clear(Observer.of(D_START_CHILDREN, tx, null));
         current.clear(Observer.of(D_START_OBSERVERS, tx, null));
         current.clear(Observer.of(D_START_CONSTANT_CONTAINMENT, tx, null));
@@ -911,7 +912,7 @@ public final class DClare<U extends DUniverse> extends Root {
         }
     }
 
-    private static <O extends DStruct, V> void opposite(Transaction tx, DProperty opposite, O object, V def, V pre, V post) {
+    private static <O extends DStruct, V> void opposite(TransactionRun tx, DProperty opposite, O object, V def, V pre, V post) {
         Setable.diff(def, pre, post, //
                 a -> addOpposite(object, opposite, (DObject) a), //
                 r -> removeOpposite(object, opposite, (DObject) r));
@@ -925,7 +926,7 @@ public final class DClare<U extends DUniverse> extends Root {
         setable(opposite).set(oppos, (v, o) -> v instanceof ContainingCollection ? ((ContainingCollection) v).remove(o) : o.equals(v) ? null : v, element);
     }
 
-    private static <O extends DStruct, V> void containment(Transaction tx, O object, DProperty newCp, V def, V pre, V post) {
+    private static <O extends DStruct, V> void containment(TransactionRun tx, O object, DProperty newCp, V def, V pre, V post) {
         Setable<DObject, DObject> dParent = setable(D_PARENT);
         Setable<DObject, DProperty> dContainmentProperty = setable(D_CONTAINMENT_PROPERTY);
         Setable<DObject, Set<DObject>> dChildren = setable(D_CHILDREN);
@@ -1430,7 +1431,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private void clearOrphans() {
         if (!isTimeTraveling()) {
-            AbstractLeaf tx = AbstractLeaf.getCurrent();
+            AbstractLeafRun tx = AbstractLeaf.getCurrent();
             preState().diff(tx.state(), o -> o instanceof DObject, s -> true).forEach(e0 -> {
                 if (TRANSACTION.get((DObject) e0.getKey()) == null) {
                     tx.clear(e0.getKey());
@@ -1523,7 +1524,7 @@ public final class DClare<U extends DUniverse> extends Root {
         DProperty property = dclare(extend(method, JProperty.class), method);
         PROPERTY.force(method, property);
         Object defaultValue = defaultValue(method, false);
-        QuadConsumer<AbstractLeaf, DObject, Object, Object> changed = ($, o, b, a) -> containment($, o, property, defaultValue, b, a);
+        QuadConsumer<AbstractLeafRun<?>, DObject, Object, Object> changed = ($, o, b, a) -> containment($, o, property, defaultValue, b, a);
         Observed setable = Observed.of(property, defaultValue, changed);
         GETABLE.force(property, setable);
         return setable;
@@ -1600,7 +1601,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
         private final int keyNr;
 
-        protected KeyGetable(Object id, int keyNr, QuadConsumer<AbstractLeaf, DStruct, Object, Object> changed) {
+        protected KeyGetable(Object id, int keyNr, QuadConsumer<AbstractLeafRun<?>, DStruct, Object, Object> changed) {
             super(id, null);
             this.keyNr = keyNr;
             if (changed != null) {

@@ -34,62 +34,30 @@ public class Leaf extends AbstractLeaf {
         return new Leaf(id, parent, action, initPrio);
     }
 
-    private final Runnable                                 action;
-    @SuppressWarnings("rawtypes")
-    private Concurrent<Map<Pair<Object, Setable>, Object>> setted = new Setted();
-    private State                                          preState;
+    private final Runnable action;
 
     protected Leaf(Object id, Compound parent, Runnable action, Priority initPrio) {
         super(id, parent, initPrio);
         this.action = action;
     }
 
-    @Override
-    public State state() {
-        if (preState == null) {
-            throw new ConcurrentModificationException();
-        }
-        return preState;
-    }
-
-    protected void init(State state) {
-        if (preState != null) {
-            throw new ConcurrentModificationException();
-        }
-        setted.init(Map.of());
-        preState = state;
-    }
-
-    protected void clear() {
-        setted.clear();
-        preState = null;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    protected State result() {
-        State result = state();
-        for (Entry<Pair<Object, Setable>, Object> set : setted.result()) {
-            result = result.set(set.getKey().get0(), set.getKey().get1(), set.getValue());
-        }
-        preState = null;
-        return result;
+    protected void run(LeafRun<?> run, State pre, Root root) {
+        action.run();
     }
 
     @Override
     protected State run(State state, Root root, Priority prio) {
         TraceTimer.traceBegin(traceId());
         super.run(state, root, prio);
+        LeafRun<?> run = startRun();
+        run.init(state);
         try {
-            init(state);
-            CURRENT.run(this, () -> run(state, root));
-            return result();
+            CURRENT.run(run, () -> run(run, state, root));
+            return run.result();
         } finally {
+            stopRun(run);
             TraceTimer.traceEnd(traceId());
         }
-    }
-
-    protected void run(State pre, Root root) {
-        action.run();
     }
 
     protected String traceId() {
@@ -97,72 +65,121 @@ public class Leaf extends AbstractLeaf {
     }
 
     @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        Pair<Object, Setable> slot = Pair.of(object, property);
-        T prePre = state().get(object, property);
-        Map<Pair<Object, Setable>, Object> map = setted.get();
-        Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
-        T post = function.apply(bra == null ? prePre : (T) bra.getValue(), element);
-        return set(object, property, post, slot, prePre, map, bra);
+    protected LeafRun<?> startRun() {
+        return root().leafRuns.get().open(this);
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public <O, T> T set(O object, Setable<O, T> property, T post) {
-        Pair<Object, Setable> slot = Pair.of(object, property);
-        T prePre = state().get(object, property);
-        Map<Pair<Object, Setable>, Object> map = setted.get();
-        Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
-        return set(object, property, post, slot, prePre, map, bra);
+    @SuppressWarnings("unchecked")
+    protected void stopRun(TransactionRun<?> run) {
+        root().leafRuns.get().close((LeafRun<Leaf>) run);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private <O, T> T set(O object, Setable<O, T> property, T post, Pair<Object, Setable> slot, T prePre, Map<Pair<Object, Setable>, Object> map, Entry<Pair<Object, Setable>, Object> bra) {
-        T pre = bra == null ? prePre : (T) bra.getValue();
-        if (!Objects.equals(pre, post)) {
-            if (bra != null) {
-                post = (T) merge(slot, prePre, pre, post);
-            }
-            setted.set(map.put(slot, post));
-            changed(object, property, pre, post);
-        }
-        return prePre;
-    }
+    public static class LeafRun<L extends Leaf> extends AbstractLeafRun<L> {
+        @SuppressWarnings("rawtypes")
+        private Concurrent<Map<Pair<Object, Setable>, Object>> setted = new Setted();
+        private State                                          preState;
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private final class Setted extends Concurrent<Map<Pair<Object, Setable>, Object>> {
         @Override
-        protected Map<Pair<Object, Setable>, Object> merge(Map<Pair<Object, Setable>, Object> base, Map<Pair<Object, Setable>, Object>[] branches) {
-            for (Map<Pair<Object, Setable>, Object> b : branches) {
-                for (Entry<Pair<Object, Setable>, Object> e : b) {
-                    Pair<Object, Setable> slot = e.getKey();
-                    Object post = e.getValue();
-                    Entry<Pair<Object, Setable>, Object> bra = base.getEntry(slot);
-                    if (bra != null && !Objects.equals(bra.getValue(), post)) {
-                        post = Leaf.this.merge(slot, Leaf.this.state().get(slot.a(), slot.b()), bra.getValue(), post);
-                    }
-                    base = base.put(slot, post);
-                }
+        public State state() {
+            if (preState == null) {
+                throw new ConcurrentModificationException();
             }
-            return base;
+            return preState;
         }
-    }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private Object merge(Pair<Object, Setable> slot, Object prePre, Object pre, Object post) {
-        if (pre == null) {
-            return post;
-        } else if (post == null) {
-            return pre;
-        } else if (prePre instanceof Mergeable) {
-            return ((Mergeable) prePre).merge2(pre, post);
-        } else if (slot.b() instanceof Observed && this instanceof Observer) {
-            trigger(this, Priority.low);
-            return post;
-        } else {
-            throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);
+        protected void init(State state) {
+            if (preState != null) {
+                throw new ConcurrentModificationException();
+            }
+            setted.init(Map.of());
+            preState = state;
         }
+
+        protected void clear() {
+            setted.clear();
+            preState = null;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected State result() {
+            State result = state();
+            for (Entry<Pair<Object, Setable>, Object> set : setted.result()) {
+                result = result.set(set.getKey().get0(), set.getKey().get1(), set.getValue());
+            }
+            preState = null;
+            return result;
+        }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
+            Pair<Object, Setable> slot = Pair.of(object, property);
+            T prePre = state().get(object, property);
+            Map<Pair<Object, Setable>, Object> map = setted.get();
+            Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
+            T post = function.apply(bra == null ? prePre : (T) bra.getValue(), element);
+            return set(object, property, post, slot, prePre, map, bra);
+        }
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public <O, T> T set(O object, Setable<O, T> property, T post) {
+            Pair<Object, Setable> slot = Pair.of(object, property);
+            T prePre = state().get(object, property);
+            Map<Pair<Object, Setable>, Object> map = setted.get();
+            Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
+            return set(object, property, post, slot, prePre, map, bra);
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private <O, T> T set(O object, Setable<O, T> property, T post, Pair<Object, Setable> slot, T prePre, Map<Pair<Object, Setable>, Object> map, Entry<Pair<Object, Setable>, Object> bra) {
+            T pre = bra == null ? prePre : (T) bra.getValue();
+            if (!Objects.equals(pre, post)) {
+                if (bra != null) {
+                    post = (T) merge(slot, prePre, pre, post);
+                }
+                setted.set(map.put(slot, post));
+                changed(object, property, pre, post);
+            }
+            return prePre;
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private final class Setted extends Concurrent<Map<Pair<Object, Setable>, Object>> {
+            @Override
+            protected Map<Pair<Object, Setable>, Object> merge(Map<Pair<Object, Setable>, Object> base, Map<Pair<Object, Setable>, Object>[] branches) {
+                for (Map<Pair<Object, Setable>, Object> b : branches) {
+                    for (Entry<Pair<Object, Setable>, Object> e : b) {
+                        Pair<Object, Setable> slot = e.getKey();
+                        Object post = e.getValue();
+                        Entry<Pair<Object, Setable>, Object> bra = base.getEntry(slot);
+                        if (bra != null && !Objects.equals(bra.getValue(), post)) {
+                            post = LeafRun.this.merge(slot, LeafRun.this.state().get(slot.a(), slot.b()), bra.getValue(), post);
+                        }
+                        base = base.put(slot, post);
+                    }
+                }
+                return base;
+            }
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private Object merge(Pair<Object, Setable> slot, Object prePre, Object pre, Object post) {
+            if (pre == null) {
+                return post;
+            } else if (post == null) {
+                return pre;
+            } else if (prePre instanceof Mergeable) {
+                return ((Mergeable) prePre).merge2(pre, post);
+            } else if (slot.b() instanceof Observed && transaction() instanceof Observer) {
+                trigger(transaction(), Priority.low);
+                return post;
+            } else {
+                throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);
+            }
+        }
+
     }
 
 }

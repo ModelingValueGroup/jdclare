@@ -15,6 +15,7 @@ package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.util.QuadConsumer;
+import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public class MandatoryObserved<O, T> extends Observed<O, T> {
 
@@ -22,11 +23,11 @@ public class MandatoryObserved<O, T> extends Observed<O, T> {
         return of(id, def, null);
     }
 
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, QuadConsumer<AbstractLeaf, C, V, V> changed) {
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
         return new MandatoryObserved<C, V>(id, def, changed);
     }
 
-    protected MandatoryObserved(Object id, T def, QuadConsumer<AbstractLeaf, O, T, T> changed) {
+    protected MandatoryObserved(Object id, T def, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
         super(id, def, changed);
     }
 
