@@ -19,25 +19,18 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.TraceTimer;
+import org.modelingvalue.transactions.Rule.Observerds;
 
 public class Observer extends Leaf {
 
     public static final Setable<Observer, Set<ObserverTrace>> TRACES = Setable.of("TRACES", Set.of());
 
-    private static final Observerds[]                         OBSERVEDS;
-    static {
-        OBSERVEDS = new Observerds[Priority.values().length];
-        for (int i = 0; i < OBSERVEDS.length; i++) {
-            OBSERVEDS[i] = Observerds.of(Priority.values()[i]);
-        }
+    public static Observer of(Rule rule, Compound parent, Runnable action) {
+        return of(rule, parent, action, Priority.mid);
     }
 
-    public static Observer of(Object id, Compound parent, Runnable action) {
-        return of(id, parent, action, Priority.mid);
-    }
-
-    public static Observer of(Object id, Compound parent, Runnable action, Priority initPrio) {
-        return new Observer(id, parent, action, initPrio);
+    public static Observer of(Rule rule, Compound parent, Runnable action, Priority initPrio) {
+        return new Observer(rule, parent, action, initPrio);
     }
 
     private long    runCount  = -1;
@@ -45,8 +38,12 @@ public class Observer extends Leaf {
     private boolean stopped;
     private boolean firstTime = true;
 
-    public Observer(Object id, Compound parent, Runnable action, Priority initPrio) {
-        super(id, parent, action, initPrio);
+    public Observer(Rule rule, Compound parent, Runnable action, Priority initPrio) {
+        super(rule, parent, action, initPrio);
+    }
+
+    public Rule rule() {
+        return (Rule) getId();
     }
 
     @Override
@@ -99,11 +96,12 @@ public class Observer extends Leaf {
 
     protected void observe(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
         gets = gets.removeAll(sets);
-        OBSERVEDS[2].set(this, sets);
+        Observerds[] observeds = rule().observeds();
+        observeds[2].set(parent.getId(), sets);
         if (initPrio() == Priority.high) {
-            OBSERVEDS[0].set(this, gets);
+            observeds[0].set(parent.getId(), gets);
         } else {
-            OBSERVEDS[1].set(this, gets);
+            observeds[1].set(parent.getId(), gets);
         }
         checkTooManyObserved(run, sets, gets);
     }
@@ -234,26 +232,6 @@ public class Observer extends Leaf {
                 transaction().countChanges(this, (Observed) setable);
                 trigger(transaction(), Priority.low);
             }
-        }
-
-    }
-
-    private static final class Observerds extends Setable<Observer, Set<Slot>> {
-
-        public static Observerds of(Priority prio) {
-            return new Observerds(prio, prio);
-        }
-
-        @SuppressWarnings("unchecked")
-        private Observerds(Object id, Priority prio) {
-            super(id, Set.of(), ($, constr, pre, post) -> pre.compare(post).forEach(d -> {
-                if (d[0] == null) {
-                    d[1].forEach(n -> $.set(n.object(), n.property().observers(prio), Set<Leaf>::add, constr));
-                }
-                if (d[1] == null) {
-                    d[0].forEach(o -> $.set(o.object(), o.property().observers(prio), Set<Leaf>::remove, constr));
-                }
-            }));
         }
 
     }

@@ -104,6 +104,7 @@ import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Priority;
 import org.modelingvalue.transactions.Root;
+import org.modelingvalue.transactions.Rule.Observerds;
 import org.modelingvalue.transactions.Setable;
 import org.modelingvalue.transactions.State;
 import org.modelingvalue.transactions.StopObserverException;
@@ -116,9 +117,9 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static final ContextPool                                             THE_POOL                     = ContextThread.createPool();
 
-    private static final String                                                  D_START_CONSTANT_CONTAINMENT = "dStartConstantContainment";
-    private static final String                                                  D_START_OBSERVERS            = "dStartObservers";
-    private static final String                                                  D_START_CHILDREN             = "dStartChildren";
+    private static final org.modelingvalue.transactions.Rule                     D_START_CONSTANT_CONTAINMENT = new org.modelingvalue.transactions.Rule("dStartConstantContainment");
+    private static final org.modelingvalue.transactions.Rule                     D_START_OBSERVERS            = new org.modelingvalue.transactions.Rule("dStartObservers");
+    private static final org.modelingvalue.transactions.Rule                     D_START_CHILDREN             = new org.modelingvalue.transactions.Rule("dStartChildren");
 
     private static final String                                                  DEFAULT                      = "DEFAULT";
     private static final String                                                  CONSTRAINTS                  = "CONSTRAINTS";
@@ -163,7 +164,12 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                               });
 
     private static final Setable<Compound, Set<Observer>>                        OBSERVERS                    = Setable.of("dObservers", Set.of(), ($, o, b, a) -> {
-                                                                                                                  Setable.<Set<Observer>, Observer> diff(Set.of(), b, a, Leaf::trigger, $::clear);
+                                                                                                                  Setable.<Set<Observer>, Observer> diff(Set.of(), b, a, Leaf::trigger,                                                             //
+                                                                                                                          r -> {
+                                                                                                                              for (Observerds obs : r.rule().observeds()) {
+                                                                                                                                  obs.set(r.parent().getId(), obs.getDefault());
+                                                                                                                              }                                                                                                                     //
+                                                                                                                          });
                                                                                                               });
 
     public static final Context<State>                                           CLASS_INIT_STATE             = Context.of();
@@ -707,7 +713,7 @@ public final class DClare<U extends DUniverse> extends Root {
             if (tx.equals(TRANSACTION.get(dObject))) {
                 Set<DRule> objectRules = dObject.dObjectClass().allRules().addAll(dObject.dObjectRules());
                 OBSERVERS.set(tx, objectRules.addAll(dClare(tx).bootsTrap(dObject)).map(//
-                        rule -> Observer.of(rule, tx, () -> {
+                        rule -> Observer.of(rule.rule(), tx, () -> {
                             if (tx.equals(TRANSACTION.get(dObject))) {
                                 rule.run(dObject);
                             } else {
