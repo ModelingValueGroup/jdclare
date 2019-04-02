@@ -55,7 +55,7 @@ public class Observed<O, T> extends Setable<O, T> {
             }
             for (Observers<O, T> observ : observers) {
                 for (Observer obs : l.get(o, observ)) {
-                    if (!l.equals(obs)) {
+                    if (!l.transaction().equals(obs)) {
                         l.trigger(obs, observ.prio());
                     }
                 }
