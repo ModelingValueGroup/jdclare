@@ -23,6 +23,7 @@ import org.modelingvalue.transactions.Compound;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Root;
+import org.modelingvalue.transactions.Rule;
 import org.modelingvalue.transactions.State;
 
 public class TransactionsTests {
@@ -35,8 +36,9 @@ public class TransactionsTests {
         Observed<String, Integer> A = Observed.of("A", 0);
         String obj = "o";
         Root root = Root.of("R", THE_POOL, 100);
+        Rule rule = new Rule("X");
         root.put("P", () -> {
-            Observer.of("X", root, () -> {
+            Observer.of(rule, root, () -> {
                 A.get(obj);
                 A.set(obj, 10);
             }).trigger();
@@ -56,7 +58,7 @@ public class TransactionsTests {
             for (int io = 0; io < 8; io++) {
                 Compound o = Compound.of("O" + io, root);
                 for (int il = 0; il < 8; il++) {
-                    Observer.of("L" + il, o, () -> {
+                    Observer.of(new Rule("L" + il), o, () -> {
                         long time = TIME_MILLIS.get(root);
                         System.err.println("TIME: " + time);
                         if (time - begin > 1000) {
@@ -88,7 +90,7 @@ public class TransactionsTests {
             for (int io = 0; io < depth; io++) {
                 Compound o = Compound.of("O" + io, root);
                 Compound p = last[0];
-                Observer.of("C" + io, o, () -> {
+                Observer.of(new Rule("C" + io), o, () -> {
                     TOT.set(o, NR.get(o) + (p != null ? TOT.get(p) : 0));
                 }).trigger();
                 NR.set(o, 1);

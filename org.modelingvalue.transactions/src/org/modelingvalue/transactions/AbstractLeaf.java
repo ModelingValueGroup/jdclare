@@ -126,7 +126,7 @@ public abstract class AbstractLeaf extends Transaction {
         }
 
         protected void trigger(AbstractLeaf leaf, Priority prio) {
-            set(transaction().commonAncestor(leaf.parent), prio.leafTriggered, Set::add, leaf);
+            set(transaction().commonAncestor(leaf.parent).getId(), prio.leafTriggered, Set::add, leaf);
         }
 
         public void runNonObserving(Runnable action) {
