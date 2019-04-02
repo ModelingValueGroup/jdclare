@@ -327,5 +327,4 @@ public interface BirdUniverse extends DUniverse {
     		RedCondorUniverse.super.init();
         }
     }
-    
 }
