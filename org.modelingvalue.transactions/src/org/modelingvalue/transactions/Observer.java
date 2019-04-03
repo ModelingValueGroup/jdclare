@@ -110,7 +110,7 @@ public class Observer extends Leaf {
 
     protected void checkTooManyObserved(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
         if (run.root().maxNrOfObserved() < gets.size() + sets.size()) {
-            throw new TooManySubscriptionsException(this, null, gets.addAll(sets));
+            throw new TooManyObservedException(this, gets.addAll(sets));
         }
     }
 
