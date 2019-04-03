@@ -181,6 +181,11 @@ public class Root extends Compound {
         });
     }
 
+    @Override
+    public Root root() {
+        return this;
+    }
+
     protected State run(State state) {
         return run(state, this, Priority.low);
     }

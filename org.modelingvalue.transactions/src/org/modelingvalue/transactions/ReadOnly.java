@@ -32,7 +32,7 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     public <R> R get(Supplier<R> action, State... states) {
-        ReadOnlyRun run = startRun();
+        ReadOnlyRun run = startRun(states[0].root());
         run.states = states;
         try {
             return CURRENT.get(run, action);
@@ -42,7 +42,7 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     public void run(Runnable action, State... states) {
-        ReadOnlyRun run = startRun();
+        ReadOnlyRun run = startRun(states[0].root());
         run.states = states;
         try {
             CURRENT.run(run, action);
@@ -52,8 +52,8 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     @Override
-    protected ReadOnlyRun startRun() {
-        return root().readOnlyRuns.get().open(this);
+    protected ReadOnlyRun startRun(Root root) {
+        return root().readOnlyRuns.get().open(this, root);
     }
 
     @Override

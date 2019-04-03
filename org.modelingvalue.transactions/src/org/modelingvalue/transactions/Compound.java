@@ -71,12 +71,11 @@ public class Compound extends Transaction {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    @SuppressWarnings("unchecked")
     protected State run(State state, Root root, Priority maxPrio) {
         TraceTimer.traceBegin("compound");
-        state = super.run(state, root, maxPrio);
-        CompoundRun run = startRun();
+        CompoundRun run = startRun(root);
         try {
             Set<Transaction>[] ts = new Set[1];
             State[] sa = new State[]{state};
@@ -188,8 +187,8 @@ public class Compound extends Transaction {
     }
 
     @Override
-    protected CompoundRun startRun() {
-        return root().compoundRuns.get().open(this);
+    protected CompoundRun startRun(Root root) {
+        return root().compoundRuns.get().open(this, root);
     }
 
     @Override
@@ -212,8 +211,8 @@ public class Compound extends Transaction {
         }
 
         @Override
-        protected void start(Compound transaction) {
-            super.start(transaction);
+        protected void start(Compound transaction, Root root) {
+            super.start(transaction, root);
             merger = ReadOnly.of(Pair.of(transaction, "merger"), transaction.root());
         }
 

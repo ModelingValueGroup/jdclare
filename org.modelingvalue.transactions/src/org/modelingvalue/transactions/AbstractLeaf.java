@@ -14,9 +14,6 @@
 package org.modelingvalue.transactions;
 
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
@@ -59,34 +56,12 @@ public abstract class AbstractLeaf extends Transaction {
         return CURRENT.get();
     }
 
-    public static Consumer<AbstractLeaf> consumer(Runnable action) {
-        return tx -> {
-            AbstractLeafRun<?> run = tx.startRun();
-            try {
-                CURRENT.run(run, action);
-            } finally {
-                run.stop();
-            }
-        };
-    }
-
-    public static <R> Function<AbstractLeaf, R> function(Supplier<R> supplier) {
-        return tx -> {
-            AbstractLeafRun<?> run = tx.startRun();
-            try {
-                return CURRENT.get(run, supplier);
-            } finally {
-                run.stop();
-            }
-        };
-    }
-
     public static void setCurrent(AbstractLeafRun<?> t) {
         CURRENT.set(t);
     }
 
     @Override
-    protected abstract AbstractLeafRun<?> startRun();
+    protected abstract AbstractLeafRun<?> startRun(Root root);
 
     public abstract static class AbstractLeafRun<L extends AbstractLeaf> extends TransactionRun<L> {
 
