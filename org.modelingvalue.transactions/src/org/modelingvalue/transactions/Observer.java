@@ -155,8 +155,8 @@ public class Observer extends Leaf {
     }
 
     @Override
-    protected ObserverRun startRun() {
-        return root().observerRuns.get().open(this);
+    protected ObserverRun startRun(Root root) {
+        return root().observerRuns.get().open(this, root);
     }
 
     @Override
