@@ -94,7 +94,7 @@ public class Observer extends Leaf {
         }
     }
 
-    protected void observe(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
+    private void observe(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
         gets = gets.removeAll(sets);
         Observerds[] observeds = rule().observeds();
         observeds[2].set(parent.getId(), sets);
