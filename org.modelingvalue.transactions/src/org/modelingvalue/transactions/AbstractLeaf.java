@@ -186,9 +186,9 @@ public abstract class AbstractLeaf extends Transaction {
     }
 
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyObservers(AbstractLeafRun<?> run, Object object, Observed observed, Set<Observer> obervers) {
-        if (run.root().maxNrOfObservers() < obervers.size()) {
-            throw new TooManySubscriptionsException(null, observed, obervers);
+    protected void checkTooManyObservers(AbstractLeafRun<?> run, Object object, Observed observed, Set<Observer> observers) {
+        if (run.root().maxNrOfObservers() < observers.size()) {
+            throw new TooManyObserversException(observed, observers);
         }
     }
 

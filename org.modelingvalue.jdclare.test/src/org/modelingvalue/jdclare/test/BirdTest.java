@@ -95,20 +95,21 @@ public class BirdTest {
     }
     
     @Test
-    public void tooManySubscriptionsException() {
+    public void tooManyObservedException() {
         try {
             DClare<GreyPigeonUniverse> pigeon = of(GreyPigeonUniverse.class);
             pigeon.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertTooManySubscriptions(cause);
+            assertTooManyObserved(cause);
         }
     }
     
     //@Test
-    public void tooManySubscriptionsException2() {
-    	// TODO test for too many observers  
+    public void tooManyObserversException() {
+    	// TODO test for too many observers
+        assertTooManyObservers(null);
     }
     
     @Test
@@ -155,9 +156,14 @@ public class BirdTest {
         assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
     }
     
-    private void assertTooManySubscriptions(Throwable cause) {
+    private void assertTooManyObservers(Throwable cause) {
         cause.printStackTrace();
-        assertEquals(org.modelingvalue.transactions.TooManySubscriptionsException.class, cause.getClass());
+        assertEquals(org.modelingvalue.transactions.TooManyObserversException.class, cause.getClass());
+    }
+
+    private void assertTooManyObserved(Throwable cause) {
+        cause.printStackTrace();
+        assertEquals(org.modelingvalue.transactions.TooManyObservedException.class, cause.getClass());
     }
     
     private void assertStackOverflowError(Throwable cause) {
