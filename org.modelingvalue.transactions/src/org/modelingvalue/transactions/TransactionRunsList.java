@@ -33,7 +33,7 @@ public class TransactionRunsList<T extends Transaction, R extends TransactionRun
         this.creator = creator;
     }
 
-    public R open(T transaction) {
+    public R open(T transaction, Root root) {
         if (++level >= size()) {
             ensureCapacity(size() + CHUNCK_SIZE);
             for (int i = 0; i < CHUNCK_SIZE; i++) {
@@ -41,7 +41,7 @@ public class TransactionRunsList<T extends Transaction, R extends TransactionRun
             }
         }
         R run = get(level);
-        run.start(transaction);
+        run.start(transaction, root);
         return run;
     }
 

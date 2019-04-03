@@ -36,7 +36,7 @@ public enum Priority {
         this.nr = nr;
     }
 
-    public final class PrioritySetable<T extends Transaction> extends Setable<Compound, Set<T>> {
+    public final class PrioritySetable<T extends Transaction> extends Setable<Object, Set<T>> {
         private PrioritySetable(String id) {
             super(Pair.of(Priority.this, id), Set.of(), null);
         }

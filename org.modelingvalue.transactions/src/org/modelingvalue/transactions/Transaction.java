@@ -23,13 +23,11 @@ public abstract class Transaction {
     private final Object     id;
     protected final Compound parent;
     private final int        hashCode;
-    private Root             root;
 
     protected Transaction(Object id, Compound parent) {
         this.id = id;
         this.parent = parent;
         this.hashCode = parent != null ? (id.hashCode() * 31 + parent.hashCode()) : id.hashCode();
-        this.root = parent != null ? parent.root() : (Root) this;
     }
 
     public Object getId() {
@@ -64,8 +62,12 @@ public abstract class Transaction {
         return parent;
     }
 
-    public final Root root() {
-        return root;
+    public Root root() {
+        Compound p = parent;
+        while (!(p instanceof Root)) {
+            p = p.parent;
+        }
+        return (Root) p;
     }
 
     public Compound commonAncestor(Compound p) {
@@ -75,20 +77,18 @@ public abstract class Transaction {
         return p;
     }
 
-    protected State run(State state, Root root, Priority prio) {
-        this.root = root;
-        return state;
-    }
+    protected abstract State run(State state, Root root, Priority prio);
 
     public abstract boolean isAncestorOf(Transaction child);
 
-    protected abstract <T extends Transaction> TransactionRun<? extends T> startRun();
+    protected abstract <T extends Transaction> TransactionRun<? extends T> startRun(Root toot);
 
     protected abstract void stopRun(TransactionRun<?> run);
 
     public abstract static class TransactionRun<T extends Transaction> {
 
-        private T transaction;
+        private T    transaction;
+        private Root root;
 
         protected TransactionRun() {
         }
@@ -98,7 +98,10 @@ public abstract class Transaction {
         }
 
         public Root root() {
-            return transaction().root();
+            if (root == null) {
+                throw new ConcurrentModificationException();
+            }
+            return root;
         }
 
         public Compound parent() {
@@ -106,24 +109,26 @@ public abstract class Transaction {
         }
 
         public T transaction() {
-            if (this.transaction == null) {
+            if (transaction == null) {
                 throw new ConcurrentModificationException();
             }
             return transaction;
         }
 
-        protected void start(T transaction) {
+        protected void start(T transaction, Root root) {
             if (this.transaction != null) {
                 throw new ConcurrentModificationException();
             }
             this.transaction = transaction;
+            this.root = root;
         }
 
         protected void stop() {
-            if (this.transaction == null) {
+            if (transaction == null) {
                 throw new ConcurrentModificationException();
             }
-            this.transaction = null;
+            transaction = null;
+            root = null;
         }
 
         @Override

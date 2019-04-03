@@ -103,7 +103,7 @@ public class Observed<O, T> extends Setable<O, T> {
 
         private Observers(Object id, Priority prio) {
             super(id, Set.of(), null);
-            changed = (tx, o, b, a) -> tx.transaction().checkTooManyObservers(tx, observed, a);
+            changed = (tx, o, b, a) -> tx.transaction().checkTooManyObservers(tx, o, observed, a);
             this.prio = prio;
         }
 
