@@ -18,12 +18,15 @@ import java.util.function.BiFunction;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
+import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.transactions.Rule.Observerds;
 
 public class Observer extends Leaf {
 
-    public static final Setable<Observer, Set<ObserverTrace>> TRACES = Setable.of("TRACES", Set.of());
+    private static final Setable<Observer, Set<ObserverTrace>> TRACES  = Setable.of("TRACES", Set.of());
+
+    private static final Context<Boolean>                      OBSERVE = Context.of(true);
 
     public static Observer of(Rule rule, Compound parent, Runnable action) {
         return of(rule, parent, action, Priority.mid);
@@ -197,7 +200,7 @@ public class Observer extends Leaf {
 
         @SuppressWarnings("rawtypes")
         private <O, T> void observe(O object, Getable<O, T> property, boolean set) {
-            if (property instanceof Observed && getted.isInitialized() && setted.isInitialized()) {
+            if (property instanceof Observed && getted.isInitialized() && setted.isInitialized() && OBSERVE.get()) {
                 Slot slot = Slot.of(object, (Observed) property);
                 if (set) {
                     setted.change(o -> o.add(slot));
@@ -210,14 +213,7 @@ public class Observer extends Leaf {
         @Override
         public void runNonObserving(Runnable action) {
             if (getted.isInitialized() && setted.isInitialized()) {
-                Set<Slot> s = setted.get();
-                Set<Slot> g = getted.get();
-                try {
-                    super.runNonObserving(action);
-                } finally {
-                    setted.set(s);
-                    getted.set(g);
-                }
+                OBSERVE.run(false, action);
             } else {
                 super.runNonObserving(action);
             }
