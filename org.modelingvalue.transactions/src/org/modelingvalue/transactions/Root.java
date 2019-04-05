@@ -156,10 +156,10 @@ public class Root extends Compound {
                         if (history.size() > maxNrOfHistory) {
                             history = history.removeFirst();
                         }
-                        state = post(run(schedule(pre(state), leaf, leaf.initPrio())));
+                        state = post(run(trigger(pre(state), leaf, leaf.initPrio())));
                     }
                     if (!killed) {
-                        state = run(schedule(state, state.get(Root.this, INTEGRATIONS), Priority.high));
+                        state = run(trigger(state, state.get(Root.this, INTEGRATIONS), Priority.high));
                     }
                     if (!killed && inQueue.isEmpty()) {
                         if (isStopped(state)) {

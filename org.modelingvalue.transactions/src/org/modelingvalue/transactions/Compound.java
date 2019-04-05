@@ -62,7 +62,7 @@ public class Compound extends Transaction {
 
     @Override
     public boolean isAncestorOf(Transaction child) {
-        while (!equals(child)) {
+        while (!getId().equals(child.getId())) {
             child = child.parent();
             if (child == null) {
                 return false;
@@ -82,6 +82,7 @@ public class Compound extends Transaction {
             int i = 0;
             boolean sequential = false;
             while (!root.isKilled() && i < SCHEDULED.length && SCHEDULED[i].prio().nr <= maxPrio.nr) {
+                sa[0] = schedule(sa[0], maxPrio);
                 sa[0] = sa[0].set(getId(), SCHEDULED[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     i++;
@@ -112,7 +113,6 @@ public class Compound extends Transaction {
                             }
                         }
                     }
-                    sa[0] = schedule(sa[0], maxPrio);
                     i = 0;
                     if (this == root) {
                         root.endPriority(prio);
@@ -153,35 +153,45 @@ public class Compound extends Transaction {
         return inner.length;
     }
 
+    protected State trigger(State state, Set<? extends AbstractLeaf> leafs, Priority prio) {
+        for (AbstractLeaf leaf : leafs) {
+            state = trigger(state, leaf, prio);
+        }
+        return state;
+    }
+
+    protected State trigger(State state, AbstractLeaf leaf, Priority prio) {
+        Compound p = leaf.parent;
+        state = state.set(p.getId(), prio.leafTriggered, Set::add, leaf);
+        while (!getId().equals(p.getId())) {
+            state = state.set(p.parent.getId(), prio.compTriggered, Set::add, p);
+            p = p.parent;
+        }
+        return state;
+    }
+
     @SuppressWarnings("unchecked")
     private State schedule(State state, Priority maxPrio) {
+        Set<Compound>[] cs = new Set[1];
         Set<AbstractLeaf>[] ls = new Set[1];
         for (Priority prio : Priority.values()) {
-            state = state.set(getId(), prio.leafTriggered, Set.of(), ls);
-            if (!ls[0].isEmpty()) {
-                if (prio.nr <= maxPrio.nr) {
-                    state = schedule(state, ls[0], prio);
-                } else {
-                    state = state.set(parent.getId(), prio.leafTriggered, Set::addAll, ls[0]);
-                }
+            if (prio.nr <= maxPrio.nr) {
+                state = schedule(state, prio, cs, ls);
+            } else if (!state.get(getId(), prio.compTriggered).isEmpty() || !state.get(getId(), prio.leafTriggered).isEmpty()) {
+                state = state.set(parent.getId(), prio.compTriggered, Set::add, this);
             }
         }
         return state;
     }
 
-    protected State schedule(State state, Set<AbstractLeaf> ls, Priority prio) {
-        for (AbstractLeaf leaf : ls) {
-            state = schedule(state, leaf, prio);
-        }
-        return state;
-    }
-
-    protected State schedule(State state, AbstractLeaf leaf, Priority prio) {
-        Compound p = leaf.parent;
-        state = state.set(p.getId(), prio.leafScheduled, Set::add, leaf);
-        while (!getId().equals(p.getId())) {
-            state = state.set(p.parent.getId(), prio.compScheduled, Set::add, p);
-            p = p.parent;
+    private State schedule(State state, Priority prio, Set<Compound>[] cs, Set<AbstractLeaf>[] ls) {
+        state = state.set(getId(), prio.leafTriggered, Set.of(), ls);
+        state = state.set(getId(), prio.leafScheduled, Set::addAll, ls[0]);
+        state = state.set(getId(), prio.compTriggered, Set.of(), cs);
+        state = state.set(getId(), prio.compScheduled, Set::addAll, cs[0]);
+        Set<Compound> csc = cs[0];
+        for (Compound c : csc) {
+            state = c.schedule(state, prio, cs, ls);
         }
         return state;
     }
@@ -255,9 +265,7 @@ public class Compound extends Transaction {
                         }
                     }, branches);
                     for (Priority prio : Priority.values()) {
-                        for (AbstractLeaf leaf : triggered[prio.nr].result()) {
-                            state = state.set(transaction.commonAncestor(leaf.parent).getId(), prio.leafTriggered, Set::add, leaf);
-                        }
+                        state = transaction.trigger(state, triggered[prio.nr].result(), prio);
                     }
                     return state;
                 }, branches);

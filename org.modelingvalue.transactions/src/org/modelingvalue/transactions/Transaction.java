@@ -70,13 +70,6 @@ public abstract class Transaction {
         return (Root) p;
     }
 
-    public Compound commonAncestor(Compound p) {
-        while (!p.isAncestorOf(this)) {
-            p = p.parent;
-        }
-        return p;
-    }
-
     protected abstract State run(State state, Root root, Priority prio);
 
     public abstract boolean isAncestorOf(Transaction child);

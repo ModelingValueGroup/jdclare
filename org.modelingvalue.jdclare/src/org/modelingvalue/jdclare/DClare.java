@@ -1574,21 +1574,21 @@ public final class DClare<U extends DUniverse> extends Root {
 
     @Override
     protected State pre(State pre) {
-        return stopSetable != null ? run(schedule(pre, setTime, Priority.mid)) : pre;
+        return stopSetable != null ? run(trigger(pre, setTime, Priority.mid)) : pre;
     }
 
     @Override
     protected State post(State pre) {
-        State post = run(schedule(pre, clearOrphans, Priority.low));
+        State post = run(trigger(pre, clearOrphans, Priority.low));
         while (!pre.equals(post)) {
             pre = post;
-            post = run(schedule(pre, clearOrphans, Priority.low));
+            post = run(trigger(pre, clearOrphans, Priority.low));
         }
         if (checkFatals != null) {
-            post = schedule(post, checkFatals, Priority.low);
+            post = trigger(post, checkFatals, Priority.low);
         }
-        post = schedule(post, printOutput, Priority.low);
-        return run(isStopped(post) ? post : schedule(post, animate, Priority.low));
+        post = trigger(post, printOutput, Priority.low);
+        return run(isStopped(post) ? post : trigger(post, animate, Priority.low));
     }
 
     public void addAugmentation(Class<?>... augmentations) {
