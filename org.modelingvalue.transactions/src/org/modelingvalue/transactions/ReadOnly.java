@@ -23,7 +23,7 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     private ReadOnly(Object id, Root root) {
-        super(id, root, Priority.mid);
+        super(id, root, Priority.high);
     }
 
     @Override

@@ -27,7 +27,7 @@ import org.modelingvalue.collections.util.TraceTimer;
 public class Leaf extends AbstractLeaf {
 
     public static Leaf of(Object id, Compound parent, Runnable action) {
-        return new Leaf(id, parent, action, Priority.mid);
+        return new Leaf(id, parent, action, Priority.high);
     }
 
     public static Leaf of(Object id, Compound parent, Runnable action, Priority initPrio) {
@@ -173,7 +173,8 @@ public class Leaf extends AbstractLeaf {
             } else if (prePre instanceof Mergeable) {
                 return ((Mergeable) prePre).merge2(pre, post);
             } else if (slot.b() instanceof Observed && transaction() instanceof Observer) {
-                trigger(transaction(), Priority.low);
+                Priority prio = transaction().initPrio();
+                trigger(transaction(), prio != Priority.pre && prio != Priority.post ? Priority.low : prio);
                 return post;
             } else {
                 throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);

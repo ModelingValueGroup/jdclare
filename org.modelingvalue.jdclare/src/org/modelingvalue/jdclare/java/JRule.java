@@ -13,6 +13,7 @@
 
 package org.modelingvalue.jdclare.java;
 
+import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.lang.reflect.Method;
@@ -47,8 +48,15 @@ public interface JRule<O extends DObject, T> extends DRule<O>, DStruct1<Method> 
 
     @Override
     @Property(constant)
+    default boolean validation() {
+        Method method = method();
+        return qual(method, validation);
+    }
+
+    @Override
+    @Property(constant)
     default Priority initPrio() {
-        return method().getReturnType() == Void.TYPE ? Priority.low : Priority.mid;
+        return method().getReturnType() == Void.TYPE ? Priority.low : validation() ? Priority.post : Priority.high;
     }
 
 }

@@ -42,4 +42,7 @@ public interface DRule<O extends DObject> extends DNamed {
         return new Rule(this);
     }
 
+    @Property
+    boolean validation();
+
 }

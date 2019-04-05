@@ -687,7 +687,7 @@ public final class DClare<U extends DUniverse> extends Root {
         Leaf.of("dStop", tx, () -> {
             CHILDREN_TRANSACTIONS.set(tx, Set.of());
             OBSERVERS.set(tx, Set.of());
-        }, Priority.high).trigger();
+        }, Priority.pre).trigger();
     }
 
     private static void start(DObject dObject, Compound tx) {
@@ -701,14 +701,14 @@ public final class DClare<U extends DUniverse> extends Root {
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.high).trigger();
+        }, Priority.pre).trigger();
         Observer.of(D_START_CHILDREN, tx, () -> {
             if (tx.equals(TRANSACTION.get(dObject))) {
                 CHILDREN_TRANSACTIONS.set(tx, dChildren.get(dObject).map(c -> Compound.of(c, tx)).toSet());
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.high).trigger();
+        }, Priority.pre).trigger();
         Observer.of(D_START_OBSERVERS, tx, () -> {
             if (tx.equals(TRANSACTION.get(dObject))) {
                 Set<DRule> objectRules = dObject.dObjectClass().allRules().addAll(dObject.dObjectRules());
@@ -723,7 +723,7 @@ public final class DClare<U extends DUniverse> extends Root {
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.mid).trigger();
+        }, Priority.high).trigger();
     }
 
     public static <T extends DStruct> Class<T> jClass(T dObject) {
@@ -1574,21 +1574,21 @@ public final class DClare<U extends DUniverse> extends Root {
 
     @Override
     protected State pre(State pre) {
-        return stopSetable != null ? run(trigger(pre, setTime, Priority.mid)) : pre;
+        return stopSetable != null ? run(trigger(pre, setTime, Priority.high)) : pre;
     }
 
     @Override
     protected State post(State pre) {
-        State post = run(trigger(pre, clearOrphans, Priority.low));
+        State post = run(trigger(pre, clearOrphans, Priority.post));
         while (!pre.equals(post)) {
             pre = post;
-            post = run(trigger(pre, clearOrphans, Priority.low));
+            post = run(trigger(pre, clearOrphans, Priority.post));
         }
         if (checkFatals != null) {
-            post = trigger(post, checkFatals, Priority.low);
+            post = trigger(post, checkFatals, Priority.post);
         }
-        post = trigger(post, printOutput, Priority.low);
-        return run(isStopped(post) ? post : trigger(post, animate, Priority.low));
+        post = trigger(post, printOutput, Priority.post);
+        return run(isStopped(post) ? post : trigger(post, animate, Priority.post));
     }
 
     public void addAugmentation(Class<?>... augmentations) {

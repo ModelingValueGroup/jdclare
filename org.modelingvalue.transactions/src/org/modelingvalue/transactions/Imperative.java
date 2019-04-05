@@ -34,7 +34,7 @@ public class Imperative extends AbstractLeaf {
     private final ImperativeRun              run;
 
     private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
-        super(id, root, Priority.mid);
+        super(id, root, Priority.high);
         this.run = startRun(root);
         run.pre = init;
         run.state = init;

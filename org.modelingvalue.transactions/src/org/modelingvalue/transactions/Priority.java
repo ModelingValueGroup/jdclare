@@ -18,11 +18,13 @@ import org.modelingvalue.collections.util.Pair;
 
 public enum Priority {
 
-    high(0),
+    pre(0),
 
-    mid(1),
+    high(1),
 
-    low(2);
+    low(2),
+
+    post(3);
 
     public final PrioritySetable<AbstractLeaf> leafTriggered;
     public final PrioritySetable<Compound>     compTriggered;
@@ -46,11 +48,6 @@ public enum Priority {
         public Priority prio() {
             return Priority.this;
         }
-    }
-
-    public static Priority lowest() {
-        Priority[] priorities = Priority.values();
-        return priorities[priorities.length - 1];
     }
 
 }

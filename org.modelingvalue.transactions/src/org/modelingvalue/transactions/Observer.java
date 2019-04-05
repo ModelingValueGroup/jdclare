@@ -29,7 +29,7 @@ public class Observer extends Leaf {
     private static final Context<Boolean>                      OBSERVE = Context.of(true);
 
     public static Observer of(Rule rule, Compound parent, Runnable action) {
-        return of(rule, parent, action, Priority.mid);
+        return of(rule, parent, action, Priority.high);
     }
 
     public static Observer of(Rule rule, Compound parent, Runnable action, Priority initPrio) {
@@ -100,11 +100,13 @@ public class Observer extends Leaf {
     private void observe(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
         gets = gets.removeAll(sets);
         Observerds[] observeds = rule().observeds();
-        observeds[2].set(parent.getId(), sets);
-        if (initPrio() == Priority.high) {
+        if (initPrio() == Priority.pre) {
             observeds[0].set(parent.getId(), gets);
+        } else if (initPrio() == Priority.post) {
+            observeds[3].set(parent.getId(), gets);
         } else {
             observeds[1].set(parent.getId(), gets);
+            observeds[2].set(parent.getId(), sets);
         }
         checkTooManyObserved(run, sets, gets);
     }
@@ -226,7 +228,10 @@ public class Observer extends Leaf {
             runNonObserving(() -> super.changed(object, setable, preValue, postValue));
             if (setable instanceof Observed) {
                 transaction().countChanges(this, (Observed) setable);
-                trigger(transaction(), Priority.low);
+                Priority prio = transaction().initPrio();
+                if (prio != Priority.pre && prio != Priority.post) {
+                    trigger(transaction(), Priority.low);
+                }
             }
         }
 

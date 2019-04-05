@@ -93,7 +93,7 @@ public class BirdTest {
             assertTooManyChanges(cause);
         }
     }
-    
+
     @Test
     public void tooManyObservedException() {
         try {
@@ -105,25 +105,25 @@ public class BirdTest {
             assertTooManyObserved(cause);
         }
     }
-    
+
     //@Test
     public void tooManyObserversException() {
-    	// TODO test for too many observers
+        // TODO test for too many observers
         assertTooManyObservers(null);
     }
-    
+
     @Test
     public void stackOverflow() {
         try {
-        	DClare<BluePigeonUniverse> bluePigeon = of(BluePigeonUniverse.class);
-        	bluePigeon.run();
+            DClare<BluePigeonUniverse> bluePigeon = of(BluePigeonUniverse.class);
+            bluePigeon.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
             assertStackOverflowError(cause);
         }
     }
-    
+
     //@Test AKK this test fails at the moment - when are orphans deleted ? 
     public void noOrphans() {
         DClare<GreenPigeonUniverse> greenPigeon = of(GreenPigeonUniverse.class);
@@ -131,19 +131,19 @@ public class BirdTest {
         Set<Bird> birds = result.getObjects(Bird.class).toSet();
         assertEquals("Unexpected Birds: " + birds, 1, birds.size());
     }
-    
+
     @Test
     public void missingMandatory() {
-    	 try {
-    		 DClare<GreenHummingBirdUniverse> hummingBird = of(GreenHummingBirdUniverse.class);
-    		 hummingBird.run();
-    		 Assert.fail();
-    	 } catch (Throwable t) {
-    		 Throwable cause = getCause(t);
-    		 assertError(cause, "Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']");
-    	 }
+        try {
+            DClare<GreenHummingBirdUniverse> hummingBird = of(GreenHummingBirdUniverse.class);
+            hummingBird.run();
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertError(cause, "Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']");
+        }
     }
-    
+
     private Throwable getCause(Throwable t) {
         while (t.getCause() != null) {
             t = t.getCause();
@@ -155,7 +155,7 @@ public class BirdTest {
         cause.printStackTrace();
         assertEquals(org.modelingvalue.transactions.TooManyChangesException.class, cause.getClass());
     }
-    
+
     private void assertTooManyObservers(Throwable cause) {
         cause.printStackTrace();
         assertEquals(org.modelingvalue.transactions.TooManyObserversException.class, cause.getClass());
@@ -165,12 +165,12 @@ public class BirdTest {
         cause.printStackTrace();
         assertEquals(org.modelingvalue.transactions.TooManyObservedException.class, cause.getClass());
     }
-    
+
     private void assertStackOverflowError(Throwable cause) {
         cause.printStackTrace();
         assertEquals(java.lang.StackOverflowError.class, cause.getClass());
     }
-    
+
     private void assertError(Throwable cause, String message) {
         cause.printStackTrace();
         assertEquals(java.lang.Error.class, cause.getClass());

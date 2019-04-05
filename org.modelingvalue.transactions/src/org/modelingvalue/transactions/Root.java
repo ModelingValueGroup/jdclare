@@ -159,7 +159,7 @@ public class Root extends Compound {
                         state = post(run(trigger(pre(state), leaf, leaf.initPrio())));
                     }
                     if (!killed) {
-                        state = run(trigger(state, state.get(Root.this, INTEGRATIONS), Priority.high));
+                        state = run(trigger(state, state.get(Root.this, INTEGRATIONS), Priority.pre));
                     }
                     if (!killed && inQueue.isEmpty()) {
                         if (isStopped(state)) {
@@ -187,7 +187,7 @@ public class Root extends Compound {
     }
 
     protected State run(State state) {
-        return run(state, this, Priority.low);
+        return run(state, this, Priority.post);
     }
 
     public State emptyState() {
@@ -254,7 +254,7 @@ public class Root extends Compound {
     public void addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler) {
         Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(id, Root.this, () -> {
             diffHandler.accept(preState(), Leaf.getCurrent().state(), true);
-        }, Priority.high));
+        }, Priority.pre));
     }
 
     public Imperative addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
@@ -263,7 +263,7 @@ public class Root extends Compound {
             State pre = Leaf.getCurrent().state();
             boolean timeTraveling = isTimeTraveling();
             n.schedule(() -> n.commit(pre, timeTraveling));
-        }, Priority.high));
+        }, Priority.pre));
         return n;
     }
 

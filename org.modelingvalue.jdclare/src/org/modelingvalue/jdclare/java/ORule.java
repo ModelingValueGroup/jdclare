@@ -44,7 +44,7 @@ public interface ORule<O extends DObject> extends DRule<O>, DStruct2<O, String> 
     @Override
     @Property(constant)
     default Priority initPrio() {
-        return statement() instanceof DEqualize ? Priority.mid : Priority.low;
+        return statement() instanceof DEqualize ? Priority.high : Priority.low;
     }
 
 }
