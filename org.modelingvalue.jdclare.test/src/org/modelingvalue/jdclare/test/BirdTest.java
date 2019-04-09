@@ -9,6 +9,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.test.BirdUniverse.Bird;
 import org.modelingvalue.jdclare.test.BirdUniverse.BlackCondorUniverse;
+import org.modelingvalue.jdclare.test.BirdUniverse.BlackSparrowUniverse;
 import org.modelingvalue.jdclare.test.BirdUniverse.BlueCondorUniverse;
 import org.modelingvalue.jdclare.test.BirdUniverse.BluePigeonUniverse;
 import org.modelingvalue.jdclare.test.BirdUniverse.GreenCondorUniverse;
@@ -25,8 +26,8 @@ public class BirdTest {
     @Test
     public void tooManyChangesException1() {
         try {
-            DClare<RedCondorUniverse> redCondor = of(RedCondorUniverse.class);
-            redCondor.run();
+            DClare<RedCondorUniverse> redCondorUniverse = of(RedCondorUniverse.class);
+            redCondorUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -37,8 +38,8 @@ public class BirdTest {
     @Test
     public void tooManyChangesException2() {
         try {
-            DClare<WhiteCondorUniverse> whiteCondor = of(WhiteCondorUniverse.class);
-            whiteCondor.run();
+            DClare<WhiteCondorUniverse> whiteCondorUniverse = of(WhiteCondorUniverse.class);
+            whiteCondorUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -49,8 +50,8 @@ public class BirdTest {
     @Test
     public void tooManyChangesException3() {
         try {
-            DClare<GreenCondorUniverse> greenCondor = of(GreenCondorUniverse.class);
-            greenCondor.run();
+            DClare<GreenCondorUniverse> greenCondorUniverse = of(GreenCondorUniverse.class);
+            greenCondorUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -61,8 +62,8 @@ public class BirdTest {
     @Test
     public void tooManyChangesException4() {
         try {
-            DClare<BlackCondorUniverse> blackCondor = of(BlackCondorUniverse.class);
-            blackCondor.run();
+            DClare<BlackCondorUniverse> blackCondorUniverse = of(BlackCondorUniverse.class);
+            blackCondorUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -73,8 +74,8 @@ public class BirdTest {
     @Test
     public void tooManyChangesException5() {
         try {
-            DClare<BlueCondorUniverse> bleuCondor = of(BlueCondorUniverse.class);
-            bleuCondor.run();
+            DClare<BlueCondorUniverse> bleuCondorUniverse = of(BlueCondorUniverse.class);
+            bleuCondorUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -85,8 +86,8 @@ public class BirdTest {
     @Test
     public void tooManyChangesException6() {
         try {
-            DClare<YellowCondorUniverse> yellowCondor = of(YellowCondorUniverse.class);
-            yellowCondor.run();
+            DClare<YellowCondorUniverse> yellowCondorUniverse = of(YellowCondorUniverse.class);
+            yellowCondorUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -97,8 +98,8 @@ public class BirdTest {
     @Test
     public void tooManyObservedException() {
         try {
-            DClare<GreyPigeonUniverse> pigeon = of(GreyPigeonUniverse.class);
-            pigeon.run();
+            DClare<GreyPigeonUniverse> greyPigeonUniverseUniverse = of(GreyPigeonUniverse.class);
+            greyPigeonUniverseUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -106,17 +107,24 @@ public class BirdTest {
         }
     }
 
-    //@Test
+    //@Test 
     public void tooManyObserversException() {
-        // TODO test for too many observers
-        assertTooManyObservers(null);
+        try {
+            DClare<BlackSparrowUniverse> blackSparrowUniverse = of(BlackSparrowUniverse.class);
+            State result = blackSparrowUniverse.run();
+            Set<Bird> birds = result.getObjects(Bird.class).toSet();
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertTooManyObservers(cause);
+        }
     }
 
     @Test
     public void stackOverflow() {
         try {
-            DClare<BluePigeonUniverse> bluePigeon = of(BluePigeonUniverse.class);
-            bluePigeon.run();
+            DClare<BluePigeonUniverse> bluePigeonUniverse = of(BluePigeonUniverse.class);
+            bluePigeonUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -126,8 +134,8 @@ public class BirdTest {
 
     //@Test AKK this test fails at the moment - when are orphans deleted ? 
     public void noOrphans() {
-        DClare<GreenPigeonUniverse> greenPigeon = of(GreenPigeonUniverse.class);
-        State result = greenPigeon.run();
+        DClare<GreenPigeonUniverse> greenPigeonUniverse = of(GreenPigeonUniverse.class);
+        State result = greenPigeonUniverse.run();
         Set<Bird> birds = result.getObjects(Bird.class).toSet();
         assertEquals("Unexpected Birds: " + birds, 1, birds.size());
     }
@@ -135,8 +143,8 @@ public class BirdTest {
     @Test
     public void missingMandatory() {
         try {
-            DClare<GreenHummingBirdUniverse> hummingBird = of(GreenHummingBirdUniverse.class);
-            hummingBird.run();
+            DClare<GreenHummingBirdUniverse> hummingBirdUniverse = of(GreenHummingBirdUniverse.class);
+            hummingBirdUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
