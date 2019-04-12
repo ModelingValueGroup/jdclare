@@ -122,14 +122,14 @@ public class BirdTest {
     }
 
     @Test
-    public void stackOverflow() {
+    public void tooManyChangesException7() {
         try {
             DClare<BluePigeonUniverse> bluePigeonUniverse = of(BluePigeonUniverse.class);
             bluePigeonUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertStackOverflowError(cause);
+            assertTooManyChanges(cause);
         }
     }
 
@@ -174,11 +174,6 @@ public class BirdTest {
     private void assertTooManyObserved(Throwable cause) {
         cause.printStackTrace();
         assertEquals(org.modelingvalue.transactions.TooManyObservedException.class, cause.getClass());
-    }
-
-    private void assertStackOverflowError(Throwable cause) {
-        cause.printStackTrace();
-        assertEquals(java.lang.StackOverflowError.class, cause.getClass());
     }
 
     private void assertError(Throwable cause, String message) {
