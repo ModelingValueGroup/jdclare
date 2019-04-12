@@ -16,12 +16,12 @@ public interface BirdUniverse extends DUniverse {
 
     @Property(containment)
     Set<Bird> birds();
-
+    
     default void addBird(Class<? extends Bird> clazz, String name, String color) {
-        Bird bird = dclare(clazz, this, name);
+		Bird bird = dclare(clazz, this, name);
         set(this, BirdUniverse::birds, Set::add, bird);
         set(bird, Bird::color, color);
-    }
+	}
 
     interface Bird extends DStruct2<DObject, String>, DNamed {
 
@@ -159,7 +159,7 @@ public interface BirdUniverse extends DUniverse {
                 }
             }
         }
-
+        
         @Rule
         default void addGenerations() {
             if ("blue".equals(this.color()) && name().length() < 10000) {
@@ -180,58 +180,131 @@ public interface BirdUniverse extends DUniverse {
             }
         }
     }
-
+    
     interface Sparrow extends Bird {
-
+    	
         @Rule
         default void addChildren() {
             if ("black".equals(color())) {
                 for (int i = 0; i < 800; i++) {
-                    Sparrow child = dclare(Sparrow.class, this, name() + i);
+                	Sparrow child = dclare(Sparrow.class, this, name() + i);
                     set(child, Bird::color, "grey");
                     set(this, Bird::children, Set::add, child);
-                    //	                  for (int j = 0; j < 800; j++) {
-                    //	                   	 Sparrow grandChild = dclare(Sparrow.class, child, name() + i + j); // 
-                    //	                   	 set(grandChild, Bird::color, "grey");
-                    //	                   	 set(child, Bird::children, Set::add, grandChild);
-                    //	                  }
+                    for (int j = 0; j < 0; j++) {
+                   	 	Sparrow grandChild = dclare(Sparrow.class, child, name() + j); //
+                   	 	// TODO
+                   	 	// what happens if you create objects with same identity but properties are not equal?
+                   	 	set(grandChild, Bird::color, "gray");
+                   	 	set(child, Bird::children, Set::add, grandChild);
+                    }
                 }
             }
         }
-
+        
         @Rule
         default void parentColor1() {
-            DObject parent = this.dParent();
-            if (parent instanceof Bird) {
-                ((Bird) parent).color();
-            }
+        	// TODO
+        	// Note that dclare(Bird.class, dclare(BirdUniverse.class), "0").color(); throws an EmptyMandatoryException.
+        	// This exception is not propagated to the user - why not?
+        	String parentColor = dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        	System.err.println("parent color is " + parentColor);
         }
-
+        
         @Rule
         default void parentColor2() {
-            DObject parent = this.dParent();
-            if (parent instanceof Bird) {
-                String parentColor = ((Bird) parent).color();
-                System.err.println("parentColor is " + parentColor);
-            }
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
         }
-
+        
         @Rule
         default void parentColor3() {
-            DObject parent = this.dParent();
-            if (parent instanceof Bird) {
-                String parentColor = ((Bird) parent).color();
-                System.err.println("parentColor is " + parentColor);
-            }
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
         }
+        @Rule
+        default void parentColor4() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor5() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor6() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        @Rule
+        default void parentColor7() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor8() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor9() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor10() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor11() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor12() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor13() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        @Rule
+        default void parentColor14() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor15() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor16() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        @Rule
+        default void parentColor17() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor18() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
+        @Rule
+        default void parentColor19() {
+        	dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+        }
+        
     }
+    
 
     interface HummingBird extends Bird {
         @Rule
         default void missingColor() {
             if ("green".equals(color())) {
-                Bird son = dclare(HummingBird.class, this, this.name() + "+");
-                set(this, Bird::children, Set::add, son);
+                Bird child = dclare(HummingBird.class, this, this.name() + "+");
+                set(this, Bird::children, Set::add, child);
             }
         }
     }
@@ -249,8 +322,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "red");
+        	BirdUniverse.super.init();
+        	addBird(Condor.class, "0", "red");
         }
     }
 
@@ -258,8 +331,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "green");
+        	BirdUniverse.super.init();
+        	addBird(Condor.class, "0", "green");
         }
     }
 
@@ -267,8 +340,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "blue");
+        	BirdUniverse.super.init();
+        	addBird(Condor.class, "0", "blue");
         }
     }
 
@@ -276,8 +349,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "white");
+        	BirdUniverse.super.init();
+        	addBird(Condor.class, "0", "white");
         }
     }
 
@@ -285,8 +358,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "black");
+        	BirdUniverse.super.init();
+        	addBird(Condor.class, "0", "black");
         }
     }
 
@@ -294,8 +367,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "yellow");
+        	BirdUniverse.super.init();
+        	addBird(Condor.class, "0", "yellow");
         }
     }
 
@@ -303,8 +376,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Pigeon.class, "0", "grey");
+        	BirdUniverse.super.init();
+        	addBird(Pigeon.class, "0", "grey");
         }
     }
 
@@ -312,8 +385,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Pigeon.class, "0", "blue");
+           	BirdUniverse.super.init();
+        	addBird(Pigeon.class, "0", "blue");
         }
     }
 
@@ -321,17 +394,17 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Pigeon.class, "0", "green");
+         	BirdUniverse.super.init();
+        	addBird(Pigeon.class, "0", "green");
         }
     }
-
+    
     public interface BlackSparrowUniverse extends BirdUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(Sparrow.class, "0", "black");
+        	BirdUniverse.super.init();
+        	addBird(Sparrow.class, "0", "black");
         }
     }
 
@@ -339,8 +412,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-            BirdUniverse.super.init();
-            addBird(HummingBird.class, "0", "green");
+        	BirdUniverse.super.init();
+        	addBird(HummingBird.class, "0", "green");
         }
     }
 

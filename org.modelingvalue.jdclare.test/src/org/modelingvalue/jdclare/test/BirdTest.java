@@ -107,7 +107,9 @@ public class BirdTest {
         }
     }
 
-    //@Test 
+    //@Test  
+    // TODO
+    // Test does not throw expected exception.
     public void tooManyObserversException() {
         try {
             DClare<BlackSparrowUniverse> blackSparrowUniverse = of(BlackSparrowUniverse.class);
@@ -131,7 +133,8 @@ public class BirdTest {
         }
     }
 
-    //@Test AKK this test fails at the moment - when are orphans deleted ? 
+    //@Test 
+    // TODO this test fails at the moment - when are orphans deleted ? 
     public void noOrphans() {
         DClare<GreenPigeonUniverse> greenPigeonUniverse = of(GreenPigeonUniverse.class);
         State result = greenPigeonUniverse.run();
