@@ -24,17 +24,17 @@ public abstract class AbstractLeaf extends Transaction {
 
     protected static final Context<AbstractLeafRun<?>> CURRENT = Context.of();
 
-    private final Phase                                initPhase;
+    private final Direction                            initDirection;
     private final Priority                             priority;
 
-    protected AbstractLeaf(Object id, Compound parent, Phase initPhase, Priority priority) {
+    protected AbstractLeaf(Object id, Compound parent, Direction initDirection, Priority priority) {
         super(id, parent);
-        this.initPhase = initPhase;
+        this.initDirection = initDirection;
         this.priority = priority;
     }
 
-    protected Phase initPhase() {
-        return initPhase;
+    protected Direction initDirection() {
+        return initDirection;
     }
 
     protected Priority priority() {
@@ -43,7 +43,7 @@ public abstract class AbstractLeaf extends Transaction {
 
     public void trigger() {
         AbstractLeafRun<?> leaf = getCurrent();
-        leaf.trigger(this, initPhase);
+        leaf.trigger(this, initDirection);
     }
 
     @Override
@@ -106,11 +106,11 @@ public abstract class AbstractLeaf extends Transaction {
             }
         }
 
-        protected void trigger(AbstractLeaf leaf, Phase phase) {
+        protected void trigger(AbstractLeaf leaf, Direction direction) {
             Compound p = leaf.parent, parent = parent();
-            set(p.getId(), phase.priorities[leaf.priority.nr], Set::add, leaf);
-            while (Phase.triggeredBackward == phase ? p.parent != null : !p.isAncestorOf(parent)) {
-                set(p.parent.getId(), phase.depth, Set::add, p);
+            set(p.getId(), direction.priorities[leaf.priority.nr], Set::add, leaf);
+            while (Direction.backward == direction ? p.parent != null : !p.isAncestorOf(parent)) {
+                set(p.parent.getId(), direction.depth, Set::add, p);
                 p = p.parent;
             }
         }

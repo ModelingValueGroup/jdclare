@@ -29,15 +29,15 @@ public class Observer extends Leaf {
     private static final Context<Boolean>                      OBSERVE = Context.of(true);
 
     public static Observer of(Rule rule, Compound parent, Runnable action) {
-        return of(rule, parent, action, Phase.triggeredForward, Priority.postDepth);
+        return of(rule, parent, action, Direction.forward, Priority.postDepth);
     }
 
     public static Observer of(Rule rule, Compound parent, Runnable action, Priority priority) {
-        return of(rule, parent, action, Phase.triggeredForward, priority);
+        return of(rule, parent, action, Direction.forward, priority);
     }
 
-    public static Observer of(Rule rule, Compound parent, Runnable action, Phase initPhase, Priority priority) {
-        return new Observer(rule, parent, action, initPhase, priority);
+    public static Observer of(Rule rule, Compound parent, Runnable action, Direction initDirection, Priority priority) {
+        return new Observer(rule, parent, action, initDirection, priority);
     }
 
     private long    runCount  = -1;
@@ -45,8 +45,8 @@ public class Observer extends Leaf {
     private boolean stopped;
     private boolean firstTime = true;
 
-    public Observer(Rule rule, Compound parent, Runnable action, Phase initPhase, Priority priority) {
-        super(rule, parent, action, initPhase, priority);
+    public Observer(Rule rule, Compound parent, Runnable action, Direction initDirection, Priority priority) {
+        super(rule, parent, action, initDirection, priority);
     }
 
     public Rule rule() {
@@ -104,8 +104,8 @@ public class Observer extends Leaf {
     private void observe(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
         gets = gets.removeAll(sets);
         Observerds[] observeds = rule().observeds();
-        observeds[Phase.triggeredForward.nr].set(parent.getId(), gets);
-        observeds[Phase.triggeredBackward.nr].set(parent.getId(), sets);
+        observeds[Direction.forward.nr].set(parent.getId(), gets);
+        observeds[Direction.backward.nr].set(parent.getId(), sets);
         checkTooManyObserved(run, sets, gets);
     }
 
@@ -226,7 +226,7 @@ public class Observer extends Leaf {
             runNonObserving(() -> super.changed(object, setable, preValue, postValue));
             if (setable instanceof Observed) {
                 transaction().countChanges(this, (Observed) setable);
-                trigger(transaction(), Phase.triggeredBackward);
+                trigger(transaction(), Direction.backward);
             }
         }
 

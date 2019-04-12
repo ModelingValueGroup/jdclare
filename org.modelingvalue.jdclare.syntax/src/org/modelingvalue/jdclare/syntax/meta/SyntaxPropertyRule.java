@@ -20,7 +20,7 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.expressions.DStatement;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.syntax.ObjectNode;
-import org.modelingvalue.transactions.Phase;
+import org.modelingvalue.transactions.Direction;
 
 public interface SyntaxPropertyRule<O extends ObjectNode> extends DRule<O>, DStruct1<SyntaxProperty<O, ?>> {
 
@@ -39,8 +39,8 @@ public interface SyntaxPropertyRule<O extends ObjectNode> extends DRule<O>, DStr
 
     @Override
     @Property(constant)
-    default Phase initPhase() {
-        return Phase.triggeredForward;
+    default Direction initDirection() {
+        return Direction.forward;
     }
 
 }

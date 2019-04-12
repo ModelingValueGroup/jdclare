@@ -102,7 +102,7 @@ import org.modelingvalue.transactions.Leaf;
 import org.modelingvalue.transactions.MandatoryObserved;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Phase;
+import org.modelingvalue.transactions.Direction;
 import org.modelingvalue.transactions.Priority;
 import org.modelingvalue.transactions.Root;
 import org.modelingvalue.transactions.Rule.Observerds;
@@ -720,7 +720,7 @@ public final class DClare<U extends DUniverse> extends Root {
                             } else {
                                 throw new StopObserverException("Transaction not Current");
                             }
-                        }, rule.initPhase(), Priority.postDepth)).toSet());
+                        }, rule.initDirection(), Priority.postDepth)).toSet());
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
@@ -1575,21 +1575,21 @@ public final class DClare<U extends DUniverse> extends Root {
 
     @Override
     protected State pre(State pre) {
-        return stopSetable != null ? run(trigger(pre, setTime, Phase.triggeredForward)) : pre;
+        return stopSetable != null ? run(trigger(pre, setTime, Direction.forward)) : pre;
     }
 
     @Override
     protected State post(State pre) {
-        State post = run(trigger(pre, clearOrphans, Phase.triggeredBackward));
+        State post = run(trigger(pre, clearOrphans, Direction.backward));
         while (!pre.equals(post)) {
             pre = post;
-            post = run(trigger(pre, clearOrphans, Phase.triggeredBackward));
+            post = run(trigger(pre, clearOrphans, Direction.backward));
         }
         if (checkFatals != null) {
-            post = trigger(post, checkFatals, Phase.triggeredBackward);
+            post = trigger(post, checkFatals, Direction.backward);
         }
-        post = trigger(post, printOutput, Phase.triggeredBackward);
-        return run(isStopped(post) ? post : trigger(post, animate, Phase.triggeredBackward));
+        post = trigger(post, printOutput, Direction.backward);
+        return run(isStopped(post) ? post : trigger(post, animate, Direction.backward));
     }
 
     public void addAugmentation(Class<?>... augmentations) {

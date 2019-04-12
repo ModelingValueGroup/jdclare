@@ -23,7 +23,7 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     private ReadOnly(Object id, Root root) {
-        super(id, root, Phase.triggeredForward, Priority.postDepth);
+        super(id, root, Direction.forward, Priority.postDepth);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class ReadOnly extends AbstractLeaf {
         }
 
         @Override
-        protected void trigger(AbstractLeaf leaf, Phase phase) {
+        protected void trigger(AbstractLeaf leaf, Direction direction) {
             // Do nothing
         }
 

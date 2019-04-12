@@ -27,21 +27,21 @@ import org.modelingvalue.collections.util.TraceTimer;
 public class Leaf extends AbstractLeaf {
 
     public static Leaf of(Object id, Compound parent, Runnable action) {
-        return new Leaf(id, parent, action, Phase.triggeredForward, Priority.postDepth);
+        return new Leaf(id, parent, action, Direction.forward, Priority.postDepth);
     }
 
     public static Leaf of(Object id, Compound parent, Runnable action, Priority priority) {
-        return new Leaf(id, parent, action, Phase.triggeredForward, priority);
+        return new Leaf(id, parent, action, Direction.forward, priority);
     }
 
-    public static Leaf of(Object id, Compound parent, Runnable action, Phase initPhase, Priority priority) {
-        return new Leaf(id, parent, action, initPhase, priority);
+    public static Leaf of(Object id, Compound parent, Runnable action, Direction initDirection, Priority priority) {
+        return new Leaf(id, parent, action, initDirection, priority);
     }
 
     private final Runnable action;
 
-    protected Leaf(Object id, Compound parent, Runnable action, Phase initPhase, Priority priority) {
-        super(id, parent, initPhase, priority);
+    protected Leaf(Object id, Compound parent, Runnable action, Direction initDirection, Priority priority) {
+        super(id, parent, initDirection, priority);
         this.action = action;
     }
 
@@ -177,7 +177,7 @@ public class Leaf extends AbstractLeaf {
             } else if (prePre instanceof Mergeable) {
                 return ((Mergeable) prePre).merge2(pre, post);
             } else if (slot.b() instanceof Observed && transaction() instanceof Observer) {
-                trigger(transaction(), Phase.triggeredBackward);
+                trigger(transaction(), Direction.backward);
                 return post;
             } else {
                 throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);

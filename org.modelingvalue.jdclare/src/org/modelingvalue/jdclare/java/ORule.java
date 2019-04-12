@@ -21,7 +21,7 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.expressions.DEqualize;
 import org.modelingvalue.jdclare.expressions.DStatement;
 import org.modelingvalue.jdclare.meta.DRule;
-import org.modelingvalue.transactions.Phase;
+import org.modelingvalue.transactions.Direction;
 
 public interface ORule<O extends DObject> extends DRule<O>, DStruct2<O, String> {
 
@@ -43,8 +43,8 @@ public interface ORule<O extends DObject> extends DRule<O>, DStruct2<O, String> 
 
     @Override
     @Property(constant)
-    default Phase initPhase() {
-        return statement() instanceof DEqualize ? Phase.triggeredForward : Phase.triggeredBackward;
+    default Direction initDirection() {
+        return statement() instanceof DEqualize ? Direction.forward : Direction.backward;
     }
 
 }

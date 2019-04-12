@@ -68,16 +68,16 @@ public class Compound extends Transaction {
             Set<Transaction>[] ts = new Set[1];
             State[] sa = new State[]{state};
             if (this == root) {
-                sa[0] = schedule(sa[0], Phase.triggeredForward);
+                sa[0] = schedule(sa[0], Direction.forward);
             }
             int i = 0;
             boolean sequential = false;
             while (!root.isKilled() && i < 3) {
-                sa[0] = sa[0].set(getId(), Phase.scheduled.sequence[i], Set.of(), ts);
+                sa[0] = sa[0].set(getId(), Direction.scheduled.sequence[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     if (++i == 3 && this == root) {
-                        sa[0] = schedule(sa[0], Phase.triggeredBackward);
-                        if (!sa[0].get(getId(), Phase.scheduled.depth).isEmpty()) {
+                        sa[0] = schedule(sa[0], Direction.backward);
+                        if (!sa[0].get(getId(), Direction.scheduled.depth).isEmpty()) {
                             root.startOpposite();
                             i = 0;
                         }
@@ -111,7 +111,7 @@ public class Compound extends Transaction {
                     if (this == root) {
                         root.endPriority(Priority.values()[i]);
                     }
-                    sa[0] = schedule(sa[0], Phase.triggeredForward);
+                    sa[0] = schedule(sa[0], Direction.forward);
                     i = 0;
                 }
             }
@@ -145,40 +145,40 @@ public class Compound extends Transaction {
         return inner.length;
     }
 
-    protected State trigger(State state, Set<? extends AbstractLeaf> leafs, Phase phase) {
+    protected State trigger(State state, Set<? extends AbstractLeaf> leafs, Direction direction) {
         for (AbstractLeaf leaf : leafs) {
-            state = trigger(state, leaf, phase);
+            state = trigger(state, leaf, direction);
         }
         return state;
     }
 
-    protected State trigger(State state, AbstractLeaf leaf, Phase phase) {
+    protected State trigger(State state, AbstractLeaf leaf, Direction direction) {
         Compound p = leaf.parent;
-        state = state.set(p.getId(), phase.priorities[leaf.priority().nr], Set::add, leaf);
-        while (Phase.triggeredBackward == phase ? p.parent != null : !getId().equals(p.getId())) {
-            state = state.set(p.parent.getId(), phase.depth, Set::add, p);
+        state = state.set(p.getId(), direction.priorities[leaf.priority().nr], Set::add, leaf);
+        while (Direction.backward == direction ? p.parent != null : !getId().equals(p.getId())) {
+            state = state.set(p.parent.getId(), direction.depth, Set::add, p);
             p = p.parent;
         }
         return state;
     }
 
     @SuppressWarnings("unchecked")
-    protected State schedule(State state, Phase phase) {
+    protected State schedule(State state, Direction direction) {
         Set<Compound>[] cs = new Set[1];
         Set<AbstractLeaf>[] ls = new Set[1];
-        return schedule(state, phase, cs, ls);
+        return schedule(state, direction, cs, ls);
     }
 
-    private State schedule(State state, Phase phase, Set<Compound>[] cs, Set<AbstractLeaf>[] ls) {
-        state = state.set(getId(), phase.preDepth, Set.of(), ls);
-        state = state.set(getId(), Phase.scheduled.preDepth, Set::addAll, ls[0]);
-        state = state.set(getId(), phase.depth, Set.of(), cs);
-        state = state.set(getId(), Phase.scheduled.depth, Set::addAll, cs[0]);
-        state = state.set(getId(), phase.postDepth, Set.of(), ls);
-        state = state.set(getId(), Phase.scheduled.postDepth, Set::addAll, ls[0]);
+    private State schedule(State state, Direction direction, Set<Compound>[] cs, Set<AbstractLeaf>[] ls) {
+        state = state.set(getId(), direction.preDepth, Set.of(), ls);
+        state = state.set(getId(), Direction.scheduled.preDepth, Set::addAll, ls[0]);
+        state = state.set(getId(), direction.depth, Set.of(), cs);
+        state = state.set(getId(), Direction.scheduled.depth, Set::addAll, cs[0]);
+        state = state.set(getId(), direction.postDepth, Set.of(), ls);
+        state = state.set(getId(), Direction.scheduled.postDepth, Set::addAll, ls[0]);
         Set<Compound> csc = cs[0];
         for (Compound c : csc) {
-            state = c.schedule(state, phase, cs, ls);
+            state = c.schedule(state, direction, cs, ls);
         }
         return state;
     }
@@ -243,7 +243,7 @@ public class Compound extends Transaction {
                                         if (!Objects.equals(branchValue, baseValue)) {
                                             Set<Observer> addedObservers = observers.removeAll(State.get(psb, observersProp));
                                             if (!addedObservers.isEmpty()) {
-                                                triggered[observersProp.phase().nr].change(ts -> ts.addAll(addedObservers));
+                                                triggered[observersProp.direction().nr].change(ts -> ts.addAll(addedObservers));
                                             }
                                         }
                                     }
@@ -252,7 +252,7 @@ public class Compound extends Transaction {
                         }
                     }, branches);
                     for (int ia = 0; ia < 2; ia++) {
-                        state = transaction.trigger(state, triggered[ia].result(), Phase.values()[ia]);
+                        state = transaction.trigger(state, triggered[ia].result(), Direction.values()[ia]);
                     }
                     return state;
                 }, branches);

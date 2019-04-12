@@ -34,7 +34,7 @@ public class Imperative extends AbstractLeaf {
     private final ImperativeRun              run;
 
     private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
-        super(id, root, Phase.triggeredForward, Priority.postDepth);
+        super(id, root, Direction.forward, Priority.postDepth);
         this.run = startRun(root);
         run.pre = init;
         run.state = init;
@@ -88,7 +88,7 @@ public class Imperative extends AbstractLeaf {
         private TriConsumer<State, State, Boolean> diffHandler;
 
         @Override
-        protected void trigger(AbstractLeaf leaf, Phase phase) {
+        protected void trigger(AbstractLeaf leaf, Direction direction) {
             // Do nothing
         }
 

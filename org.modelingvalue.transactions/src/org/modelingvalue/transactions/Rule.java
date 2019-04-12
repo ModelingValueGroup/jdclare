@@ -26,7 +26,7 @@ public class Rule {
         this.id = id;
         observeds = new Observerds[2];
         for (int ia = 0; ia < 2; ia++) {
-            observeds[ia] = Observerds.of(this, Phase.values()[ia]);
+            observeds[ia] = Observerds.of(this, Direction.values()[ia]);
         }
     }
 
@@ -63,22 +63,22 @@ public class Rule {
 
     public static final class Observerds extends Setable<Object, Set<Slot>> {
 
-        public static Observerds of(Rule rule, Phase phase) {
-            return new Observerds(rule, phase);
+        public static Observerds of(Rule rule, Direction direction) {
+            return new Observerds(rule, direction);
         }
 
         @SuppressWarnings("unchecked")
-        private Observerds(Rule rule, Phase phase) {
-            super(Pair.of(phase, rule), Set.of(), (tx, object, pre, post) -> pre.compare(post).forEach(d -> {
+        private Observerds(Rule rule, Direction direction) {
+            super(Pair.of(direction, rule), Set.of(), (tx, object, pre, post) -> pre.compare(post).forEach(d -> {
                 if (d[0] == null) {
-                    d[1].forEach(n -> tx.set(n.object(), n.property().observers(phase), Set<Observer>::add, (Observer) tx.transaction()));
+                    d[1].forEach(n -> tx.set(n.object(), n.property().observers(direction), Set<Observer>::add, (Observer) tx.transaction()));
                 }
                 if (d[1] == null) {
                     if (tx.transaction() instanceof Observer) {
-                        d[0].forEach(o -> tx.set(o.object(), o.property().observers(phase), Set<Observer>::remove, (Observer) tx.transaction()));
+                        d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), Set<Observer>::remove, (Observer) tx.transaction()));
                     } else {
-                        d[0].forEach(o -> tx.set(o.object(), o.property().observers(phase), (Set<Observer> s, Object k) -> {
-                            return s.filter(r -> !r.rule().equals(rule) || r.initPhase() != phase || !r.parent.getId().equals(k)).toSet();
+                        d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), (Set<Observer> s, Object k) -> {
+                            return s.filter(r -> !r.rule().equals(rule) || r.initDirection() != direction || !r.parent.getId().equals(k)).toSet();
                         }, object));
                     }
                 }

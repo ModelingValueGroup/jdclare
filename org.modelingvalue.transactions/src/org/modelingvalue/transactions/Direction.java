@@ -16,41 +16,41 @@ package org.modelingvalue.transactions;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 
-public enum Phase {
+public enum Direction {
 
-    triggeredForward(0),
+    forward(0),
 
-    triggeredBackward(1),
+    backward(1),
 
     scheduled(2);
 
-    public final PhaseSetable<AbstractLeaf>   preDepth;
-    public final PhaseSetable<Compound>       depth;
-    public final PhaseSetable<AbstractLeaf>   postDepth;
-    public final int                          nr;
-    public final PhaseSetable<AbstractLeaf>[] priorities;
-    public final PhaseSetable<Transaction>[]  sequence;
+    public final DirectionSetable<AbstractLeaf>   preDepth;
+    public final DirectionSetable<Compound>       depth;
+    public final DirectionSetable<AbstractLeaf>   postDepth;
+    public final int                              nr;
+    public final DirectionSetable<AbstractLeaf>[] priorities;
+    public final DirectionSetable<Transaction>[]  sequence;
 
     @SuppressWarnings("unchecked")
-    private Phase(int nr) {
-        preDepth = new PhaseSetable<>(Priority.preDepth);
-        depth = new PhaseSetable<>(Priority.depth);
-        postDepth = new PhaseSetable<>(Priority.postDepth);
-        priorities = new PhaseSetable[]{preDepth, postDepth};
-        sequence = new PhaseSetable[]{preDepth, depth, postDepth};
+    private Direction(int nr) {
+        preDepth = new DirectionSetable<>(Priority.preDepth);
+        depth = new DirectionSetable<>(Priority.depth);
+        postDepth = new DirectionSetable<>(Priority.postDepth);
+        priorities = new DirectionSetable[]{preDepth, postDepth};
+        sequence = new DirectionSetable[]{preDepth, depth, postDepth};
         this.nr = nr;
     }
 
-    public final class PhaseSetable<T extends Transaction> extends Setable<Object, Set<T>> {
+    public final class DirectionSetable<T extends Transaction> extends Setable<Object, Set<T>> {
         private final Priority priority;
 
-        private PhaseSetable(Priority priority) {
-            super(Pair.of(Phase.this, priority), Set.of(), null);
+        private DirectionSetable(Priority priority) {
+            super(Pair.of(Direction.this, priority), Set.of(), null);
             this.priority = priority;
         }
 
-        public Phase phase() {
-            return Phase.this;
+        public Direction direction() {
+            return Direction.this;
         }
 
         public Priority priority() {

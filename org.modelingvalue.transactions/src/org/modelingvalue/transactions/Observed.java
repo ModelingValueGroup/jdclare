@@ -41,7 +41,7 @@ public class Observed<O, T> extends Setable<O, T> {
     private static Observers[] observers(Object id) {
         Observers[] observers = new Observers[2];
         for (int ia = 0; ia < 2; ia++) {
-            observers[ia] = Observers.of(id, Phase.values()[ia]);
+            observers[ia] = Observers.of(id, Direction.values()[ia]);
         }
         return observers;
     }
@@ -55,7 +55,7 @@ public class Observed<O, T> extends Setable<O, T> {
             for (int ia = 0; ia < 2; ia++) {
                 for (Observer obs : l.get(o, observers[ia])) {
                     if (!l.transaction().equals(obs)) {
-                        l.trigger(obs, Phase.values()[ia]);
+                        l.trigger(obs, Direction.values()[ia]);
                     }
                 }
             }
@@ -66,8 +66,8 @@ public class Observed<O, T> extends Setable<O, T> {
         }
     }
 
-    public Observers<O, T> observers(Phase phase) {
-        return observers[phase.nr];
+    public Observers<O, T> observers(Direction direction) {
+        return observers[direction.nr];
     }
 
     public Observers<O, T>[] observers() {
@@ -93,25 +93,25 @@ public class Observed<O, T> extends Setable<O, T> {
 
     public static final class Observers<O, T> extends Setable<O, Set<Observer>> {
 
-        private Observed<O, T> observed;
-        private final Phase    phase;
+        private Observed<O, T>  observed;
+        private final Direction direction;
 
-        public static <C, V> Observers<C, V> of(Object id, Phase phase) {
-            return new Observers<C, V>(id, phase);
+        public static <C, V> Observers<C, V> of(Object id, Direction direction) {
+            return new Observers<C, V>(id, direction);
         }
 
-        private Observers(Object id, Phase phase) {
-            super(Pair.of(id, phase), Set.of(), null);
+        private Observers(Object id, Direction direction) {
+            super(Pair.of(id, direction), Set.of(), null);
             changed = (tx, o, b, a) -> tx.transaction().checkTooManyObservers(tx, o, observed, a);
-            this.phase = phase;
+            this.direction = direction;
         }
 
         public Observed<O, T> observed() {
             return observed;
         }
 
-        public Phase phase() {
-            return phase;
+        public Direction direction() {
+            return direction;
         }
 
     }
