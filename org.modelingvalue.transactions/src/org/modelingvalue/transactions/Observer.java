@@ -24,9 +24,7 @@ import org.modelingvalue.transactions.Rule.Observerds;
 
 public class Observer extends Leaf {
 
-    private static final Setable<Observer, Set<ObserverTrace>> TRACES  = Setable.of("TRACES", Set.of());
-
-    private static final Context<Boolean>                      OBSERVE = Context.of(true);
+    private static final Context<Boolean> OBSERVE = Context.of(true);
 
     public static Observer of(Rule rule, Compound parent, Runnable action) {
         return of(rule, parent, action, Direction.forward, Priority.postDepth);
@@ -112,34 +110,35 @@ public class Observer extends Leaf {
     @SuppressWarnings("unchecked")
     protected void checkTooManyChanges(ObserverRun run, State pre, Set<Slot> sets, Set<Slot> gets) {
         Root root = run.root();
+        Rule rule = rule();
         if (root.isDebugging()) {
             State post = run.result();
             run.init(post);
-            Set<ObserverTrace> traces = TRACES.get(this);
-            ObserverTrace trace = new ObserverTrace(this, traces.sorted().findFirst().orElse(null), rule().changesPerInstance(), //
+            Set<ObserverTrace> traces = rule.traces.get(parent.getId());
+            ObserverTrace trace = new ObserverTrace(this, traces.sorted().findFirst().orElse(null), rule.changesPerInstance(), //
                     gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
                     sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
-            TRACES.set(this, traces.add(trace));
+            rule.traces.set(parent.getId(), traces.add(trace));
         }
         int totalChanges = root.countTotalChanges();
-        int changesPerInstance = rule().countChangesPerInstance();
+        int changesPerInstance = rule.countChangesPerInstance();
         if (changesPerInstance > root.maxNrOfChanges()) {
             root.setDebugging();
             if (changesPerInstance > root.maxNrOfChanges() * 2) {
-                hadleTooManyChanges(run, changesPerInstance);
+                hadleTooManyChanges(run, rule, changesPerInstance);
             }
         } else if (totalChanges > root.maxTotalNrOfChanges()) {
             root.setDebugging();
             if (totalChanges > root.maxTotalNrOfChanges() + root.maxNrOfChanges()) {
-                hadleTooManyChanges(run, totalChanges);
+                hadleTooManyChanges(run, rule, totalChanges);
             }
         }
     }
 
-    private void hadleTooManyChanges(ObserverRun run, int changes) {
+    private void hadleTooManyChanges(ObserverRun run, Rule rule, int changes) {
         State result = run.result();
         run.init(result);
-        ObserverTrace last = result.get(this, Observer.TRACES).sorted().findFirst().get();
+        ObserverTrace last = result.get(parent.getId(), rule.traces).sorted().findFirst().get();
         if (last.done().size() >= run.root().maxNrOfChanges()) {
             run.getted.init(Set.of());
             run.setted.init(Set.of());
