@@ -24,22 +24,10 @@ import org.modelingvalue.collections.util.NotMergeableException;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.transactions.Observed.Observers;
-import org.modelingvalue.transactions.Priority.PrioritySetable;
 
 public class Compound extends Transaction {
 
-    private static final int               MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
-
-    @SuppressWarnings("rawtypes")
-    private static final PrioritySetable[] SCHEDULED;
-    static {
-        Priority[] priorities = Priority.values();
-        SCHEDULED = new PrioritySetable[Priority.values().length * 2];
-        for (int i = 0; i < priorities.length; i++) {
-            SCHEDULED[i * 2] = priorities[i].compScheduled;
-            SCHEDULED[i * 2 + 1] = priorities[i].leafScheduled;
-        }
-    }
+    private static final int MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
     public static Compound of(Object id, Compound parent) {
         return new Compound(id, parent);
@@ -73,33 +61,40 @@ public class Compound extends Transaction {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected State run(State state, Root root, Priority maxPrio) {
+    protected State run(State state, Root root) {
         TraceTimer.traceBegin("compound");
         CompoundRun run = startRun(root);
         try {
             Set<Transaction>[] ts = new Set[1];
             State[] sa = new State[]{state};
+            if (this == root) {
+                sa[0] = schedule(sa[0], Phase.triggeredForward);
+            }
             int i = 0;
             boolean sequential = false;
-            while (!root.isKilled() && i < SCHEDULED.length && SCHEDULED[i].prio().nr <= maxPrio.nr) {
-                sa[0] = schedule(sa[0], maxPrio);
-                sa[0] = sa[0].set(getId(), SCHEDULED[i], Set.of(), ts);
+            while (!root.isKilled() && i < 3) {
+                sa[0] = sa[0].set(getId(), Phase.scheduled.sequence[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
-                    i++;
+                    if (++i == 3 && this == root) {
+                        sa[0] = schedule(sa[0], Phase.triggeredBackward);
+                        if (!sa[0].get(getId(), Phase.scheduled.depth).isEmpty()) {
+                            root.startOpposite();
+                            i = 0;
+                        }
+                    }
                 } else {
-                    Priority prio = SCHEDULED[i].prio();
                     if (this == root) {
-                        root.startPriority(prio);
+                        root.startPriority(Priority.values()[i]);
                     }
                     if (sequential) {
                         for (Transaction t : ts[0].random()) {
-                            sa[0] = t.run(sa[0], root, prio);
+                            sa[0] = t.run(sa[0], root);
                         }
                     } else {
                         try {
                             sa[0] = run.merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
                                 State[] r = s.clone();
-                                r[0] = t.run(s[0], root, prio);
+                                r[0] = t.run(s[0], root);
                                 return r;
                             }, (a, b) -> {
                                 State[] r = Arrays.copyOf(a, a.length + b.length);
@@ -109,23 +104,20 @@ public class Compound extends Transaction {
                         } catch (NotMergeableException nme) {
                             sequential = true;
                             for (Transaction t : ts[0].random()) {
-                                sa[0] = t.run(sa[0], root, prio);
+                                sa[0] = t.run(sa[0], root);
                             }
                         }
                     }
-                    i = 0;
                     if (this == root) {
-                        root.endPriority(prio);
+                        root.endPriority(Priority.values()[i]);
                     }
+                    sa[0] = schedule(sa[0], Phase.triggeredForward);
+                    i = 0;
                 }
             }
             return sa[0];
-        } catch (TooManyChangesException tmce) {
-            throw tmce;
-        } catch (TooManyObservedException tmoe) {
-            throw tmoe;
-        } catch (TooManyObserversException tmoe) {
-            throw tmoe;
+        } catch (TooManyChangesException | TooManyObservedException | TooManyObserversException tme) {
+            throw tme;
         } catch (Throwable t) {
             Error error = new TransactionException("Exception in transaction \"" + state.get(() -> toString()) + "\"", t);
             StackTraceElement[] est = error.getStackTrace();
@@ -153,45 +145,40 @@ public class Compound extends Transaction {
         return inner.length;
     }
 
-    protected State trigger(State state, Set<? extends AbstractLeaf> leafs, Priority prio) {
+    protected State trigger(State state, Set<? extends AbstractLeaf> leafs, Phase phase) {
         for (AbstractLeaf leaf : leafs) {
-            state = trigger(state, leaf, prio);
+            state = trigger(state, leaf, phase);
         }
         return state;
     }
 
-    protected State trigger(State state, AbstractLeaf leaf, Priority prio) {
+    protected State trigger(State state, AbstractLeaf leaf, Phase phase) {
         Compound p = leaf.parent;
-        state = state.set(p.getId(), prio.leafTriggered, Set::add, leaf);
-        while (!getId().equals(p.getId())) {
-            state = state.set(p.parent.getId(), prio.compTriggered, Set::add, p);
+        state = state.set(p.getId(), phase.priorities[leaf.priority().nr], Set::add, leaf);
+        while (Phase.triggeredBackward == phase ? p.parent != null : !getId().equals(p.getId())) {
+            state = state.set(p.parent.getId(), phase.depth, Set::add, p);
             p = p.parent;
         }
         return state;
     }
 
     @SuppressWarnings("unchecked")
-    private State schedule(State state, Priority maxPrio) {
+    protected State schedule(State state, Phase phase) {
         Set<Compound>[] cs = new Set[1];
         Set<AbstractLeaf>[] ls = new Set[1];
-        for (Priority prio : Priority.values()) {
-            if (prio.nr <= maxPrio.nr) {
-                state = schedule(state, prio, cs, ls);
-            } else if (!state.get(getId(), prio.compTriggered).isEmpty() || !state.get(getId(), prio.leafTriggered).isEmpty()) {
-                state = state.set(parent.getId(), prio.compTriggered, Set::add, this);
-            }
-        }
-        return state;
+        return schedule(state, phase, cs, ls);
     }
 
-    private State schedule(State state, Priority prio, Set<Compound>[] cs, Set<AbstractLeaf>[] ls) {
-        state = state.set(getId(), prio.leafTriggered, Set.of(), ls);
-        state = state.set(getId(), prio.leafScheduled, Set::addAll, ls[0]);
-        state = state.set(getId(), prio.compTriggered, Set.of(), cs);
-        state = state.set(getId(), prio.compScheduled, Set::addAll, cs[0]);
+    private State schedule(State state, Phase phase, Set<Compound>[] cs, Set<AbstractLeaf>[] ls) {
+        state = state.set(getId(), phase.preDepth, Set.of(), ls);
+        state = state.set(getId(), Phase.scheduled.preDepth, Set::addAll, ls[0]);
+        state = state.set(getId(), phase.depth, Set.of(), cs);
+        state = state.set(getId(), Phase.scheduled.depth, Set::addAll, cs[0]);
+        state = state.set(getId(), phase.postDepth, Set.of(), ls);
+        state = state.set(getId(), Phase.scheduled.postDepth, Set::addAll, ls[0]);
         Set<Compound> csc = cs[0];
         for (Compound c : csc) {
-            state = c.schedule(state, prio, cs, ls);
+            state = c.schedule(state, phase, cs, ls);
         }
         return state;
     }
@@ -214,9 +201,9 @@ public class Compound extends Transaction {
         @SuppressWarnings("unchecked")
         protected CompoundRun() {
             super();
-            triggered = new Concurrent[Priority.values().length];
-            for (int i = 0; i < triggered.length; i++) {
-                triggered[i] = Concurrent.of();
+            triggered = new Concurrent[2];
+            for (int ia = 0; ia < 2; ia++) {
+                triggered[ia] = Concurrent.of();
             }
         }
 
@@ -238,8 +225,8 @@ public class Compound extends Transaction {
             try {
                 Compound transaction = transaction();
                 return transaction.root().isKilled() ? base : merger.get(() -> {
-                    for (int i = 0; i < triggered.length; i++) {
-                        triggered[i].init(Set.of());
+                    for (int ia = 0; ia < 2; ia++) {
+                        triggered[ia].init(Set.of());
                     }
                     State state = base.merge((o, ps, psm, psbs) -> {
                         for (Entry<Setable, Object> p : psm) {
@@ -256,7 +243,7 @@ public class Compound extends Transaction {
                                         if (!Objects.equals(branchValue, baseValue)) {
                                             Set<Observer> addedObservers = observers.removeAll(State.get(psb, observersProp));
                                             if (!addedObservers.isEmpty()) {
-                                                triggered[observersProp.prio().nr].change(ts -> ts.addAll(addedObservers));
+                                                triggered[observersProp.phase().nr].change(ts -> ts.addAll(addedObservers));
                                             }
                                         }
                                     }
@@ -264,14 +251,14 @@ public class Compound extends Transaction {
                             }
                         }
                     }, branches);
-                    for (Priority prio : Priority.values()) {
-                        state = transaction.trigger(state, triggered[prio.nr].result(), prio);
+                    for (int ia = 0; ia < 2; ia++) {
+                        state = transaction.trigger(state, triggered[ia].result(), Phase.values()[ia]);
                     }
                     return state;
                 }, branches);
             } finally {
-                for (int i = 0; i < triggered.length; i++) {
-                    triggered[i].clear();
+                for (int ia = 0; ia < 2; ia++) {
+                    triggered[ia].clear();
                 }
                 TraceTimer.traceEnd("merge");
             }

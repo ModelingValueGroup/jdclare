@@ -189,8 +189,8 @@ public class JDclareTests {
         prios.forEach(p -> {
             String target = p.dObjectClass().name();
             target = target.substring(target.length() - 1);
-            assertEquals(p.x(), target);
-            assertEquals(p.y(), target);
+            assertEquals(target, p.x());
+            assertEquals(target, p.y());
         });
     }
 

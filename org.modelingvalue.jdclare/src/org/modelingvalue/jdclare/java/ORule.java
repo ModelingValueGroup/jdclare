@@ -21,7 +21,7 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.expressions.DEqualize;
 import org.modelingvalue.jdclare.expressions.DStatement;
 import org.modelingvalue.jdclare.meta.DRule;
-import org.modelingvalue.transactions.Priority;
+import org.modelingvalue.transactions.Phase;
 
 public interface ORule<O extends DObject> extends DRule<O>, DStruct2<O, String> {
 
@@ -43,8 +43,8 @@ public interface ORule<O extends DObject> extends DRule<O>, DStruct2<O, String> 
 
     @Override
     @Property(constant)
-    default Priority initPrio() {
-        return statement() instanceof DEqualize ? Priority.high : Priority.low;
+    default Phase initPhase() {
+        return statement() instanceof DEqualize ? Phase.triggeredForward : Phase.triggeredBackward;
     }
 
 }

@@ -111,8 +111,7 @@ public class BirdTest {
     public void tooManyObserversException() {
         try {
             DClare<BlackSparrowUniverse> blackSparrowUniverse = of(BlackSparrowUniverse.class);
-            State result = blackSparrowUniverse.run();
-            Set<Bird> birds = result.getObjects(Bird.class).toSet();
+            blackSparrowUniverse.run();
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);

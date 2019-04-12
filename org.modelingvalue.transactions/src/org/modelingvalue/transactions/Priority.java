@@ -13,41 +13,18 @@
 
 package org.modelingvalue.transactions;
 
-import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.Pair;
-
 public enum Priority {
 
-    pre(0),
+    preDepth(0),
 
-    high(1),
+    postDepth(1),
 
-    low(2),
+    depth(2);
 
-    post(3);
-
-    public final PrioritySetable<AbstractLeaf> leafTriggered;
-    public final PrioritySetable<Compound>     compTriggered;
-    public final PrioritySetable<AbstractLeaf> leafScheduled;
-    public final PrioritySetable<Compound>     compScheduled;
-    public final int                           nr;
+    public final int nr;
 
     private Priority(int nr) {
-        leafTriggered = new PrioritySetable<>("leafTriggered");
-        compTriggered = new PrioritySetable<>("compTriggered");
-        leafScheduled = new PrioritySetable<>("leafScheduled");
-        compScheduled = new PrioritySetable<>("compScheduled");
         this.nr = nr;
-    }
-
-    public final class PrioritySetable<T extends Transaction> extends Setable<Object, Set<T>> {
-        private PrioritySetable(String id) {
-            super(Pair.of(Priority.this, id), Set.of(), null);
-        }
-
-        public Priority prio() {
-            return Priority.this;
-        }
     }
 
 }

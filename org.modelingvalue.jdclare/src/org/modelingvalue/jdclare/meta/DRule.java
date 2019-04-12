@@ -21,7 +21,7 @@ import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.expressions.DStatement;
-import org.modelingvalue.transactions.Priority;
+import org.modelingvalue.transactions.Phase;
 import org.modelingvalue.transactions.Rule;
 
 @Abstract
@@ -35,7 +35,7 @@ public interface DRule<O extends DObject> extends DNamed {
     }
 
     @Property
-    Priority initPrio();
+    Phase initPhase();
 
     @Property(constant)
     default Rule rule() {

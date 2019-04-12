@@ -23,11 +23,11 @@ public class ReadOnly extends AbstractLeaf {
     }
 
     private ReadOnly(Object id, Root root) {
-        super(id, root, Priority.high);
+        super(id, root, Phase.triggeredForward, Priority.postDepth);
     }
 
     @Override
-    protected State run(State state, Root root, Priority prio) {
+    protected State run(State state, Root root) {
         throw new UnsupportedOperationException();
     }
 
@@ -96,7 +96,7 @@ public class ReadOnly extends AbstractLeaf {
         }
 
         @Override
-        protected void trigger(AbstractLeaf leaf, Priority prio) {
+        protected void trigger(AbstractLeaf leaf, Phase phase) {
             // Do nothing
         }
 

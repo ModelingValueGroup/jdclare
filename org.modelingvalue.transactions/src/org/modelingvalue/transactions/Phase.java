@@ -11,36 +11,51 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.jdclare.syntax.meta;
+package org.modelingvalue.transactions;
 
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Pair;
 
-import org.modelingvalue.jdclare.DStruct1;
-import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.expressions.DStatement;
-import org.modelingvalue.jdclare.meta.DRule;
-import org.modelingvalue.jdclare.syntax.ObjectNode;
-import org.modelingvalue.transactions.Phase;
+public enum Phase {
 
-public interface SyntaxPropertyRule<O extends ObjectNode> extends DRule<O>, DStruct1<SyntaxProperty<O, ?>> {
+    triggeredForward(0),
 
-    @Property(key = 0)
-    SyntaxProperty<O, ?> syntaxProperty();
+    triggeredBackward(1),
 
-    @Override
-    @Property(constant)
-    DStatement<O> statement();
+    scheduled(2);
 
-    @Override
-    @Property(constant)
-    default String name() {
-        return "Syntax::" + syntaxProperty().name();
+    public final PhaseSetable<AbstractLeaf>   preDepth;
+    public final PhaseSetable<Compound>       depth;
+    public final PhaseSetable<AbstractLeaf>   postDepth;
+    public final int                          nr;
+    public final PhaseSetable<AbstractLeaf>[] priorities;
+    public final PhaseSetable<Transaction>[]  sequence;
+
+    @SuppressWarnings("unchecked")
+    private Phase(int nr) {
+        preDepth = new PhaseSetable<>(Priority.preDepth);
+        depth = new PhaseSetable<>(Priority.depth);
+        postDepth = new PhaseSetable<>(Priority.postDepth);
+        priorities = new PhaseSetable[]{preDepth, postDepth};
+        sequence = new PhaseSetable[]{preDepth, depth, postDepth};
+        this.nr = nr;
     }
 
-    @Override
-    @Property(constant)
-    default Phase initPhase() {
-        return Phase.triggeredForward;
+    public final class PhaseSetable<T extends Transaction> extends Setable<Object, Set<T>> {
+        private final Priority priority;
+
+        private PhaseSetable(Priority priority) {
+            super(Pair.of(Phase.this, priority), Set.of(), null);
+            this.priority = priority;
+        }
+
+        public Phase phase() {
+            return Phase.this;
+        }
+
+        public Priority priority() {
+            return priority;
+        }
     }
 
 }

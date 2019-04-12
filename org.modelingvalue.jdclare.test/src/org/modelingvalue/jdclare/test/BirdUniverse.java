@@ -16,12 +16,12 @@ public interface BirdUniverse extends DUniverse {
 
     @Property(containment)
     Set<Bird> birds();
-    
+
     default void addBird(Class<? extends Bird> clazz, String name, String color) {
-		Bird bird = dclare(clazz, this, name);
+        Bird bird = dclare(clazz, this, name);
         set(this, BirdUniverse::birds, Set::add, bird);
         set(bird, Bird::color, color);
-	}
+    }
 
     interface Bird extends DStruct2<DObject, String>, DNamed {
 
@@ -159,7 +159,7 @@ public interface BirdUniverse extends DUniverse {
                 }
             }
         }
-        
+
         @Rule
         default void addGenerations() {
             if ("blue".equals(this.color()) && name().length() < 10000) {
@@ -180,52 +180,51 @@ public interface BirdUniverse extends DUniverse {
             }
         }
     }
-    
+
     interface Sparrow extends Bird {
-    	
+
         @Rule
         default void addChildren() {
             if ("black".equals(color())) {
                 for (int i = 0; i < 800; i++) {
-                	Sparrow child = dclare(Sparrow.class, this, name() + i);
+                    Sparrow child = dclare(Sparrow.class, this, name() + i);
                     set(child, Bird::color, "grey");
                     set(this, Bird::children, Set::add, child);
-//	                  for (int j = 0; j < 800; j++) {
-//	                   	 Sparrow grandChild = dclare(Sparrow.class, child, name() + i + j); // 
-//	                   	 set(grandChild, Bird::color, "grey");
-//	                   	 set(child, Bird::children, Set::add, grandChild);
-//	                  }
+                    //	                  for (int j = 0; j < 800; j++) {
+                    //	                   	 Sparrow grandChild = dclare(Sparrow.class, child, name() + i + j); // 
+                    //	                   	 set(grandChild, Bird::color, "grey");
+                    //	                   	 set(child, Bird::children, Set::add, grandChild);
+                    //	                  }
                 }
             }
         }
-        
+
         @Rule
         default void parentColor1() {
-        		DObject parent = this.dParent();
-        		if (parent instanceof Bird) {
-        			String parentColor = ((Bird)parent).color();
-        		}
+            DObject parent = this.dParent();
+            if (parent instanceof Bird) {
+                ((Bird) parent).color();
+            }
         }
-        
+
         @Rule
         default void parentColor2() {
-        		DObject parent = this.dParent();
-        		if (parent instanceof Bird) {
-        			String parentColor = ((Bird)parent).color();
-        			System.err.println("parentColor is " + parentColor);
-        		}
+            DObject parent = this.dParent();
+            if (parent instanceof Bird) {
+                String parentColor = ((Bird) parent).color();
+                System.err.println("parentColor is " + parentColor);
+            }
         }
-        
+
         @Rule
         default void parentColor3() {
-        		DObject parent = this.dParent();
-        		if (parent instanceof Bird) {
-        			String parentColor = ((Bird)parent).color();
-        			System.err.println("parentColor is " + parentColor);
-        		}
+            DObject parent = this.dParent();
+            if (parent instanceof Bird) {
+                String parentColor = ((Bird) parent).color();
+                System.err.println("parentColor is " + parentColor);
+            }
         }
     }
-    
 
     interface HummingBird extends Bird {
         @Rule
@@ -250,8 +249,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Condor.class, "0", "red");
+            BirdUniverse.super.init();
+            addBird(Condor.class, "0", "red");
         }
     }
 
@@ -259,8 +258,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Condor.class, "0", "green");
+            BirdUniverse.super.init();
+            addBird(Condor.class, "0", "green");
         }
     }
 
@@ -268,8 +267,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Condor.class, "0", "blue");
+            BirdUniverse.super.init();
+            addBird(Condor.class, "0", "blue");
         }
     }
 
@@ -277,8 +276,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Condor.class, "0", "white");
+            BirdUniverse.super.init();
+            addBird(Condor.class, "0", "white");
         }
     }
 
@@ -286,8 +285,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Condor.class, "0", "black");
+            BirdUniverse.super.init();
+            addBird(Condor.class, "0", "black");
         }
     }
 
@@ -295,8 +294,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Condor.class, "0", "yellow");
+            BirdUniverse.super.init();
+            addBird(Condor.class, "0", "yellow");
         }
     }
 
@@ -304,8 +303,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Pigeon.class, "0", "grey");
+            BirdUniverse.super.init();
+            addBird(Pigeon.class, "0", "grey");
         }
     }
 
@@ -313,8 +312,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-           	BirdUniverse.super.init();
-        	addBird(Pigeon.class, "0", "blue");
+            BirdUniverse.super.init();
+            addBird(Pigeon.class, "0", "blue");
         }
     }
 
@@ -322,17 +321,17 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-         	BirdUniverse.super.init();
-        	addBird(Pigeon.class, "0", "green");
+            BirdUniverse.super.init();
+            addBird(Pigeon.class, "0", "green");
         }
     }
-    
+
     public interface BlackSparrowUniverse extends BirdUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(Sparrow.class, "0", "black");
+            BirdUniverse.super.init();
+            addBird(Sparrow.class, "0", "black");
         }
     }
 
@@ -340,8 +339,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Override
         default void init() {
-        	BirdUniverse.super.init();
-        	addBird(HummingBird.class, "0", "green");
+            BirdUniverse.super.init();
+            addBird(HummingBird.class, "0", "green");
         }
     }
 

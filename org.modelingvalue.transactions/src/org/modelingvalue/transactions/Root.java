@@ -156,10 +156,10 @@ public class Root extends Compound {
                         if (history.size() > maxNrOfHistory) {
                             history = history.removeFirst();
                         }
-                        state = post(run(trigger(pre(state), leaf, leaf.initPrio())));
+                        state = post(run(trigger(pre(state), leaf, leaf.initPhase())));
                     }
                     if (!killed) {
-                        state = run(trigger(state, state.get(Root.this, INTEGRATIONS), Priority.pre));
+                        state = run(trigger(state, state.get(Root.this, INTEGRATIONS), Phase.triggeredForward));
                     }
                     if (!killed && inQueue.isEmpty()) {
                         if (isStopped(state)) {
@@ -187,7 +187,7 @@ public class Root extends Compound {
     }
 
     protected State run(State state) {
-        return run(state, this, Priority.post);
+        return run(state, this);
     }
 
     public State emptyState() {
@@ -254,7 +254,7 @@ public class Root extends Compound {
     public void addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler) {
         Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(id, Root.this, () -> {
             diffHandler.accept(preState(), Leaf.getCurrent().state(), true);
-        }, Priority.pre));
+        }, Priority.postDepth));
     }
 
     public Imperative addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
@@ -263,7 +263,7 @@ public class Root extends Compound {
             State pre = Leaf.getCurrent().state();
             boolean timeTraveling = isTimeTraveling();
             n.schedule(() -> n.commit(pre, timeTraveling));
-        }, Priority.pre));
+        }, Priority.postDepth));
         return n;
     }
 
@@ -349,6 +349,9 @@ public class Root extends Compound {
     }
 
     public void endPriority(Priority prio) {
+    }
+
+    public void startOpposite() {
     }
 
 }

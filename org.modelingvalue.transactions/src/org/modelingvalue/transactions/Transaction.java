@@ -70,7 +70,7 @@ public abstract class Transaction {
         return (Root) p;
     }
 
-    protected abstract State run(State state, Root root, Priority prio);
+    protected abstract State run(State state, Root root);
 
     public abstract boolean isAncestorOf(Transaction child);
 

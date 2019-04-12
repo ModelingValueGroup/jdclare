@@ -27,17 +27,21 @@ import org.modelingvalue.collections.util.TraceTimer;
 public class Leaf extends AbstractLeaf {
 
     public static Leaf of(Object id, Compound parent, Runnable action) {
-        return new Leaf(id, parent, action, Priority.high);
+        return new Leaf(id, parent, action, Phase.triggeredForward, Priority.postDepth);
     }
 
-    public static Leaf of(Object id, Compound parent, Runnable action, Priority initPrio) {
-        return new Leaf(id, parent, action, initPrio);
+    public static Leaf of(Object id, Compound parent, Runnable action, Priority priority) {
+        return new Leaf(id, parent, action, Phase.triggeredForward, priority);
+    }
+
+    public static Leaf of(Object id, Compound parent, Runnable action, Phase initPhase, Priority priority) {
+        return new Leaf(id, parent, action, initPhase, priority);
     }
 
     private final Runnable action;
 
-    protected Leaf(Object id, Compound parent, Runnable action, Priority initPrio) {
-        super(id, parent, initPrio);
+    protected Leaf(Object id, Compound parent, Runnable action, Phase initPhase, Priority priority) {
+        super(id, parent, initPhase, priority);
         this.action = action;
     }
 
@@ -46,7 +50,7 @@ public class Leaf extends AbstractLeaf {
     }
 
     @Override
-    protected State run(State state, Root root, Priority prio) {
+    protected State run(State state, Root root) {
         TraceTimer.traceBegin(traceId());
         LeafRun<?> run = startRun(root);
         run.init(state);
@@ -173,8 +177,7 @@ public class Leaf extends AbstractLeaf {
             } else if (prePre instanceof Mergeable) {
                 return ((Mergeable) prePre).merge2(pre, post);
             } else if (slot.b() instanceof Observed && transaction() instanceof Observer) {
-                Priority prio = transaction().initPrio();
-                trigger(transaction(), prio != Priority.pre && prio != Priority.post ? Priority.low : prio);
+                trigger(transaction(), Phase.triggeredBackward);
                 return post;
             } else {
                 throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);

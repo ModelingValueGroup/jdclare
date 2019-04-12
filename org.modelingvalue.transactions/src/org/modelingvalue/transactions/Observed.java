@@ -39,10 +39,9 @@ public class Observed<O, T> extends Setable<O, T> {
 
     @SuppressWarnings("rawtypes")
     private static Observers[] observers(Object id) {
-        Priority[] priorities = Priority.values();
-        Observers[] observers = new Observers[priorities.length];
-        for (int i = 0; i < priorities.length; i++) {
-            observers[i] = Observers.of(Pair.of(id, priorities[i]), priorities[i]);
+        Observers[] observers = new Observers[2];
+        for (int ia = 0; ia < 2; ia++) {
+            observers[ia] = Observers.of(id, Phase.values()[ia]);
         }
         return observers;
     }
@@ -53,22 +52,22 @@ public class Observed<O, T> extends Setable<O, T> {
             if (changed != null) {
                 changed.accept(l, o, p, n);
             }
-            for (Observers<O, T> observ : observers) {
-                for (Observer obs : l.get(o, observ)) {
+            for (int ia = 0; ia < 2; ia++) {
+                for (Observer obs : l.get(o, observers[ia])) {
                     if (!l.transaction().equals(obs)) {
-                        l.trigger(obs, observ.prio());
+                        l.trigger(obs, Phase.values()[ia]);
                     }
                 }
             }
         };
         this.observers = observers;
-        for (Observers<O, T> observ : observers) {
-            observ.observed = this;
+        for (int ia = 0; ia < 2; ia++) {
+            observers[ia].observed = this;
         }
     }
 
-    public Observers<O, T> observers(Priority prio) {
-        return observers[prio.nr];
+    public Observers<O, T> observers(Phase phase) {
+        return observers[phase.nr];
     }
 
     public Observers<O, T>[] observers() {
@@ -86,8 +85,8 @@ public class Observed<O, T> extends Setable<O, T> {
     public int getNrOfObservers(O object) {
         AbstractLeafRun<?> leaf = AbstractLeaf.getCurrent();
         int nr = 0;
-        for (Observers<O, T> observ : observers) {
-            nr += leaf.get(object, observ).size();
+        for (int ia = 0; ia < 2; ia++) {
+            nr += leaf.get(object, observers[ia]).size();
         }
         return nr;
     }
@@ -95,24 +94,24 @@ public class Observed<O, T> extends Setable<O, T> {
     public static final class Observers<O, T> extends Setable<O, Set<Observer>> {
 
         private Observed<O, T> observed;
-        private final Priority prio;
+        private final Phase    phase;
 
-        public static <C, V> Observers<C, V> of(Object id, Priority prio) {
-            return new Observers<C, V>(id, prio);
+        public static <C, V> Observers<C, V> of(Object id, Phase phase) {
+            return new Observers<C, V>(id, phase);
         }
 
-        private Observers(Object id, Priority prio) {
-            super(id, Set.of(), null);
+        private Observers(Object id, Phase phase) {
+            super(Pair.of(id, phase), Set.of(), null);
             changed = (tx, o, b, a) -> tx.transaction().checkTooManyObservers(tx, o, observed, a);
-            this.prio = prio;
+            this.phase = phase;
         }
 
         public Observed<O, T> observed() {
             return observed;
         }
 
-        public Priority prio() {
-            return prio;
+        public Phase phase() {
+            return phase;
         }
 
     }

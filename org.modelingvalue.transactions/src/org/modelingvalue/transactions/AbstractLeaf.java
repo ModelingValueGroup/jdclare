@@ -24,20 +24,26 @@ public abstract class AbstractLeaf extends Transaction {
 
     protected static final Context<AbstractLeafRun<?>> CURRENT = Context.of();
 
-    private final Priority                             initPrio;
+    private final Phase                                initPhase;
+    private final Priority                             priority;
 
-    protected AbstractLeaf(Object id, Compound parent, Priority initPrio) {
+    protected AbstractLeaf(Object id, Compound parent, Phase initPhase, Priority priority) {
         super(id, parent);
-        this.initPrio = initPrio;
+        this.initPhase = initPhase;
+        this.priority = priority;
     }
 
-    protected Priority initPrio() {
-        return initPrio;
+    protected Phase initPhase() {
+        return initPhase;
+    }
+
+    protected Priority priority() {
+        return priority;
     }
 
     public void trigger() {
         AbstractLeafRun<?> leaf = getCurrent();
-        leaf.trigger(this, initPrio);
+        leaf.trigger(this, initPhase);
     }
 
     @Override
@@ -100,11 +106,11 @@ public abstract class AbstractLeaf extends Transaction {
             }
         }
 
-        protected void trigger(AbstractLeaf leaf, Priority prio) {
+        protected void trigger(AbstractLeaf leaf, Phase phase) {
             Compound p = leaf.parent, parent = parent();
-            set(p.getId(), prio.leafTriggered, Set::add, leaf);
-            while (!p.isAncestorOf(parent)) {
-                set(p.parent.getId(), prio.compTriggered, Set::add, p);
+            set(p.getId(), phase.priorities[leaf.priority.nr], Set::add, leaf);
+            while (Phase.triggeredBackward == phase ? p.parent != null : !p.isAncestorOf(parent)) {
+                set(p.parent.getId(), phase.depth, Set::add, p);
                 p = p.parent;
             }
         }

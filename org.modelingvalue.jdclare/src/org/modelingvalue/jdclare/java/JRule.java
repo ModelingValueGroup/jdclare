@@ -24,7 +24,7 @@ import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.expressions.DStatement;
 import org.modelingvalue.jdclare.meta.DRule;
-import org.modelingvalue.transactions.Priority;
+import org.modelingvalue.transactions.Phase;
 
 public interface JRule<O extends DObject, T> extends DRule<O>, DStruct1<Method> {
 
@@ -55,8 +55,8 @@ public interface JRule<O extends DObject, T> extends DRule<O>, DStruct1<Method> 
 
     @Override
     @Property(constant)
-    default Priority initPrio() {
-        return method().getReturnType() == Void.TYPE ? Priority.low : validation() ? Priority.post : Priority.high;
+    default Phase initPhase() {
+        return method().getReturnType() == Void.TYPE ? Phase.triggeredBackward : Phase.triggeredForward;
     }
 
 }

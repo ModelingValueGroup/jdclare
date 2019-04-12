@@ -34,7 +34,7 @@ public class Imperative extends AbstractLeaf {
     private final ImperativeRun              run;
 
     private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
-        super(id, root, Priority.high);
+        super(id, root, Phase.triggeredForward, Priority.postDepth);
         this.run = startRun(root);
         run.pre = init;
         run.state = init;
@@ -57,7 +57,7 @@ public class Imperative extends AbstractLeaf {
     }
 
     @Override
-    protected State run(State last, Root root, Priority prio) {
+    protected State run(State last, Root root) {
         throw new UnsupportedOperationException();
     }
 
@@ -88,7 +88,7 @@ public class Imperative extends AbstractLeaf {
         private TriConsumer<State, State, Boolean> diffHandler;
 
         @Override
-        protected void trigger(AbstractLeaf leaf, Priority prio) {
+        protected void trigger(AbstractLeaf leaf, Phase phase) {
             // Do nothing
         }
 

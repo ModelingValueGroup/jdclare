@@ -102,6 +102,7 @@ import org.modelingvalue.transactions.Leaf;
 import org.modelingvalue.transactions.MandatoryObserved;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
+import org.modelingvalue.transactions.Phase;
 import org.modelingvalue.transactions.Priority;
 import org.modelingvalue.transactions.Root;
 import org.modelingvalue.transactions.Rule.Observerds;
@@ -687,7 +688,7 @@ public final class DClare<U extends DUniverse> extends Root {
         Leaf.of("dStop", tx, () -> {
             CHILDREN_TRANSACTIONS.set(tx, Set.of());
             OBSERVERS.set(tx, Set.of());
-        }, Priority.pre).trigger();
+        }, Priority.preDepth).trigger();
     }
 
     private static void start(DObject dObject, Compound tx) {
@@ -701,14 +702,14 @@ public final class DClare<U extends DUniverse> extends Root {
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.pre).trigger();
+        }, Priority.preDepth).trigger();
         Observer.of(D_START_CHILDREN, tx, () -> {
             if (tx.equals(TRANSACTION.get(dObject))) {
                 CHILDREN_TRANSACTIONS.set(tx, dChildren.get(dObject).map(c -> Compound.of(c, tx)).toSet());
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.pre).trigger();
+        }, Priority.preDepth).trigger();
         Observer.of(D_START_OBSERVERS, tx, () -> {
             if (tx.equals(TRANSACTION.get(dObject))) {
                 Set<DRule> objectRules = dObject.dObjectClass().allRules().addAll(dObject.dObjectRules());
@@ -719,11 +720,11 @@ public final class DClare<U extends DUniverse> extends Root {
                             } else {
                                 throw new StopObserverException("Transaction not Current");
                             }
-                        }, rule.initPrio())).toSet());
+                        }, rule.initPhase(), Priority.postDepth)).toSet());
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        }, Priority.high).trigger();
+        }, Priority.postDepth).trigger();
     }
 
     public static <T extends DStruct> Class<T> jClass(T dObject) {
@@ -1574,21 +1575,21 @@ public final class DClare<U extends DUniverse> extends Root {
 
     @Override
     protected State pre(State pre) {
-        return stopSetable != null ? run(trigger(pre, setTime, Priority.high)) : pre;
+        return stopSetable != null ? run(trigger(pre, setTime, Phase.triggeredForward)) : pre;
     }
 
     @Override
     protected State post(State pre) {
-        State post = run(trigger(pre, clearOrphans, Priority.post));
+        State post = run(trigger(pre, clearOrphans, Phase.triggeredBackward));
         while (!pre.equals(post)) {
             pre = post;
-            post = run(trigger(pre, clearOrphans, Priority.post));
+            post = run(trigger(pre, clearOrphans, Phase.triggeredBackward));
         }
         if (checkFatals != null) {
-            post = trigger(post, checkFatals, Priority.post);
+            post = trigger(post, checkFatals, Phase.triggeredBackward);
         }
-        post = trigger(post, printOutput, Priority.post);
-        return run(isStopped(post) ? post : trigger(post, animate, Priority.post));
+        post = trigger(post, printOutput, Phase.triggeredBackward);
+        return run(isStopped(post) ? post : trigger(post, animate, Phase.triggeredBackward));
     }
 
     public void addAugmentation(Class<?>... augmentations) {
