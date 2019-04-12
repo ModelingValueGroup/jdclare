@@ -19,15 +19,17 @@ import org.modelingvalue.collections.util.StringUtil;
 
 public class Rule {
 
-    private final Observerds[] observeds;
-    private final Object       id;
+    public final Setable<Object, Set<ObserverTrace>> traces;
+    private final Observerds[]                       observeds;
+    private final Object                             id;
 
-    protected long             runCount = -1;
-    protected int              instances;
-    protected int              changes;
-    protected boolean          stopped;
+    protected long                                   runCount = -1;
+    protected int                                    instances;
+    protected int                                    changes;
+    protected boolean                                stopped;
 
     public Rule(Object id) {
+        this.traces = Setable.of(Pair.of(this, "TRACES"), Set.of());
         this.id = id;
         observeds = new Observerds[2];
         for (int ia = 0; ia < 2; ia++) {
