@@ -22,6 +22,11 @@ public class Rule {
     private final Observerds[] observeds;
     private final Object       id;
 
+    protected long             runCount = -1;
+    protected int              instances;
+    protected int              changes;
+    protected boolean          stopped;
+
     public Rule(Object id) {
         this.id = id;
         observeds = new Observerds[2];
@@ -59,6 +64,21 @@ public class Rule {
 
     public Object id() {
         return id;
+    }
+
+    public int countChangesPerInstance() {
+        ++changes;
+        return changesPerInstance();
+    }
+
+    public int changesPerInstance() {
+        int i = instances;
+        if (i <= 0) {
+            instances = 1;
+            return changes;
+        } else {
+            return changes / i;
+        }
     }
 
     public static final class Observerds extends Setable<Object, Set<Slot>> {

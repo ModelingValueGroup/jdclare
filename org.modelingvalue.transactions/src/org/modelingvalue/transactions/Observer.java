@@ -40,11 +40,6 @@ public class Observer extends Leaf {
         return new Observer(rule, parent, action, initDirection, priority);
     }
 
-    private long    runCount  = -1;
-    private int     changes;
-    private boolean stopped;
-    private boolean firstTime = true;
-
     public Observer(Rule rule, Compound parent, Runnable action, Direction initDirection, Priority priority) {
         super(rule, parent, action, initDirection, priority);
     }
@@ -58,22 +53,18 @@ public class Observer extends Leaf {
         return "observer";
     }
 
-    public boolean firstTime() {
-        return this.firstTime;
-    }
-
     @Override
     protected void run(LeafRun<?> leaf, State pre, Root root) {
+        Rule rule = rule();
         ObserverRun run = (ObserverRun) leaf;
         try {
             long rootCount = root.runCount();
-            if (runCount < rootCount) {
-                runCount = rootCount;
-                changes = 0;
-                stopped = false;
-                firstTime = true;
+            if (rule.runCount < rootCount) {
+                rule.runCount = rootCount;
+                rule.changes = 0;
+                rule.stopped = false;
             }
-            if (stopped || root.isKilled()) {
+            if (rule.stopped || root.isKilled()) {
                 return;
             }
             run.getted.init(Set.of());
@@ -84,28 +75,31 @@ public class Observer extends Leaf {
             if (run.changed) {
                 checkTooManyChanges(run, pre, sets, gets);
             }
-            observe(run, sets, gets);
+            observe(run, rule, sets, gets);
         } catch (EmptyMandatoryException soe) {
             run.clear();
             run.init(pre);
-            observe(run, run.setted.result(), run.getted.result());
+            observe(run, rule, run.setted.result(), run.getted.result());
         } catch (StopObserverException soe) {
-            stopped = true;
-            observe(run, Set.of(), Set.of());
+            observe(run, rule, Set.of(), Set.of());
         } finally {
             run.changed = false;
-            firstTime = false;
             run.getted.clear();
             run.setted.clear();
             TraceTimer.traceEnd("observer");
         }
     }
 
-    private void observe(ObserverRun run, Set<Slot> sets, Set<Slot> gets) {
+    private void observe(ObserverRun run, Rule rule, Set<Slot> sets, Set<Slot> gets) {
         gets = gets.removeAll(sets);
-        Observerds[] observeds = rule().observeds();
-        observeds[Direction.forward.nr].set(parent.getId(), gets);
-        observeds[Direction.backward.nr].set(parent.getId(), sets);
+        Observerds[] observeds = rule.observeds();
+        Set<Slot> oldGets = observeds[Direction.forward.nr].set(parent.getId(), gets);
+        Set<Slot> oldSets = observeds[Direction.backward.nr].set(parent.getId(), sets);
+        if (oldGets.isEmpty() && oldSets.isEmpty() && !(sets.isEmpty() && gets.isEmpty())) {
+            rule.instances++;
+        } else if (!(oldGets.isEmpty() && oldSets.isEmpty()) && sets.isEmpty() && gets.isEmpty()) {
+            rule.instances--;
+        }
         checkTooManyObserved(run, sets, gets);
     }
 
@@ -122,16 +116,17 @@ public class Observer extends Leaf {
             State post = run.result();
             run.init(post);
             Set<ObserverTrace> traces = TRACES.get(this);
-            ObserverTrace trace = new ObserverTrace(this, traces.sorted().findFirst().orElse(null), changes, //
+            ObserverTrace trace = new ObserverTrace(this, traces.sorted().findFirst().orElse(null), rule().changesPerInstance(), //
                     gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
                     sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
             TRACES.set(this, traces.add(trace));
         }
         int totalChanges = root.countTotalChanges();
-        if (++changes > root.maxNrOfChanges()) {
+        int changesPerInstance = rule().countChangesPerInstance();
+        if (changesPerInstance > root.maxNrOfChanges()) {
             root.setDebugging();
-            if (changes > root.maxNrOfChanges() * 2) {
-                hadleTooManyChanges(run, changes);
+            if (changesPerInstance > root.maxNrOfChanges() * 2) {
+                hadleTooManyChanges(run, changesPerInstance);
             }
         } else if (totalChanges > root.maxTotalNrOfChanges()) {
             root.setDebugging();
