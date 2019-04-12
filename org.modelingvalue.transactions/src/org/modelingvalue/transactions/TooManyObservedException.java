@@ -13,6 +13,8 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.stream.Collectors;
+
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 
@@ -30,7 +32,11 @@ public final class TooManyObservedException extends Error {
 
     @Override
     public String getMessage() {
-        return "Too many observed (" + observed.size() + ") by " + (observer.parent != null ? StringUtil.toString(observer.parent.getId()) + "." : "") + StringUtil.toString(observer.getId());
+        return getSimpleMessage() + ":\n  " + observed.map(String::valueOf).collect(Collectors.joining("\n  "));
+    }
+    
+    public String getSimpleMessage() {
+        return "Too many observed (" + observed.size() + ") by " + (observer.parent != null ? StringUtil.toString(observer.parent.getId()) + "." : "") + StringUtil.toString(observer.getId());        
     }
 
     public int getNrOfObserved() {

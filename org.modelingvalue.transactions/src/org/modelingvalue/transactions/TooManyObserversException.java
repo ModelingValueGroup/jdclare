@@ -13,6 +13,8 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.stream.Collectors;
+
 import org.modelingvalue.collections.Set;
 
 @SuppressWarnings("rawtypes")
@@ -29,6 +31,10 @@ public final class TooManyObserversException extends Error {
 
     @Override
     public String getMessage() {
+        return getSimpleMessage() + ":\n" + observers.map(String::valueOf).collect(Collectors.joining("\n  "));
+    }
+    
+    public String getSimpleMessage() {
         return "Too many observers (" + observers.size() + ") of " + observed;
     }
 
