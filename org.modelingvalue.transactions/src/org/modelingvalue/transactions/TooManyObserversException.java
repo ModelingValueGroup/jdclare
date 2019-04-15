@@ -33,7 +33,7 @@ public final class TooManyObserversException extends Error {
     public String getMessage() {
         return getSimpleMessage() + ":\n" + observers.map(String::valueOf).collect(Collectors.joining("\n  "));
     }
-    
+
     public String getSimpleMessage() {
         return "Too many observers (" + observers.size() + ") of " + observed;
     }

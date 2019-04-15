@@ -34,9 +34,9 @@ public final class TooManyObservedException extends Error {
     public String getMessage() {
         return getSimpleMessage() + ":\n  " + observed.map(String::valueOf).collect(Collectors.joining("\n  "));
     }
-    
+
     public String getSimpleMessage() {
-        return "Too many observed (" + observed.size() + ") by " + (observer.parent != null ? StringUtil.toString(observer.parent.getId()) + "." : "") + StringUtil.toString(observer.getId());        
+        return "Too many observed (" + observed.size() + ") by " + (observer.parent != null ? StringUtil.toString(observer.parent.getId()) + "." : "") + StringUtil.toString(observer.getId());
     }
 
     public int getNrOfObserved() {
