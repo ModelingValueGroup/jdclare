@@ -17,12 +17,15 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.jdclare.Abstract;
+import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.expressions.DStatement;
+import org.modelingvalue.transactions.AbstractLeaf;
 import org.modelingvalue.transactions.Direction;
 import org.modelingvalue.transactions.Rule;
+import org.modelingvalue.transactions.StopObserverException;
 
 @Abstract
 public interface DRule<O extends DObject> extends DNamed {
@@ -30,16 +33,19 @@ public interface DRule<O extends DObject> extends DNamed {
     @Property(containment)
     DStatement<O> statement();
 
-    default void run(O dObject) {
-        statement().run(dObject, Map.of());
-    }
-
     @Property
     Direction initDirection();
 
+    @SuppressWarnings("unchecked")
     @Property(constant)
     default Rule rule() {
-        return new Rule(this);
+        return Rule.of(this, o -> {
+            if (AbstractLeaf.getCurrent().parent().equals(DClare.TRANSACTION.get((O) o))) {
+                statement().run((O) o, Map.of());
+            } else {
+                throw new StopObserverException("Transaction not Current");
+            }
+        });
     }
 
     @Property

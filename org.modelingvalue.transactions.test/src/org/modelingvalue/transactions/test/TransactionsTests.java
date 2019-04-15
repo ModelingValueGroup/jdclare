@@ -13,8 +13,6 @@
 
 package org.modelingvalue.transactions.test;
 
-import static org.modelingvalue.transactions.Root.*;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.modelingvalue.collections.util.ContextThread;
@@ -36,13 +34,11 @@ public class TransactionsTests {
         Observed<String, Integer> A = Observed.of("A", 0);
         String obj = "o";
         Root root = Root.of("R", THE_POOL, 100);
-        Rule rule = new Rule("X");
-        root.put("P", () -> {
-            Observer.of(rule, root, () -> {
-                A.get(obj);
-                A.set(obj, 10);
-            }).trigger();
+        Rule rule = Rule.of("X", o -> {
+            A.get(obj);
+            A.set(obj, 10);
         });
+        root.put("P", () -> Observer.of(rule, root).trigger());
         root.stop();
         State result = root.waitForEnd();
         System.err.println("********************************************************************");
@@ -58,13 +54,13 @@ public class TransactionsTests {
             for (int io = 0; io < 8; io++) {
                 Compound o = Compound.of("O" + io, root);
                 for (int il = 0; il < 8; il++) {
-                    Observer.of(new Rule("L" + il), o, () -> {
+                    Observer.of(Rule.of("L" + il, x -> {
                         long time = TIME_MILLIS.get(root);
                         System.err.println("TIME: " + time);
                         if (time - begin > 1000) {
-                            STOPPED.set(root, true);
+                            Root.STOPPED.set(root, true);
                         }
-                    }).trigger();
+                    }), o).trigger();
                 }
 
             }
@@ -90,9 +86,9 @@ public class TransactionsTests {
             for (int io = 0; io < depth; io++) {
                 Compound o = Compound.of("O" + io, root);
                 Compound p = last[0];
-                Observer.of(new Rule("C" + io), o, () -> {
+                Observer.of(Rule.of("C" + io, x -> {
                     TOT.set(o, NR.get(o) + (p != null ? TOT.get(p) : 0));
-                }).trigger();
+                }), o).trigger();
                 NR.set(o, 1);
                 last[0] = o;
             }

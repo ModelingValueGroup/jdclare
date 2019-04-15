@@ -13,59 +13,37 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.function.Consumer;
+
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.StringUtil;
 
-public class Rule {
+public class Rule extends Action {
+
+    public static Rule of(Object id, Consumer<Object> action) {
+        return new Rule(id, action);
+    }
 
     public final Setable<Object, Set<ObserverTrace>> traces;
+
     private final Observerds[]                       observeds;
-    private final Object                             id;
 
     protected long                                   runCount = -1;
     protected int                                    instances;
     protected int                                    changes;
     protected boolean                                stopped;
 
-    public Rule(Object id) {
+    protected Rule(Object id, Consumer<Object> action) {
+        super(id, action);
         this.traces = Setable.of(Pair.of(this, "TRACES"), Set.of());
-        this.id = id;
         observeds = new Observerds[2];
         for (int ia = 0; ia < 2; ia++) {
             observeds[ia] = Observerds.of(this, Direction.values()[ia]);
         }
     }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            return id.equals(((Rule) obj).id);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return StringUtil.toString(id);
-    }
-
     public Observerds[] observeds() {
         return observeds;
-    }
-
-    public Object id() {
-        return id;
     }
 
     public int countChangesPerInstance() {

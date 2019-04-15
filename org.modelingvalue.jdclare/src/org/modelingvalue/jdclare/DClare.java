@@ -95,14 +95,15 @@ import org.modelingvalue.jdclare.types.DTypeParameterReference;
 import org.modelingvalue.jdclare.types.DWildcardType;
 import org.modelingvalue.transactions.AbstractLeaf;
 import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
+import org.modelingvalue.transactions.Action;
 import org.modelingvalue.transactions.Compound;
 import org.modelingvalue.transactions.Constant;
+import org.modelingvalue.transactions.Direction;
 import org.modelingvalue.transactions.Getable;
 import org.modelingvalue.transactions.Leaf;
 import org.modelingvalue.transactions.MandatoryObserved;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Direction;
 import org.modelingvalue.transactions.Priority;
 import org.modelingvalue.transactions.Root;
 import org.modelingvalue.transactions.Rule.Observerds;
@@ -118,9 +119,37 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static final ContextPool                                             THE_POOL                     = ContextThread.createPool();
 
-    private static final org.modelingvalue.transactions.Rule                     D_START_CONSTANT_CONTAINMENT = new org.modelingvalue.transactions.Rule("dStartConstantContainment");
-    private static final org.modelingvalue.transactions.Rule                     D_START_OBSERVERS            = new org.modelingvalue.transactions.Rule("dStartObservers");
-    private static final org.modelingvalue.transactions.Rule                     D_START_CHILDREN             = new org.modelingvalue.transactions.Rule("dStartChildren");
+    private static final org.modelingvalue.transactions.Rule                     D_START_CONSTANT_CONTAINMENT = org.modelingvalue.transactions.Rule.of("dStartConstantContainment", o -> {
+                                                                                                                  DObject dObject = (DObject) o;
+                                                                                                                  Compound tx = AbstractLeaf.getCurrent().parent();
+                                                                                                                  if (tx.equals(DClare.TRANSACTION.get(dObject))) {
+                                                                                                                      Set<DProperty<DObject, ?>> constantContainments = dObject.dObjectClass().allConstantContainments();
+                                                                                                                      constantContainments.forEach(cc -> cc.get(dObject));
+                                                                                                                  } else {
+                                                                                                                      throw new StopObserverException("Transaction not Current");
+                                                                                                                  }
+                                                                                                              });
+    private static final org.modelingvalue.transactions.Rule                     D_START_OBSERVERS            = org.modelingvalue.transactions.Rule.of("dStartObservers", o -> {
+                                                                                                                  DObject dObject = (DObject) o;
+                                                                                                                  Compound tx = AbstractLeaf.getCurrent().parent();
+                                                                                                                  if (tx.equals(DClare.TRANSACTION.get(dObject))) {
+                                                                                                                      Set<DRule> objectRules = dObject.dObjectClass().allRules().addAll(dObject.dObjectRules());
+                                                                                                                      DClare.OBSERVERS.set(tx, objectRules.addAll(dClare(tx).bootsTrap(dObject)).map(                                               //
+                                                                                                                              rule -> Observer.of(rule.rule(), tx, rule.initDirection(), Priority.postDepth)).toSet());
+                                                                                                                  } else {
+                                                                                                                      throw new StopObserverException("Transaction not Current");
+                                                                                                                  }
+                                                                                                              });
+    private static final org.modelingvalue.transactions.Rule                     D_START_CHILDREN             = org.modelingvalue.transactions.Rule.of("dStartChildren", o -> {
+                                                                                                                  DObject dObject = (DObject) o;
+                                                                                                                  Compound tx = AbstractLeaf.getCurrent().parent();
+                                                                                                                  if (tx.equals(DClare.TRANSACTION.get(dObject))) {
+                                                                                                                      Getable<DObject, Set<DObject>> dChildren = getable(DClare.D_CHILDREN);
+                                                                                                                      DClare.CHILDREN_TRANSACTIONS.set(tx, dChildren.get(dObject).map(c -> Compound.of(c, tx)).toSet());
+                                                                                                                  } else {
+                                                                                                                      throw new StopObserverException("Transaction not Current");
+                                                                                                                  }
+                                                                                                              });
 
     private static final String                                                  DEFAULT                      = "DEFAULT";
     private static final String                                                  CONSTRAINTS                  = "CONSTRAINTS";
@@ -264,14 +293,16 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   if (i > 0) {
                                                                                                                       DPackage pp = DClare.PACKAGE.get(n.substring(0, i));
                                                                                                                       SPackage d = dclare(SPackage.class, pp, n.substring(i + 1));
-                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                        //
-                                                                                                                              () -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d)).trigger();
+                                                                                                                      Leaf.of(Action.of(Pair.of(d, "addToParent"),                                                                                  //
+                                                                                                                              o -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d)),                               //
+                                                                                                                              AbstractLeaf.getCurrent().parent()).trigger();
                                                                                                                       return d;
                                                                                                                   } else {
                                                                                                                       DUniverse universe = dUniverse();
                                                                                                                       SPackage d = dclare(SPackage.class, universe, n);
-                                                                                                                      Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(),                                                        //
-                                                                                                                              () -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d)).trigger();
+                                                                                                                      Leaf.of(Action.of(Pair.of(d, "addToParent"),                                                                                  //
+                                                                                                                              o -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d)),                         //
+                                                                                                                              AbstractLeaf.getCurrent().parent()).trigger();
                                                                                                                       return d;
                                                                                                                   }
                                                                                                               });
@@ -380,8 +411,9 @@ public final class DClare<U extends DUniverse> extends Root {
         } else {
             Package pack = c.getPackage();
             DPackage dPackage = PACKAGE.get(pack != null ? pack.getName() : "<default>");
-            Leaf.of(Pair.of(d, "addToParent"), AbstractLeaf.getCurrent().parent(), //
-                    () -> DClare.<DClassContainer, Set<DClass>> setable(CLASSES).set(dPackage, Set::add, d)).trigger();
+            Leaf.of(Action.of(Pair.of(d, "addToParent"), o -> {
+                DClare.<DClassContainer, Set<DClass>> setable(CLASSES).set(dPackage, Set::add, d);
+            }), AbstractLeaf.getCurrent().parent()).trigger();
         }
     }
 
@@ -682,49 +714,21 @@ public final class DClare<U extends DUniverse> extends Root {
     private static void stop(DObject dObject, Compound tx) {
         TRANSACTION.set(dObject, (t, ptx) -> Objects.equals(ptx, t) ? null : t, tx);
         AbstractLeafRun<?> current = AbstractLeaf.getCurrent();
-        current.clear(Observer.of(D_START_CHILDREN, tx, null));
-        current.clear(Observer.of(D_START_OBSERVERS, tx, null));
-        current.clear(Observer.of(D_START_CONSTANT_CONTAINMENT, tx, null));
-        Leaf.of("dStop", tx, () -> {
+        current.clear(Observer.of(D_START_CHILDREN, tx));
+        current.clear(Observer.of(D_START_OBSERVERS, tx));
+        current.clear(Observer.of(D_START_CONSTANT_CONTAINMENT, tx));
+        Leaf.of(Action.of("dStop", o -> {
             CHILDREN_TRANSACTIONS.set(tx, Set.of());
             OBSERVERS.set(tx, Set.of());
-        }, Priority.preDepth).trigger();
+        }), tx, Priority.preDepth).trigger();
     }
 
     private static void start(DObject dObject, Compound tx) {
-        Getable<DObject, Set<DObject>> dChildren = getable(D_CHILDREN);
         TRANSACTION.set(dObject, tx);
         NATIVE.get(dObject);
-        Observer.of(D_START_CONSTANT_CONTAINMENT, tx, () -> {
-            if (tx.equals(TRANSACTION.get(dObject))) {
-                Set<DProperty<DObject, ?>> constantContainments = dObject.dObjectClass().allConstantContainments();
-                constantContainments.forEach(cc -> cc.get(dObject));
-            } else {
-                throw new StopObserverException("Transaction not Current");
-            }
-        }, Priority.preDepth).trigger();
-        Observer.of(D_START_CHILDREN, tx, () -> {
-            if (tx.equals(TRANSACTION.get(dObject))) {
-                CHILDREN_TRANSACTIONS.set(tx, dChildren.get(dObject).map(c -> Compound.of(c, tx)).toSet());
-            } else {
-                throw new StopObserverException("Transaction not Current");
-            }
-        }, Priority.preDepth).trigger();
-        Observer.of(D_START_OBSERVERS, tx, () -> {
-            if (tx.equals(TRANSACTION.get(dObject))) {
-                Set<DRule> objectRules = dObject.dObjectClass().allRules().addAll(dObject.dObjectRules());
-                OBSERVERS.set(tx, objectRules.addAll(dClare(tx).bootsTrap(dObject)).map(//
-                        rule -> Observer.of(rule.rule(), tx, () -> {
-                            if (tx.equals(TRANSACTION.get(dObject))) {
-                                rule.run(dObject);
-                            } else {
-                                throw new StopObserverException("Transaction not Current");
-                            }
-                        }, rule.initDirection(), Priority.postDepth)).toSet());
-            } else {
-                throw new StopObserverException("Transaction not Current");
-            }
-        }, Priority.postDepth).trigger();
+        Observer.of(D_START_CONSTANT_CONTAINMENT, tx, Priority.preDepth).trigger();
+        Observer.of(D_START_CHILDREN, tx, Priority.preDepth).trigger();
+        Observer.of(D_START_OBSERVERS, tx, Priority.postDepth).trigger();
     }
 
     public static <T extends DStruct> Class<T> jClass(T dObject) {
@@ -1387,11 +1391,11 @@ public final class DClare<U extends DUniverse> extends Root {
 
     // Instance part
 
-    private final Leaf                  setTime      = Leaf.of("setTime", this, this::setTime);
-    private final Leaf                  animate      = Leaf.of("animate", this, this::animate);
-    private final Leaf                  clearOrphans = Leaf.of("clearOrphans", this, this::clearOrphans);
-    private final Leaf                  printOutput  = Leaf.of("printOutput", this, this::printOutput);
-    private final Leaf                  restart      = Leaf.of("restart", this, this::restart);
+    private final Leaf                  setTime      = Leaf.of(Action.of("setTime", o -> setTime()), this);
+    private final Leaf                  animate      = Leaf.of(Action.of("animate", o -> animate()), this);
+    private final Leaf                  clearOrphans = Leaf.of(Action.of("clearOrphans", o -> clearOrphans()), this);
+    private final Leaf                  printOutput  = Leaf.of(Action.of("printOutput", o -> printOutput()), this);
+    private final Leaf                  restart      = Leaf.of(Action.of("restart", o -> restart()), this);
     private final Leaf                  checkFatals;
 
     private final Clock                 clock;
@@ -1403,7 +1407,7 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, Clock clock, int maxInInQueue) {
         super(dStruct(universeClass), THE_POOL, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, MAX_NR_OF_HISTORY, null);
-        this.checkFatals = checkFatals ? Leaf.of("checkFatals", this, this::checkFatals) : null;
+        this.checkFatals = checkFatals ? Leaf.of(Action.of("checkFatals", o -> checkFatals()), this) : null;
         this.clock = clock;
     }
 
@@ -1537,7 +1541,7 @@ public final class DClare<U extends DUniverse> extends Root {
         return setable;
     }
 
-    private final Leaf bootstrap = Leaf.of("bootstrap", this, () -> {
+    private final Leaf bootstrap = Leaf.of(Action.of("bootstrap", o -> {
         jClassRules = Set.<JRule<?, ?>> of(RULE.get(ALL_SUPERS), RULE.get(ALL_RULES), RULE.get(RULES), RULE.get(SUPERS));
         cyclicKey(DClare.<JProperty, Method> method(JProperty::method), 0);
         cyclicKey(DClare.<JClass, Class> method(JClass::jClass), 0);
@@ -1558,7 +1562,7 @@ public final class DClare<U extends DUniverse> extends Root {
         cyclicContainment(DClare.<DClassContainer, Set> method(DClassContainer::classes));
         cyclicObserved(DClare.<DObject, DObject> method(DObject::dParent));
         stopSetable = cyclicObserved(DClare.<DUniverse, Boolean> method(DUniverse::stop));
-    });
+    }), this);
 
     public void start() {
         U universe = universe();
@@ -1633,7 +1637,7 @@ public final class DClare<U extends DUniverse> extends Root {
         if (timer != null) {
             timer.cancel();
         }
-        put(Leaf.of("stop", this, () -> stopSetable.set(universe(), true)));
+        put(Leaf.of(Action.of("stop", o -> stopSetable.set(universe(), true)), this));
     }
 
 }

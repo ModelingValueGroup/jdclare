@@ -26,24 +26,24 @@ public class Observer extends Leaf {
 
     private static final Context<Boolean> OBSERVE = Context.of(true);
 
-    public static Observer of(Rule rule, Compound parent, Runnable action) {
-        return of(rule, parent, action, Direction.forward, Priority.postDepth);
+    public static Observer of(Rule rule, Compound parent) {
+        return of(rule, parent, Direction.forward, Priority.postDepth);
     }
 
-    public static Observer of(Rule rule, Compound parent, Runnable action, Priority priority) {
-        return of(rule, parent, action, Direction.forward, priority);
+    public static Observer of(Rule rule, Compound parent, Priority priority) {
+        return of(rule, parent, Direction.forward, priority);
     }
 
-    public static Observer of(Rule rule, Compound parent, Runnable action, Direction initDirection, Priority priority) {
-        return new Observer(rule, parent, action, initDirection, priority);
+    public static Observer of(Rule rule, Compound parent, Direction initDirection, Priority priority) {
+        return new Observer(rule, parent, initDirection, priority);
     }
 
-    public Observer(Rule rule, Compound parent, Runnable action, Direction initDirection, Priority priority) {
-        super(rule, parent, action, initDirection, priority);
+    public Observer(Rule rule, Compound parent, Direction initDirection, Priority priority) {
+        super(rule, parent, initDirection, priority);
     }
 
     public Rule rule() {
-        return (Rule) getId();
+        return (Rule) action();
     }
 
     @Override

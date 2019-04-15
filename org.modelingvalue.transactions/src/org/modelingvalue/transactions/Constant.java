@@ -91,7 +91,7 @@ public class Constant<O, T> extends Setable<O, T> {
     @Override
     protected void changed(AbstractLeafRun<?> leaf, O object, T preValue, T postValue) {
         if (changed != null && !Objects.equals(preValue, postValue)) {
-            Leaf.of(Triple.of(object, this, "changed"), leaf.parent(), () -> super.changed(leaf, object, preValue, postValue)).trigger();
+            Leaf.of(Action.of(Triple.of(object, this, "changed"), o -> super.changed(leaf, object, preValue, postValue)), leaf.parent()).trigger();
         }
     }
 

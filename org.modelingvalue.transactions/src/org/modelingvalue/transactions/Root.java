@@ -120,14 +120,14 @@ public class Root extends Compound {
         this.readOnlyRuns = Concurrent.of(() -> new TransactionRunsList<>(() -> new ReadOnlyRun()));
         this.inQueue = new LinkedBlockingQueue<>(maxInInQueue);
         this.resultQueue = new LinkedBlockingQueue<>(1);
-        this.stop = Leaf.of("stop", this, () -> STOPPED.set(this, true));
-        this.dummy = Leaf.of("dummy", this, () -> {
-        });
-        this.backward = Leaf.of("backward", this, () -> {
-        });
-        this.forward = Leaf.of("forward", this, () -> {
-        });
-        this.pre = cycle != null ? Leaf.of("cycle", this, () -> cycle.accept(this)) : null;
+        this.stop = Leaf.of(Action.of("stop", o -> STOPPED.set(this, true)), this);
+        this.dummy = Leaf.of(Action.of("dummy", o -> {
+        }), this);
+        this.backward = Leaf.of(Action.of("backward", o -> {
+        }), this);
+        this.forward = Leaf.of(Action.of("forward", o -> {
+        }), this);
+        this.pre = cycle != null ? Leaf.of(Action.of("cycle", o -> cycle.accept(this)), this) : null;
         pool.execute(() -> {
             State state = start != null ? start.clone(this) : emptyState;
             while (!killed) {
@@ -207,11 +207,11 @@ public class Root extends Compound {
     }
 
     public void put(Object id, Runnable action) {
-        put(Leaf.of(id, this, action));
+        put(Leaf.of(Action.of(id, o -> action.run()), this));
     }
 
     public void put(Object id, Runnable action, Priority priority) {
-        put(Leaf.of(id, this, action, priority));
+        put(Leaf.of(Action.of(id, o -> action.run()), this, priority));
     }
 
     protected void put(Leaf action) {
@@ -252,18 +252,18 @@ public class Root extends Compound {
     }
 
     public void addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler) {
-        Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(id, Root.this, () -> {
+        Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(Action.of(id, o -> {
             diffHandler.accept(preState(), Leaf.getCurrent().state(), true);
-        }, Priority.postDepth));
+        }), Root.this, Priority.postDepth));
     }
 
     public Imperative addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
         Imperative n = Imperative.of(id, preState, this, scheduler, diffHandler);
-        Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(n, Root.this, () -> {
+        Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(Action.of(n, o -> {
             State pre = Leaf.getCurrent().state();
             boolean timeTraveling = isTimeTraveling();
             n.schedule(() -> n.commit(pre, timeTraveling));
-        }, Priority.postDepth));
+        }), Root.this, Priority.postDepth));
         return n;
     }
 

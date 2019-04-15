@@ -35,6 +35,7 @@ import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.meta.DStructClass;
 import org.modelingvalue.jdclare.types.DType;
 import org.modelingvalue.transactions.AbstractLeaf;
+import org.modelingvalue.transactions.Action;
 import org.modelingvalue.transactions.Leaf;
 import org.modelingvalue.transactions.State;
 
@@ -113,8 +114,7 @@ public interface JProperty<O extends DStruct, T> extends DProperty<O, T>, DStruc
         } else if (!D_CONTAINMENT_PROPERTY.equals(method) && !D_PARENT.equals(method) && !D_CHILDREN.equals(method) && !D_OBJECT_CLASS.equals(method) && //
                 !containment() && !constant() && DObject.class.isAssignableFrom(objectClass()) && DObject.class.isAssignableFrom(elementClass())) {
             DOppositeProperty<?, ?> oppos = dclare(DOppositeProperty.class, this);
-            Leaf.of(Pair.of(this, "setOpposite"), AbstractLeaf.getCurrent().parent(), //
-                    () -> DClare.set(this, DProperty::containedOpposite, oppos)).trigger();
+            Leaf.of(Action.of(Pair.of(this, "setOpposite"), o -> DClare.set(this, DProperty::containedOpposite, oppos)), AbstractLeaf.getCurrent().parent()).trigger();
             return oppos;
         } else {
             return null;
