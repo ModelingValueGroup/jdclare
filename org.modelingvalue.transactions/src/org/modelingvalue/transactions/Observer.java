@@ -138,8 +138,8 @@ public class Observer extends Leaf {
     private void hadleTooManyChanges(ObserverRun run, Rule rule, int changes) {
         State result = run.result();
         run.init(result);
-        ObserverTrace last = result.get(parent.getId(), rule.traces).sorted().findFirst().get();
-        if (last.done().size() >= run.root().maxNrOfChanges()) {
+        ObserverTrace last = result.get(parent.getId(), rule.traces).sorted().findFirst().orElse(null);
+        if (last != null && last.done().size() >= run.root().maxNrOfChanges()) {
             run.getted.init(Set.of());
             run.setted.init(Set.of());
             throw new TooManyChangesException(result, last, changes);
