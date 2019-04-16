@@ -65,6 +65,7 @@ public class Compound extends Transaction {
         TraceTimer.traceBegin("compound");
         CompoundRun run = startRun(root);
         try {
+            State sb = null;
             Set<Transaction>[] ts = new Set[1];
             State[] sa = new State[]{state};
             if (this == root) {
@@ -76,8 +77,9 @@ public class Compound extends Transaction {
                 sa[0] = sa[0].set(getId(), Direction.scheduled.sequence[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     if (++i == 3 && this == root) {
-                        sa[0] = schedule(sa[0], Direction.backward);
-                        if (!sa[0].get(getId(), Direction.scheduled.depth).isEmpty()) {
+                        sb = schedule(sa[0], Direction.backward);
+                        if (sb != sa[0]) {
+                            sa[0] = sb;
                             root.startOpposite();
                             i = 0;
                         }
