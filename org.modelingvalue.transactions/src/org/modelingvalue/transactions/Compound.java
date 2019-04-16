@@ -163,7 +163,7 @@ public class Compound extends Transaction {
     }
 
     @SuppressWarnings("unchecked")
-    protected State schedule(State state, Direction direction) {
+    private State schedule(State state, Direction direction) {
         Set<Compound>[] cs = new Set[1];
         Set<AbstractLeaf>[] ls = new Set[1];
         return schedule(state, direction, cs, ls);

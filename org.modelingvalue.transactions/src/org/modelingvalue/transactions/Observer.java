@@ -142,6 +142,7 @@ public class Observer extends Leaf {
         if (last != null && last.done().size() >= run.root().maxNrOfChanges()) {
             run.getted.init(Set.of());
             run.setted.init(Set.of());
+            rule.stopped = true;
             throw new TooManyChangesException(result, last, changes);
         }
     }
