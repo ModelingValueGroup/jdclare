@@ -21,7 +21,15 @@ import org.modelingvalue.collections.util.Pair;
 public class Rule extends Action {
 
     public static Rule of(Object id, Consumer<Object> action) {
-        return new Rule(id, action);
+        return new Rule(id, action, Direction.forward, Priority.postDepth);
+    }
+
+    public static Rule of(Object id, Consumer<Object> action, Priority priority) {
+        return new Rule(id, action, Direction.forward, priority);
+    }
+
+    public static Rule of(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
+        return new Rule(id, action, initDirection, priority);
     }
 
     public final Setable<Object, Set<ObserverTrace>> traces;
@@ -33,8 +41,8 @@ public class Rule extends Action {
     protected int                                    changes;
     protected boolean                                stopped;
 
-    protected Rule(Object id, Consumer<Object> action) {
-        super(id, action);
+    protected Rule(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
+        super(id, action, initDirection, priority);
         this.traces = Setable.of(Pair.of(this, "TRACES"), Set.of());
         observeds = new Observerds[2];
         for (int ia = 0; ia < 2; ia++) {
@@ -78,7 +86,7 @@ public class Rule extends Action {
                         d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), Set<Observer>::remove, (Observer) tx.transaction()));
                     } else {
                         d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), (Set<Observer> s, Object k) -> {
-                            return s.filter(r -> !r.rule().equals(rule) || r.initDirection() != direction || !r.parent.getId().equals(k)).toSet();
+                            return s.filter(r -> !r.rule().equals(rule) || r.rule().initDirection() != direction || !r.parent.getId().equals(k)).toSet();
                         }, object));
                     }
                 }

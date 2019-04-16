@@ -24,6 +24,7 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.expressions.DStatement;
 import org.modelingvalue.transactions.AbstractLeaf;
 import org.modelingvalue.transactions.Direction;
+import org.modelingvalue.transactions.Priority;
 import org.modelingvalue.transactions.Rule;
 import org.modelingvalue.transactions.StopObserverException;
 
@@ -45,7 +46,7 @@ public interface DRule<O extends DObject> extends DNamed {
             } else {
                 throw new StopObserverException("Transaction not Current");
             }
-        });
+        }, initDirection(), Priority.postDepth);
     }
 
     @Property

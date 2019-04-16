@@ -27,19 +27,11 @@ import org.modelingvalue.collections.util.TraceTimer;
 public class Leaf extends AbstractLeaf {
 
     public static Leaf of(Action action, Compound parent) {
-        return new Leaf(action, parent, Direction.forward, Priority.postDepth);
+        return new Leaf(action, parent);
     }
 
-    public static Leaf of(Action action, Compound parent, Priority priority) {
-        return new Leaf(action, parent, Direction.forward, priority);
-    }
-
-    public static Leaf of(Action action, Compound parent, Direction initDirection, Priority priority) {
-        return new Leaf(action, parent, initDirection, priority);
-    }
-
-    protected Leaf(Action id, Compound parent, Direction initDirection, Priority priority) {
-        super(id, parent, initDirection, priority);
+    protected Leaf(Action id, Compound parent) {
+        super(id, parent);
     }
 
     public Action action() {

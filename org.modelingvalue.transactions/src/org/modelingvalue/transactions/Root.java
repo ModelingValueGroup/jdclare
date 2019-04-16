@@ -156,7 +156,7 @@ public class Root extends Compound {
                         if (history.size() > maxNrOfHistory) {
                             history = history.removeFirst();
                         }
-                        state = post(run(trigger(pre(state), leaf, leaf.initDirection())));
+                        state = post(run(trigger(pre(state), leaf, leaf.leafClass().initDirection())));
                     }
                     if (!killed) {
                         state = run(trigger(state, state.get(Root.this, INTEGRATIONS), Direction.forward));
@@ -211,7 +211,7 @@ public class Root extends Compound {
     }
 
     public void put(Object id, Runnable action, Priority priority) {
-        put(Leaf.of(Action.of(id, o -> action.run()), this, priority));
+        put(Leaf.of(Action.of(id, o -> action.run(), priority), this));
     }
 
     protected void put(Leaf action) {
@@ -254,16 +254,16 @@ public class Root extends Compound {
     public void addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler) {
         Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(Action.of(id, o -> {
             diffHandler.accept(preState(), Leaf.getCurrent().state(), true);
-        }), Root.this, Priority.postDepth));
+        }, Priority.postDepth), Root.this));
     }
 
     public Imperative addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
-        Imperative n = Imperative.of(id, preState, this, scheduler, diffHandler);
+        Imperative n = Imperative.of(LeafClass.of(id), preState, this, scheduler, diffHandler);
         Leaf.getCurrent().set(Root.this, INTEGRATIONS, Set::add, Leaf.of(Action.of(n, o -> {
             State pre = Leaf.getCurrent().state();
             boolean timeTraveling = isTimeTraveling();
             n.schedule(() -> n.commit(pre, timeTraveling));
-        }), Root.this, Priority.postDepth));
+        }, Priority.postDepth), Root.this));
         return n;
     }
 

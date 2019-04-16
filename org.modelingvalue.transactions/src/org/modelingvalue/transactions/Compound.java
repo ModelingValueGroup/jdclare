@@ -156,7 +156,7 @@ public class Compound extends Transaction {
 
     protected State trigger(State state, AbstractLeaf leaf, Direction direction) {
         Compound p = leaf.parent;
-        state = state.set(p.getId(), direction.priorities[leaf.priority().nr], Set::add, leaf);
+        state = state.set(p.getId(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
         while (Direction.backward == direction ? p.parent != null : !getId().equals(p.getId())) {
             state = state.set(p.parent.getId(), direction.depth, Set::add, p);
             p = p.parent;
@@ -212,7 +212,7 @@ public class Compound extends Transaction {
         @Override
         protected void start(Compound transaction, Root root) {
             super.start(transaction, root);
-            merger = ReadOnly.of(Pair.of(transaction, "merger"), transaction.root());
+            merger = ReadOnly.of(LeafClass.of(Pair.of(transaction, "merger")), transaction.root());
         }
 
         @Override
