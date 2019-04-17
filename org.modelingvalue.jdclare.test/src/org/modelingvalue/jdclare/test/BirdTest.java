@@ -41,6 +41,7 @@ public class BirdTest {
 	//TODO : refactor - use one universe, and different birds
 	//TODO : add transactionException (e.g. by division by zero)
 	//TODO : solve TODOs
+	
 
     @Test
     public void tooManyChangesException1() {

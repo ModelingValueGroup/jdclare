@@ -30,6 +30,7 @@ public final class TooManyObservedException extends Error {
         this.observed = observed;
     }
 
+    
     @Override
     public String getMessage() {
     	String observedMap =  observer.root().preState().get(() -> {

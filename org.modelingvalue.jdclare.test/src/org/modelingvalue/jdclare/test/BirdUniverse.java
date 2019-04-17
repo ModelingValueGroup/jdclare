@@ -16,6 +16,7 @@ public interface BirdUniverse extends DUniverse {
 
     @Property(containment)
     Set<Bird> birds();
+    
 
     default void addBird(Class<? extends Bird> clazz, String name, String color) {
         Bird bird = dclare(clazz, this, name);

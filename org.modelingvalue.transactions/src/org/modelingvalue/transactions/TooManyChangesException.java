@@ -24,7 +24,6 @@ public final class TooManyChangesException extends Error {
         this.state = state;
         this.last = last;
         this.nrOfChanges = nrOfChanges;
-
     }
 
     @Override
