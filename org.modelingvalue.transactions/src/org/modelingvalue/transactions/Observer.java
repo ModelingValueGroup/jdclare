@@ -27,19 +27,11 @@ public class Observer extends Leaf {
     private static final Context<Boolean> OBSERVE = Context.of(true);
 
     public static Observer of(Rule rule, Compound parent) {
-        return of(rule, parent, Direction.forward, Priority.postDepth);
+        return new Observer(rule, parent);
     }
 
-    public static Observer of(Rule rule, Compound parent, Priority priority) {
-        return of(rule, parent, Direction.forward, priority);
-    }
-
-    public static Observer of(Rule rule, Compound parent, Direction initDirection, Priority priority) {
-        return new Observer(rule, parent, initDirection, priority);
-    }
-
-    public Observer(Rule rule, Compound parent, Direction initDirection, Priority priority) {
-        super(rule, parent, initDirection, priority);
+    public Observer(Rule rule, Compound parent) {
+        super(rule, parent);
     }
 
     public Rule rule() {
@@ -142,6 +134,7 @@ public class Observer extends Leaf {
         if (last != null && last.done().size() >= run.root().maxNrOfChanges()) {
             run.getted.init(Set.of());
             run.setted.init(Set.of());
+            rule.stopped = true;
             throw new TooManyChangesException(result, last, changes);
         }
     }

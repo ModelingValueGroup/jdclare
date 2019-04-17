@@ -128,18 +128,18 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   } else {
                                                                                                                       throw new StopObserverException("Transaction not Current");
                                                                                                                   }
-                                                                                                              });
+                                                                                                              }, Priority.preDepth);
     private static final org.modelingvalue.transactions.Rule                     D_START_OBSERVERS            = org.modelingvalue.transactions.Rule.of("dStartObservers", o -> {
                                                                                                                   DObject dObject = (DObject) o;
                                                                                                                   Compound tx = AbstractLeaf.getCurrent().parent();
                                                                                                                   if (tx.equals(DClare.TRANSACTION.get(dObject))) {
                                                                                                                       Set<DRule> objectRules = dObject.dObjectClass().allRules().addAll(dObject.dObjectRules());
                                                                                                                       DClare.OBSERVERS.set(tx, objectRules.addAll(dClare(tx).bootsTrap(dObject)).map(                                               //
-                                                                                                                              rule -> Observer.of(rule.rule(), tx, rule.initDirection(), Priority.postDepth)).toSet());
+                                                                                                                              rule -> Observer.of(rule.rule(), tx)).toSet());
                                                                                                                   } else {
                                                                                                                       throw new StopObserverException("Transaction not Current");
                                                                                                                   }
-                                                                                                              });
+                                                                                                              }, Priority.postDepth);
     private static final org.modelingvalue.transactions.Rule                     D_START_CHILDREN             = org.modelingvalue.transactions.Rule.of("dStartChildren", o -> {
                                                                                                                   DObject dObject = (DObject) o;
                                                                                                                   Compound tx = AbstractLeaf.getCurrent().parent();
@@ -149,7 +149,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                                                                                                   } else {
                                                                                                                       throw new StopObserverException("Transaction not Current");
                                                                                                                   }
-                                                                                                              });
+                                                                                                              }, Priority.preDepth);
 
     private static final String                                                  DEFAULT                      = "DEFAULT";
     private static final String                                                  CONSTRAINTS                  = "CONSTRAINTS";
@@ -720,15 +720,15 @@ public final class DClare<U extends DUniverse> extends Root {
         Leaf.of(Action.of("dStop", o -> {
             CHILDREN_TRANSACTIONS.set(tx, Set.of());
             OBSERVERS.set(tx, Set.of());
-        }), tx, Priority.preDepth).trigger();
+        }, Priority.preDepth), tx).trigger();
     }
 
     private static void start(DObject dObject, Compound tx) {
         TRANSACTION.set(dObject, tx);
         NATIVE.get(dObject);
-        Observer.of(D_START_CONSTANT_CONTAINMENT, tx, Priority.preDepth).trigger();
-        Observer.of(D_START_CHILDREN, tx, Priority.preDepth).trigger();
-        Observer.of(D_START_OBSERVERS, tx, Priority.postDepth).trigger();
+        Observer.of(D_START_CONSTANT_CONTAINMENT, tx).trigger();
+        Observer.of(D_START_CHILDREN, tx).trigger();
+        Observer.of(D_START_OBSERVERS, tx).trigger();
     }
 
     public static <T extends DStruct> Class<T> jClass(T dObject) {

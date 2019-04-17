@@ -18,12 +18,12 @@ import java.util.function.Supplier;
 
 public class ReadOnly extends AbstractLeaf {
 
-    public static ReadOnly of(Object id, Root root) {
-        return new ReadOnly(id, root);
+    public static ReadOnly of(LeafClass cls, Root root) {
+        return new ReadOnly(cls, root);
     }
 
-    private ReadOnly(Object id, Root root) {
-        super(id, root, Direction.forward, Priority.postDepth);
+    private ReadOnly(LeafClass cls, Root root) {
+        super(cls, root);
     }
 
     @Override

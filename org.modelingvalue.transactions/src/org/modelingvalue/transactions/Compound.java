@@ -65,6 +65,7 @@ public class Compound extends Transaction {
         TraceTimer.traceBegin("compound");
         CompoundRun run = startRun(root);
         try {
+            State sb = null;
             Set<Transaction>[] ts = new Set[1];
             State[] sa = new State[]{state};
             if (this == root) {
@@ -76,8 +77,9 @@ public class Compound extends Transaction {
                 sa[0] = sa[0].set(getId(), Direction.scheduled.sequence[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     if (++i == 3 && this == root) {
-                        sa[0] = schedule(sa[0], Direction.backward);
-                        if (!sa[0].get(getId(), Direction.scheduled.depth).isEmpty()) {
+                        sb = schedule(sa[0], Direction.backward);
+                        if (sb != sa[0]) {
+                            sa[0] = sb;
                             root.startOpposite();
                             i = 0;
                         }
@@ -154,7 +156,7 @@ public class Compound extends Transaction {
 
     protected State trigger(State state, AbstractLeaf leaf, Direction direction) {
         Compound p = leaf.parent;
-        state = state.set(p.getId(), direction.priorities[leaf.priority().nr], Set::add, leaf);
+        state = state.set(p.getId(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
         while (Direction.backward == direction ? p.parent != null : !getId().equals(p.getId())) {
             state = state.set(p.parent.getId(), direction.depth, Set::add, p);
             p = p.parent;
@@ -163,7 +165,7 @@ public class Compound extends Transaction {
     }
 
     @SuppressWarnings("unchecked")
-    protected State schedule(State state, Direction direction) {
+    private State schedule(State state, Direction direction) {
         Set<Compound>[] cs = new Set[1];
         Set<AbstractLeaf>[] ls = new Set[1];
         return schedule(state, direction, cs, ls);
@@ -210,7 +212,7 @@ public class Compound extends Transaction {
         @Override
         protected void start(Compound transaction, Root root) {
             super.start(transaction, root);
-            merger = ReadOnly.of(Pair.of(transaction, "merger"), transaction.root());
+            merger = ReadOnly.of(LeafClass.of(Pair.of(transaction, "merger")), transaction.root());
         }
 
         @Override

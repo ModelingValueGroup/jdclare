@@ -220,11 +220,11 @@ public class State implements Serializable {
     }
 
     public <R> R get(Supplier<R> supplier) {
-        return ReadOnly.of(Pair.of(this, "getOnState"), root).get(supplier, this);
+        return ReadOnly.of(LeafClass.of(Pair.of(this, "getOnState")), root).get(supplier, this);
     }
 
     public void run(Runnable action) {
-        ReadOnly.of(Pair.of(this, "runOnState"), root).run(action, this);
+        ReadOnly.of(LeafClass.of(Pair.of(this, "runOnState")), root).run(action, this);
     }
 
     public <T> Collection<T> getObjects(Class<T> filter) {

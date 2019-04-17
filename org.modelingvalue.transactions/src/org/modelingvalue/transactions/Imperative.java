@@ -24,8 +24,8 @@ import org.modelingvalue.collections.util.TriConsumer;
 
 public class Imperative extends AbstractLeaf {
 
-    public static Imperative of(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
-        return new Imperative(id, init, root, scheduler, diffHandler);
+    public static Imperative of(LeafClass cls, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
+        return new Imperative(cls, init, root, scheduler, diffHandler);
     }
 
     private static Setable<Imperative, Long> CHANGE_NR = Setable.of("CHANGE_NR", 0l);
@@ -33,8 +33,8 @@ public class Imperative extends AbstractLeaf {
     private final Consumer<Runnable>         scheduler;
     private final ImperativeRun              run;
 
-    private Imperative(Object id, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
-        super(id, root, Direction.forward, Priority.postDepth);
+    private Imperative(LeafClass cls, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
+        super(cls, root);
         this.run = startRun(root);
         run.pre = init;
         run.state = init;

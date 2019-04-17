@@ -13,31 +13,65 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.function.Consumer;
+import org.modelingvalue.collections.util.StringUtil;
 
-public class Action extends LeafClass {
+public class LeafClass {
 
-    public static Action of(Object id, Consumer<Object> action) {
-        return new Action(id, action, Direction.forward, Priority.postDepth);
+    public static LeafClass of(Object id) {
+        return new LeafClass(id, Direction.forward, Priority.postDepth);
     }
 
-    public static Action of(Object id, Consumer<Object> action, Priority priority) {
-        return new Action(id, action, Direction.forward, priority);
+    public static LeafClass of(Object id, Priority priority) {
+        return new LeafClass(id, Direction.forward, priority);
     }
 
-    public static Action of(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
-        return new Action(id, action, initDirection, priority);
+    public static LeafClass of(Object id, Direction initDirection, Priority priority) {
+        return new LeafClass(id, initDirection, priority);
     }
 
-    private final Consumer<Object> action;
+    private final Object    id;
+    private final Direction initDirection;
+    private final Priority  priority;
 
-    protected Action(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
-        super(id, initDirection, priority);
-        this.action = action;
+    protected LeafClass(Object id, Direction initDirection, Priority priority) {
+        this.id = id;
+        this.initDirection = initDirection;
+        this.priority = priority;
     }
 
-    public void run(Object object) {
-        action.accept(object);
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj == null) {
+            return false;
+        } else if (getClass() != obj.getClass()) {
+            return false;
+        } else {
+            return id.equals(((LeafClass) obj).id);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return StringUtil.toString(id);
+    }
+
+    public Object id() {
+        return id;
+    }
+
+    protected Direction initDirection() {
+        return initDirection;
+    }
+
+    protected Priority priority() {
+        return priority;
     }
 
 }
