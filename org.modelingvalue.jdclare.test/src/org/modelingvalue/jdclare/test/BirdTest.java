@@ -1,6 +1,7 @@
 package org.modelingvalue.jdclare.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.modelingvalue.jdclare.DClare.dclare;
 import static org.modelingvalue.jdclare.DClare.of;
 import static org.modelingvalue.jdclare.DClare.set;
@@ -205,7 +206,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, "Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']");
+            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']"));
         }
     }
 
@@ -220,7 +221,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, "Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']");
+            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']"));
         }
     }
 
@@ -310,7 +311,8 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, ConcurrentModificationException.class, "0.color= null -> green | yellow");
+            //assertThrowable(cause, ConcurrentModificationException.class, "0\\.color= null \\-\\> green \\| yellow");
+            assertThrowable(cause, ConcurrentModificationException.class, java.util.regex.Pattern.quote("0.color= null -> green | yellow"));
         }
     }
 
@@ -353,7 +355,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, "Constant rightLegColor is derived");
+            assertThrowable(cause, Error.class, "Constant (left|right)LegColor is derived");
         }
     }
 
@@ -369,10 +371,10 @@ public class BirdTest {
         assertEquals(throwable, cause.getClass());
     }
 
-    private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String message) {
+    private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String regex) {
         cause.printStackTrace();
         assertEquals(throwable, cause.getClass());
-        assertEquals(message, cause.getMessage());
+        assertTrue(cause.getMessage().matches(regex));
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String message, Function<Throwable, String> f) {
