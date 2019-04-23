@@ -21,7 +21,6 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.ScrollPane.ScrollPaneNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(ScrollPaneNative.class)
 public interface ScrollPane extends DComponent {
@@ -36,14 +35,14 @@ public interface ScrollPane extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JScrollPane();
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
-            super.exit(parent, tx);
+        public void exit(DObject parent) {
+            super.exit(parent);
         }
 
         public void viewportView(DComponent pre, DComponent post) {

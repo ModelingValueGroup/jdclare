@@ -17,26 +17,26 @@ import java.util.function.Consumer;
 
 public class Action extends LeafClass {
 
-    public static Action of(Object id, Consumer<Object> action) {
+    public static Action of(Object id, Consumer<Contained> action) {
         return new Action(id, action, Direction.forward, Priority.postDepth);
     }
 
-    public static Action of(Object id, Consumer<Object> action, Priority priority) {
+    public static Action of(Object id, Consumer<Contained> action, Priority priority) {
         return new Action(id, action, Direction.forward, priority);
     }
 
-    public static Action of(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
+    public static Action of(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
         return new Action(id, action, initDirection, priority);
     }
 
-    private final Consumer<Object> action;
+    private final Consumer<Contained> action;
 
-    protected Action(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
+    protected Action(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
         super(id, initDirection, priority);
         this.action = action;
     }
 
-    public void run(Object object) {
+    public void run(Contained object) {
         action.accept(object);
     }
 

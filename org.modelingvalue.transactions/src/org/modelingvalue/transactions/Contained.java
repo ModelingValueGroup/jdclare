@@ -13,41 +13,57 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.stream.Collectors;
-
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 
-public final class TooManyObservedException extends Error {
+public interface Contained {
 
-    private static final long serialVersionUID = 2091236807252565002L;
+    Contained dContainer();
 
-    private final Observer    observer;
-    private final Set<Slot>   observed;
-
-    public TooManyObservedException(Observer observer, Set<Slot> observed) {
-        this.observer = observer;
-        this.observed = observed;
+    static Contained of(Object id) {
+        return new ContainedImpl(null, id);
     }
 
-    @Override
-    public String getMessage() {
-        return getSimpleMessage() + ":\n  " + observed.map(String::valueOf).collect(Collectors.joining("\n  "));
+    static Contained of(Contained parent, Object id) {
+        return new ContainedImpl(parent, id);
     }
 
-    public String getSimpleMessage() {
-        return "Too many observed (" + observed.size() + ") by " + (observer.parent != null ? StringUtil.toString(observer.parent.contained()) + "." : "") + StringUtil.toString(observer.rule());
+    static class ContainedImpl implements Contained {
+        private final Contained container;
+        private final Object    id;
+
+        private ContainedImpl(Contained container, Object id) {
+            this.container = container;
+            this.id = id;
+        }
+
+        @Override
+        public Contained dContainer() {
+            return container;
+        }
+
+        @Override
+        public String toString() {
+            return "Contained@" + StringUtil.toString(id);
+        }
+
+        @Override
+        public int hashCode() {
+            return id.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            } else if (obj == null) {
+                return false;
+            } else if (getClass() != obj.getClass()) {
+                return false;
+            } else {
+                ContainedImpl c = (ContainedImpl) obj;
+                return id.equals(c.id);
+            }
+        }
     }
 
-    public int getNrOfObserved() {
-        return observed.size();
-    }
-
-    public Observer getObserver() {
-        return observer;
-    }
-
-    public Set<Slot> getObserved() {
-        return observed;
-    }
 }

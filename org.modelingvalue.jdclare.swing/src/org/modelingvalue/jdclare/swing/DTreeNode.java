@@ -37,7 +37,6 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DTreeNode.DTreeNodeNative;
 import org.modelingvalue.jdclare.swing.Tree.TreeNative;
 import org.modelingvalue.jdclare.swing.draw2d.D2D;
-import org.modelingvalue.transactions.Compound;
 
 @SuppressWarnings("rawtypes")
 @Native(DTreeNodeNative.class)
@@ -89,8 +88,8 @@ public interface DTreeNode<T> extends DVisible, DStruct2<DTreeNode, T> {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
-            super.init(parent, tx);
+        public void init(DObject parent) {
+            super.init(parent);
             if (parent instanceof Tree) {
                 set(DTreeNode::expanded, true);
             }

@@ -24,7 +24,6 @@ import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.MenuItem.MenuItemNative;
 import org.modelingvalue.jdclare.swing.PopupMenu.PopupMenuNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(PopupMenuNative.class)
 public interface PopupMenu extends DComponent {
@@ -39,12 +38,12 @@ public interface PopupMenu extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JPopupMenu();
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
+        public void exit(DObject parent) {
         }
 
         public void items(List<MenuItem> pre, List<MenuItem> post) {

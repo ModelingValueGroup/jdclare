@@ -28,7 +28,6 @@ import org.modelingvalue.jdclare.Deferred;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DTextComponent.TextComponentNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(TextComponentNative.class)
 public interface DTextComponent extends DComponent {
@@ -60,16 +59,16 @@ public interface DTextComponent extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing.setText(visible.string());
-            super.init(parent, tx);
+            super.init(parent);
             swing.getDocument().addDocumentListener(this);
             swing.addCaretListener(this);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
-            super.exit(parent, tx);
+        public void exit(DObject parent) {
+            super.exit(parent);
             swing.removeCaretListener(this);
         }
 

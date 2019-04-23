@@ -30,7 +30,6 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.Frame.FrameNative;
 import org.modelingvalue.jdclare.swing.draw2d.DDimension;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
-import org.modelingvalue.transactions.Compound;
 
 @Native(FrameNative.class)
 public interface Frame extends DContainer {
@@ -56,17 +55,17 @@ public interface Frame extends DContainer {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JFrame();
             swing.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             swing.addWindowListener(windowLsitener);
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
+        public void exit(DObject parent) {
             swing.removeWindowListener(windowLsitener);
-            super.exit(parent, tx);
+            super.exit(parent);
         }
 
         @Override

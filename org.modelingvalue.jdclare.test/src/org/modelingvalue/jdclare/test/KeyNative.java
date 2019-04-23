@@ -15,7 +15,6 @@ package org.modelingvalue.jdclare.test;
 
 import org.modelingvalue.jdclare.DNative;
 import org.modelingvalue.jdclare.DObject;
-import org.modelingvalue.transactions.Compound;
 
 public class KeyNative implements DNative<PianoKey> {
 
@@ -28,7 +27,7 @@ public class KeyNative implements DNative<PianoKey> {
     }
 
     @Override
-    public void init(DObject parent, Compound tx) {
+    public void init(DObject parent) {
         inits++;
     }
 

@@ -25,7 +25,6 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.TabbedPane.TabbedPaneNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(TabbedPaneNative.class)
 public interface TabbedPane extends DComponent {
@@ -45,9 +44,9 @@ public interface TabbedPane extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JTabbedPane();
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         public void tabs(Map<String, DComponent> pre, Map<String, DComponent> post) {

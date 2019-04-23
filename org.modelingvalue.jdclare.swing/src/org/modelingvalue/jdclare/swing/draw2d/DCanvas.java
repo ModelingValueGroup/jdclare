@@ -34,7 +34,6 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DComponent;
 import org.modelingvalue.jdclare.swing.draw2d.DCanvas.DCanvasNative;
 import org.modelingvalue.jdclare.swing.draw2d.DShape.ShapeNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(DCanvasNative.class)
 public interface DCanvas extends DComponent {
@@ -65,7 +64,7 @@ public interface DCanvas extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JPanel() {
                 private static final long serialVersionUID = 1L;
 
@@ -80,7 +79,7 @@ public interface DCanvas extends DComponent {
             swing.setOpaque(true);
             swing.setPreferredSize(new Dimension(2000, 2000));
             swing.setDoubleBuffered(true);
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         public void color(Color pre, Color post) {

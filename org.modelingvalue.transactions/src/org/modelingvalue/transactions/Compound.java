@@ -29,28 +29,32 @@ public class Compound extends Transaction {
 
     private static final int MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
-    public static Compound of(Object id, Compound parent) {
+    public static Compound of(Contained id, Compound parent) {
         return new Compound(id, parent);
     }
 
-    protected Compound(Object id, Compound parent) {
+    protected Compound(Contained id, Compound parent) {
         super(id, parent);
         if (parent != null && parent.ancestorId(id)) {
             throw new Error("Cyclic Compound Transaction id " + id);
         }
     }
 
-    Compound(Object id) {
+    Compound(Contained id) {
         this(id, null);
     }
 
-    public boolean ancestorId(Object id) {
-        return getId().equals(id) || (parent != null && parent.ancestorId(id));
+    public Contained contained() {
+        return (Contained) getId();
+    }
+
+    public boolean ancestorId(Contained contained) {
+        return contained().equals(contained) || (parent != null && parent.ancestorId(contained));
     }
 
     @Override
-    public boolean isAncestorOf(Transaction child) {
-        while (!getId().equals(child.getId())) {
+    public boolean isAncestorOf(Compound child) {
+        while (!contained().equals(child.contained())) {
             child = child.parent();
             if (child == null) {
                 return false;
@@ -63,7 +67,7 @@ public class Compound extends Transaction {
     @SuppressWarnings("unchecked")
     protected State run(State state, Root root) {
         TraceTimer.traceBegin("compound");
-        CompoundRun run = startRun(root);
+        CompoundRun run = root.startRun(this);
         try {
             State sb = null;
             Set<Transaction>[] ts = new Set[1];
@@ -74,7 +78,7 @@ public class Compound extends Transaction {
             int i = 0;
             boolean sequential = false;
             while (!root.isKilled() && i < 3) {
-                sa[0] = sa[0].set(getId(), Direction.scheduled.sequence[i], Set.of(), ts);
+                sa[0] = sa[0].set(contained(), Direction.scheduled.sequence[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     if (++i == 3 && this == root) {
                         sb = schedule(sa[0], Direction.backward);
@@ -131,7 +135,7 @@ public class Compound extends Transaction {
             }
             throw error;
         } finally {
-            stopRun(run);
+            root.stopRun(run);
             TraceTimer.traceEnd("compound");
         }
     }
@@ -156,9 +160,9 @@ public class Compound extends Transaction {
 
     protected State trigger(State state, AbstractLeaf leaf, Direction direction) {
         Compound p = leaf.parent;
-        state = state.set(p.getId(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
-        while (Direction.backward == direction ? p.parent != null : !getId().equals(p.getId())) {
-            state = state.set(p.parent.getId(), direction.depth, Set::add, p);
+        state = state.set(p.contained(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
+        while (Direction.backward == direction ? p.parent != null : !contained().equals(p.contained())) {
+            state = state.set(p.parent.contained(), direction.depth, Set::add, p);
             p = p.parent;
         }
         return state;
@@ -172,27 +176,17 @@ public class Compound extends Transaction {
     }
 
     private State schedule(State state, Direction direction, Set<Compound>[] cs, Set<AbstractLeaf>[] ls) {
-        state = state.set(getId(), direction.preDepth, Set.of(), ls);
-        state = state.set(getId(), Direction.scheduled.preDepth, Set::addAll, ls[0]);
-        state = state.set(getId(), direction.depth, Set.of(), cs);
-        state = state.set(getId(), Direction.scheduled.depth, Set::addAll, cs[0]);
-        state = state.set(getId(), direction.postDepth, Set.of(), ls);
-        state = state.set(getId(), Direction.scheduled.postDepth, Set::addAll, ls[0]);
+        state = state.set(contained(), direction.preDepth, Set.of(), ls);
+        state = state.set(contained(), Direction.scheduled.preDepth, Set::addAll, ls[0]);
+        state = state.set(contained(), direction.depth, Set.of(), cs);
+        state = state.set(contained(), Direction.scheduled.depth, Set::addAll, cs[0]);
+        state = state.set(contained(), direction.postDepth, Set.of(), ls);
+        state = state.set(contained(), Direction.scheduled.postDepth, Set::addAll, ls[0]);
         Set<Compound> csc = cs[0];
         for (Compound c : csc) {
             state = c.schedule(state, direction, cs, ls);
         }
         return state;
-    }
-
-    @Override
-    protected CompoundRun startRun(Root root) {
-        return root().compoundRuns.get().open(this, root);
-    }
-
-    @Override
-    protected void stopRun(TransactionRun<?> run) {
-        root().compoundRuns.get().close((CompoundRun) run);
     }
 
     protected static class CompoundRun extends TransactionRun<Compound> {

@@ -35,7 +35,6 @@ import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DTextPane.TextPaneNative;
 import org.modelingvalue.jdclare.swing.PopupMenu.PopupMenuNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(TextPaneNative.class)
 public interface DTextPane<E extends TextElement> extends DTextComponent {
@@ -67,16 +66,16 @@ public interface DTextPane<E extends TextElement> extends DTextComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JTextPane();
             swing.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             swing.addKeyListener(keyAdapter);
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
-            super.exit(parent, tx);
+        public void exit(DObject parent) {
+            super.exit(parent);
             swing.removeKeyListener(keyAdapter);
         }
 

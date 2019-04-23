@@ -28,7 +28,6 @@ import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DMenu.DMenuNative;
 import org.modelingvalue.jdclare.swing.DMenubar.DMenubarNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(DMenubarNative.class)
 public interface DMenubar extends DComponent, DStruct1<Frame> {
@@ -45,9 +44,10 @@ public interface DMenubar extends DComponent, DStruct1<Frame> {
             super(visible);
         }
 
-        public void init(DObject parent, Compound tx) {
+        @Override
+        public void init(DObject parent) {
             swing = new JMenuBar();
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override

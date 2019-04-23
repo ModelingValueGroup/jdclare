@@ -31,7 +31,6 @@ import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DComponent.DComponentNative;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
-import org.modelingvalue.transactions.Compound;
 
 @Native(DComponentNative.class)
 public interface DComponent extends DContainer {
@@ -129,20 +128,20 @@ public interface DComponent extends DContainer {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing.setOpaque(true);
             swing.addMouseListener(mouseAdapter);
             swing.addMouseMotionListener(mouseAdapter);
             swing.addKeyListener(keyAdapter);
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         protected void popup(int x, int y) {
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
-            super.exit(parent, tx);
+        public void exit(DObject parent) {
+            super.exit(parent);
             swing.removeMouseListener(mouseAdapter);
         }
 

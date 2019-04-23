@@ -26,7 +26,6 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.transactions.Compound;
 
 @Native(DMenu.DMenuNative.class)
 public interface DMenu extends DComponent, DStruct2<DComponent, String>, DNamed, MenuItem {
@@ -48,9 +47,9 @@ public interface DMenu extends DComponent, DStruct2<DComponent, String>, DNamed,
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JMenu(visible.name());
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override

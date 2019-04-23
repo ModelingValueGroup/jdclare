@@ -22,7 +22,6 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DToolbar.ToolbarNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(ToolbarNative.class)
 public interface DToolbar extends DComponent {
@@ -37,9 +36,9 @@ public interface DToolbar extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JPanel();
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         public void items(List<DToolbarItem> pre, List<DToolbarItem> post) {

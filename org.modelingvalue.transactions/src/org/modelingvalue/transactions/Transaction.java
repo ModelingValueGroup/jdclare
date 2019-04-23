@@ -30,7 +30,7 @@ public abstract class Transaction {
         this.hashCode = parent != null ? (id.hashCode() * 31 + parent.hashCode()) : id.hashCode();
     }
 
-    public Object getId() {
+    protected final Object getId() {
         return id;
     }
 
@@ -72,11 +72,7 @@ public abstract class Transaction {
 
     protected abstract State run(State state, Root root);
 
-    public abstract boolean isAncestorOf(Transaction child);
-
-    protected abstract <T extends Transaction> TransactionRun<? extends T> startRun(Root toot);
-
-    protected abstract void stopRun(TransactionRun<?> run);
+    public abstract boolean isAncestorOf(Compound child);
 
     public abstract static class TransactionRun<T extends Transaction> {
 

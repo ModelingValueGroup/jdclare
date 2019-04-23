@@ -30,7 +30,6 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DContainer.DContainerNative;
 import org.modelingvalue.jdclare.swing.draw2d.DDimension;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
-import org.modelingvalue.transactions.Compound;
 
 @Native(DContainerNative.class)
 public interface DContainer extends DVisible {
@@ -62,17 +61,17 @@ public interface DContainer extends DVisible {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
-            super.init(parent, tx);
+        public void init(DObject parent) {
+            super.init(parent);
             swing.addComponentListener(this);
             swing.setVisible(true);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
+        public void exit(DObject parent) {
             swing.removeComponentListener(this);
             swing.setVisible(false);
-            super.exit(parent, tx);
+            super.exit(parent);
         }
 
         public void location(DPoint pre, DPoint post) {
