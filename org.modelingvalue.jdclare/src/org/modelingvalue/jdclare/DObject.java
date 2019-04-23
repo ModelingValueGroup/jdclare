@@ -31,10 +31,16 @@ import org.modelingvalue.jdclare.meta.DObjectClass;
 import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.meta.DStructClass;
+import org.modelingvalue.transactions.Contained;
 import org.modelingvalue.transactions.EmptyMandatoryException;
 
 @Extend(JObjectClass.class)
-public interface DObject extends DStruct {
+public interface DObject extends DStruct, Contained {
+
+    @Override
+    default Contained dContainer() {
+        return dParent();
+    }
 
     @Property({optional, hidden})
     DObject dParent();

@@ -30,7 +30,6 @@ import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DTreeNode.DTreeNodeNative;
 import org.modelingvalue.jdclare.swing.PopupMenu.PopupMenuNative;
 import org.modelingvalue.jdclare.swing.Tree.TreeNative;
-import org.modelingvalue.transactions.Compound;
 
 @SuppressWarnings("rawtypes")
 @Native(TreeNative.class)
@@ -49,7 +48,7 @@ public interface Tree extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             DTreeNodeNative<?> root = (DTreeNodeNative) dNative(visible.root());
             swing = new JTree(root);
             swing.setRootVisible(false);
@@ -57,12 +56,12 @@ public interface Tree extends DComponent {
             swing.setCellRenderer(new DTreeNode.DTreeCellRenderer());
             swing.addTreeSelectionListener(this);
             swing.addTreeExpansionListener(this);
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
-            super.exit(parent, tx);
+        public void exit(DObject parent) {
+            super.exit(parent);
             swing.removeTreeSelectionListener(this);
             swing.removeTreeExpansionListener(this);
         }

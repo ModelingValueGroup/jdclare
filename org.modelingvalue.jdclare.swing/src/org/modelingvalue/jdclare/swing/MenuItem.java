@@ -25,7 +25,6 @@ import org.modelingvalue.jdclare.DStruct3;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.MenuItem.MenuItemNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(MenuItemNative.class)
 public interface MenuItem extends DStruct3<DComponent, String, Consumer<ActionEvent>>, DComponent, DNamed {
@@ -47,13 +46,13 @@ public interface MenuItem extends DStruct3<DComponent, String, Consumer<ActionEv
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JMenuItem(visible.name());
             swing.addActionListener(this);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
+        public void exit(DObject parent) {
             if (swing != null) {
                 swing.removeActionListener(this);
             }

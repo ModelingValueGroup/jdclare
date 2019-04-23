@@ -41,7 +41,7 @@ public enum Direction {
         this.nr = nr;
     }
 
-    public final class DirectionSetable<T extends Transaction> extends Setable<Object, Set<T>> {
+    public final class DirectionSetable<T extends Transaction> extends Setable<Contained, Set<T>> {
         private final Priority priority;
 
         private DirectionSetable(Priority priority) {

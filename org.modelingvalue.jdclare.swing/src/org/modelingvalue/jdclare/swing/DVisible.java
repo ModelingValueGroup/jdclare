@@ -23,16 +23,15 @@ import org.modelingvalue.jdclare.DNative;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.swing.DVisible.VisibleNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(VisibleNative.class)
 public interface DVisible extends DObject {
 
     class VisibleNative<N extends DVisible> implements DNative<N> {
 
-        protected final N visible;
+        protected final N  visible;
 
-        private Compound  tx;
+        protected DVisible parent;
 
         public VisibleNative(N visible) {
             this.visible = visible;
@@ -57,20 +56,22 @@ public interface DVisible extends DObject {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
-            if (tx == null) {
-                throw new NullPointerException("Transaction is null");
+        public void init(DObject parent) {
+            if (parent instanceof DVisible) {
+                this.parent = (DVisible) parent;
             }
-            this.tx = tx;
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
+        public void exit(DObject parent) {
+            if (parent instanceof DVisible) {
+                this.parent = null;
+            }
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         protected <V extends VisibleNative> V ancestor(Class<V> cls) {
-            return cls.isInstance(this) ? (V) this : ((VisibleNative<?>) dNative((DVisible) tx.parent().getId())).ancestor(cls);
+            return cls.isInstance(this) ? (V) this : ((VisibleNative<?>) dNative(parent)).ancestor(cls);
         }
 
         @Override

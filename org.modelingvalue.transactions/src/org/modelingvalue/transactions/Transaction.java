@@ -20,9 +20,9 @@ import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class Transaction {
 
-    private final Object     id;
-    protected final Compound parent;
-    private final int        hashCode;
+    private final Object   id;
+    private final Compound parent;
+    private final int      hashCode;
 
     protected Transaction(Object id, Compound parent) {
         this.id = id;
@@ -30,13 +30,13 @@ public abstract class Transaction {
         this.hashCode = parent != null ? (id.hashCode() * 31 + parent.hashCode()) : id.hashCode();
     }
 
-    public Object getId() {
+    final Object id() {
         return id;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@" + (parent != null ? StringUtil.toString(parent.getId()) + "." : "") + StringUtil.toString(id);
+        return getClass().getSimpleName() + "@" + (parent != null ? StringUtil.toString(parent.contained()) + "." : "") + StringUtil.toString(id);
     }
 
     @Override
@@ -53,8 +53,8 @@ public abstract class Transaction {
         } else if (getClass() != obj.getClass()) {
             return false;
         } else {
-            Transaction transaction = (Transaction) obj;
-            return id.equals(transaction.id) && Objects.equals(parent, transaction.parent);
+            Transaction tx = (Transaction) obj;
+            return id.equals(tx.id) && Objects.equals(parent, tx.parent);
         }
     }
 
@@ -65,18 +65,14 @@ public abstract class Transaction {
     public Root root() {
         Compound p = parent;
         while (!(p instanceof Root)) {
-            p = p.parent;
+            p = p.parent();
         }
         return (Root) p;
     }
 
     protected abstract State run(State state, Root root);
 
-    public abstract boolean isAncestorOf(Transaction child);
-
-    protected abstract <T extends Transaction> TransactionRun<? extends T> startRun(Root toot);
-
-    protected abstract void stopRun(TransactionRun<?> run);
+    public abstract boolean isAncestorOf(Compound child);
 
     public abstract static class TransactionRun<T extends Transaction> {
 

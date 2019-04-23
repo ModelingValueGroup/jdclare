@@ -344,7 +344,7 @@ public class BirdTest {
     }
 
     @Test
-    public void circularConstantError2() {
+    public void circularConstantError() {
         try {
             DClare<BirdUniverse> root = of(BirdUniverse.class);
             start(root);

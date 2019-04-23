@@ -19,7 +19,6 @@ import javax.swing.JTextArea;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.swing.DTextArea.TextAreaNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(TextAreaNative.class)
 public interface DTextArea extends DTextComponent {
@@ -30,10 +29,10 @@ public interface DTextArea extends DTextComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JTextArea();
             swing.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            super.init(parent, tx);
+            super.init(parent);
         }
     }
 

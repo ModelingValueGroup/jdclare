@@ -30,19 +30,18 @@ public final class TooManyObservedException extends Error {
         this.observed = observed;
     }
 
-    
     @Override
     public String getMessage() {
-    	String observedMap =  observer.root().preState().get(() -> {
-    		return observed.map(String::valueOf).collect(Collectors.joining("\n  "));
-    	});
+        String observedMap = observer.root().preState().get(() -> {
+            return observed.map(String::valueOf).collect(Collectors.joining("\n  "));
+        });
         return getSimpleMessage() + ":\n  " + observedMap;
     }
 
     public String getSimpleMessage() {
-    	return observer.root().preState().get(() -> {
-    		return "Too many observed (" + observed.size() + ") by " + (observer.parent != null ? StringUtil.toString(observer.parent.getId()) + "." : "") + StringUtil.toString(observer.getId());
-    	});
+        return observer.root().preState().get(() -> {
+            return "Too many observed (" + observed.size() + ") by " + (observer.parent() != null ? StringUtil.toString(observer.parent().contained()) + "." : "") + StringUtil.toString(observer.rule());
+        });
     }
 
     public int getNrOfObserved() {

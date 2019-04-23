@@ -13,10 +13,8 @@
 
 package org.modelingvalue.jdclare.swing;
 
-import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.swing.DToolbarItem.ToolbarItemNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(ToolbarItemNative.class)
 public interface DToolbarItem extends DButton {
@@ -27,10 +25,6 @@ public interface DToolbarItem extends DButton {
             super(visible);
         }
 
-        @Override
-        public void init(DObject parent, Compound tx) {
-            super.init(parent, tx);
-        }
     }
 
 }

@@ -21,7 +21,6 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.SplitPane.SplitPaneNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(SplitPaneNative.class)
 public interface SplitPane extends DComponent {
@@ -52,12 +51,12 @@ public interface SplitPane extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JSplitPane(visible.vertical() ? JSplitPane.VERTICAL_SPLIT : JSplitPane.HORIZONTAL_SPLIT, true);
             swing.setResizeWeight(visible.resizeWeight());
             swing.setDividerSize(visible.disableDivider() ? 0 : 2);
             swing.setContinuousLayout(true);
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         public void leftComponent(DComponent pre, DComponent post) {

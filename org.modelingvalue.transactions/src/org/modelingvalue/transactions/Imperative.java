@@ -35,7 +35,8 @@ public class Imperative extends AbstractLeaf {
 
     private Imperative(LeafClass cls, State init, Root root, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
         super(cls, root);
-        this.run = startRun(root);
+        run = new ImperativeRun();
+        run.start(this, root);
         run.pre = init;
         run.state = init;
         run.diffHandler = diffHandler;
@@ -48,7 +49,7 @@ public class Imperative extends AbstractLeaf {
     public void stop() {
         scheduler.accept(() -> {
             AbstractLeaf.setCurrent(null);
-            stopRun(run);
+            run.stop();
         });
     }
 
@@ -64,18 +65,6 @@ public class Imperative extends AbstractLeaf {
     public void commit(State post, boolean timeTraveling) {
         run.extern2intern();
         run.intern2extern(post, timeTraveling);
-    }
-
-    @Override
-    protected ImperativeRun startRun(Root root) {
-        ImperativeRun run = new ImperativeRun();
-        run.start(this, root);
-        return run;
-    }
-
-    @Override
-    protected void stopRun(TransactionRun<?> run) {
-        run.stop();
     }
 
     protected static class ImperativeRun extends AbstractLeafRun<Imperative> {

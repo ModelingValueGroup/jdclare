@@ -35,41 +35,30 @@ public class Leaf extends AbstractLeaf {
     }
 
     public Action action() {
-        return (Action) getId();
+        return (Action) id();
     }
 
     protected void run(LeafRun<?> run, State pre, Root root) {
-        action().run(parent.getId());
+        action().run(parent().contained());
     }
 
     @Override
     protected State run(State state, Root root) {
         TraceTimer.traceBegin(traceId());
-        LeafRun<?> run = startRun(root);
+        LeafRun<?> run = root.startRun(this);
         run.init(state);
         try {
             CURRENT.run(run, () -> run(run, state, root));
             return run.result();
         } finally {
             run.clear();
-            stopRun(run);
+            root.stopRun(run);
             TraceTimer.traceEnd(traceId());
         }
     }
 
     protected String traceId() {
         return "leaf";
-    }
-
-    @Override
-    protected LeafRun<?> startRun(Root root) {
-        return root().leafRuns.get().open(this, root);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void stopRun(TransactionRun<?> run) {
-        root().leafRuns.get().close((LeafRun<Leaf>) run);
     }
 
     public static class LeafRun<L extends Leaf> extends AbstractLeafRun<L> {

@@ -44,6 +44,21 @@ public class Observer extends Leaf {
     }
 
     @Override
+    protected State run(State state, Root root) {
+        TraceTimer.traceBegin(traceId());
+        LeafRun<?> run = root.startRun(this);
+        run.init(state);
+        try {
+            CURRENT.run(run, () -> run(run, state, root));
+            return run.result();
+        } finally {
+            run.clear();
+            root.stopRun(run);
+            TraceTimer.traceEnd(traceId());
+        }
+    }
+
+    @Override
     protected void run(LeafRun<?> leaf, State pre, Root root) {
         Rule rule = rule();
         ObserverRun run = (ObserverRun) leaf;
@@ -83,8 +98,8 @@ public class Observer extends Leaf {
     private void observe(ObserverRun run, Rule rule, Set<Slot> sets, Set<Slot> gets) {
         gets = gets.removeAll(sets);
         Observerds[] observeds = rule.observeds();
-        Set<Slot> oldGets = observeds[Direction.forward.nr].set(parent.getId(), gets);
-        Set<Slot> oldSets = observeds[Direction.backward.nr].set(parent.getId(), sets);
+        Set<Slot> oldGets = observeds[Direction.forward.nr].set(parent().contained(), gets);
+        Set<Slot> oldSets = observeds[Direction.backward.nr].set(parent().contained(), sets);
         if (oldGets.isEmpty() && oldSets.isEmpty() && !(sets.isEmpty() && gets.isEmpty())) {
             rule.instances++;
         } else if (!(oldGets.isEmpty() && oldSets.isEmpty()) && sets.isEmpty() && gets.isEmpty()) {
@@ -106,11 +121,11 @@ public class Observer extends Leaf {
         if (root.isDebugging()) {
             State post = run.result();
             run.init(post);
-            Set<ObserverTrace> traces = rule.traces.get(parent.getId());
+            Set<ObserverTrace> traces = rule.traces.get(parent().contained());
             ObserverTrace trace = new ObserverTrace(this, traces.sorted().findFirst().orElse(null), rule.changesPerInstance(), //
                     gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
                     sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
-            rule.traces.set(parent.getId(), traces.add(trace));
+            rule.traces.set(parent().contained(), traces.add(trace));
         }
         int totalChanges = root.countTotalChanges();
         int changesPerInstance = rule.countChangesPerInstance();
@@ -130,7 +145,7 @@ public class Observer extends Leaf {
     private void hadleTooManyChanges(ObserverRun run, Rule rule, int changes) {
         State result = run.result();
         run.init(result);
-        ObserverTrace last = result.get(parent.getId(), rule.traces).sorted().findFirst().orElse(null);
+        ObserverTrace last = result.get(parent().contained(), rule.traces).sorted().findFirst().orElse(null);
         if (last != null && last.done().size() >= run.root().maxNrOfChanges()) {
             run.getted.init(Set.of());
             run.setted.init(Set.of());
@@ -142,16 +157,6 @@ public class Observer extends Leaf {
     @SuppressWarnings("rawtypes")
     protected void countChanges(ObserverRun run, Observed observed) {
         run.changed = true;
-    }
-
-    @Override
-    protected ObserverRun startRun(Root root) {
-        return root().observerRuns.get().open(this, root);
-    }
-
-    @Override
-    protected void stopRun(TransactionRun<?> run) {
-        root().observerRuns.get().close((ObserverRun) run);
     }
 
     public static class ObserverRun extends LeafRun<Observer> {

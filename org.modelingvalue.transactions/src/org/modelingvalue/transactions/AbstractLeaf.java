@@ -29,7 +29,7 @@ public abstract class AbstractLeaf extends Transaction {
     }
 
     public LeafClass leafClass() {
-        return (LeafClass) getId();
+        return (LeafClass) id();
     }
 
     public void trigger() {
@@ -38,7 +38,7 @@ public abstract class AbstractLeaf extends Transaction {
     }
 
     @Override
-    public boolean isAncestorOf(Transaction child) {
+    public boolean isAncestorOf(Compound child) {
         return false;
     }
 
@@ -56,9 +56,6 @@ public abstract class AbstractLeaf extends Transaction {
     public static void setCurrent(AbstractLeafRun<?> t) {
         CURRENT.set(t);
     }
-
-    @Override
-    protected abstract AbstractLeafRun<?> startRun(Root root);
 
     public abstract static class AbstractLeafRun<L extends AbstractLeaf> extends TransactionRun<L> {
 
@@ -98,11 +95,11 @@ public abstract class AbstractLeaf extends Transaction {
         }
 
         protected void trigger(AbstractLeaf leaf, Direction direction) {
-            Compound p = leaf.parent, parent = parent();
-            set(p.getId(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
-            while (Direction.backward == direction ? p.parent != null : !p.isAncestorOf(parent)) {
-                set(p.parent.getId(), direction.depth, Set::add, p);
-                p = p.parent;
+            Compound p = leaf.parent(), parent = parent();
+            set(p.contained(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
+            while (Direction.backward == direction ? p.parent() != null : !p.isAncestorOf(parent)) {
+                set(p.parent().contained(), direction.depth, Set::add, p);
+                p = p.parent();
             }
         }
 

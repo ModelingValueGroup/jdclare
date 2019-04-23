@@ -212,7 +212,7 @@ public interface BirdUniverse extends DUniverse {
         @Rule
         default void parentColor1() {
             // TODO
-            dclare(Bird.class, dclare(BirdUniverse.class), "0").color(); // throws an EmptyMandatoryException.
+            // dclare(Bird.class, dclare(BirdUniverse.class), "0").color(); // throws an EmptyMandatoryException.
             // This exception is not propagated to the user - why not?
             String parentColor = dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
             System.err.println("parent color is " + parentColor);
@@ -319,6 +319,7 @@ public interface BirdUniverse extends DUniverse {
             }
         }
 
+        @SuppressWarnings("null")
         @Rule
         default void nullPointerInMandatoryProperty() {
             if ("blue".equals(color())) {
@@ -331,6 +332,7 @@ public interface BirdUniverse extends DUniverse {
             }
         }
 
+        @SuppressWarnings("null")
         @Rule
         default void nullPointerInOptionalProperty() {
             if ("yellow".equals(color())) {
@@ -362,6 +364,7 @@ public interface BirdUniverse extends DUniverse {
         String headColor();
 
         @Property(constant)
+
         default String leftLegColor() {
             return "";
         }

@@ -20,28 +20,28 @@ import org.modelingvalue.collections.util.Pair;
 
 public class Rule extends Action {
 
-    public static Rule of(Object id, Consumer<Object> action) {
+    public static Rule of(Object id, Consumer<Contained> action) {
         return new Rule(id, action, Direction.forward, Priority.postDepth);
     }
 
-    public static Rule of(Object id, Consumer<Object> action, Priority priority) {
+    public static Rule of(Object id, Consumer<Contained> action, Priority priority) {
         return new Rule(id, action, Direction.forward, priority);
     }
 
-    public static Rule of(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
+    public static Rule of(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
         return new Rule(id, action, initDirection, priority);
     }
 
-    public final Setable<Object, Set<ObserverTrace>> traces;
+    public final Setable<Contained, Set<ObserverTrace>> traces;
 
-    private final Observerds[]                       observeds;
+    private final Observerds[]                          observeds;
 
-    protected long                                   runCount = -1;
-    protected int                                    instances;
-    protected int                                    changes;
-    protected boolean                                stopped;
+    protected long                                      runCount = -1;
+    protected int                                       instances;
+    protected int                                       changes;
+    protected boolean                                   stopped;
 
-    protected Rule(Object id, Consumer<Object> action, Direction initDirection, Priority priority) {
+    protected Rule(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
         super(id, action, initDirection, priority);
         this.traces = Setable.of(Pair.of(this, "TRACES"), Set.of());
         observeds = new Observerds[2];
@@ -69,7 +69,7 @@ public class Rule extends Action {
         }
     }
 
-    public static final class Observerds extends Setable<Object, Set<Slot>> {
+    public static final class Observerds extends Setable<Contained, Set<Slot>> {
 
         public static Observerds of(Rule rule, Direction direction) {
             return new Observerds(rule, direction);
@@ -86,7 +86,7 @@ public class Rule extends Action {
                         d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), Set<Observer>::remove, (Observer) tx.transaction()));
                     } else {
                         d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), (Set<Observer> s, Object k) -> {
-                            return s.filter(r -> !r.rule().equals(rule) || r.rule().initDirection() != direction || !r.parent.getId().equals(k)).toSet();
+                            return s.filter(r -> !r.rule().equals(rule) || r.rule().initDirection() != direction || !r.parent().contained().equals(k)).toSet();
                         }, object));
                     }
                 }

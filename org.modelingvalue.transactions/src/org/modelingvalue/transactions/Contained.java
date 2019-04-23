@@ -13,31 +13,57 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.function.Consumer;
+import org.modelingvalue.collections.util.StringUtil;
 
-public class Action extends LeafClass {
+public interface Contained {
 
-    public static Action of(Object id, Consumer<Contained> action) {
-        return new Action(id, action, Direction.forward, Priority.postDepth);
+    Contained dContainer();
+
+    static Contained of(Object id) {
+        return new ContainedImpl(null, id);
     }
 
-    public static Action of(Object id, Consumer<Contained> action, Priority priority) {
-        return new Action(id, action, Direction.forward, priority);
+    static Contained of(Contained parent, Object id) {
+        return new ContainedImpl(parent, id);
     }
 
-    public static Action of(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
-        return new Action(id, action, initDirection, priority);
-    }
+    static class ContainedImpl implements Contained {
+        private final Contained container;
+        private final Object    id;
 
-    private final Consumer<Contained> action;
+        private ContainedImpl(Contained container, Object id) {
+            this.container = container;
+            this.id = id;
+        }
 
-    protected Action(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
-        super(id, initDirection, priority);
-        this.action = action;
-    }
+        @Override
+        public Contained dContainer() {
+            return container;
+        }
 
-    public void run(Contained object) {
-        action.accept(object);
+        @Override
+        public String toString() {
+            return "Contained@" + StringUtil.toString(id);
+        }
+
+        @Override
+        public int hashCode() {
+            return id.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            } else if (obj == null) {
+                return false;
+            } else if (getClass() != obj.getClass()) {
+                return false;
+            } else {
+                ContainedImpl c = (ContainedImpl) obj;
+                return id.equals(c.id);
+            }
+        }
     }
 
 }

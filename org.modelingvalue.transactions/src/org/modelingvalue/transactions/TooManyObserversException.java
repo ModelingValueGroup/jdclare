@@ -31,16 +31,16 @@ public final class TooManyObserversException extends Error {
 
     @Override
     public String getMessage() {
-    	String observersMap =  observers.findFirst().get().root().preState().get(() -> {
-    		return observers.map(String::valueOf).collect(Collectors.joining("\n  "));
-    	});
+        String observersMap = observers.findFirst().get().root().preState().get(() -> {
+            return observers.map(String::valueOf).collect(Collectors.joining("\n  "));
+        });
         return getSimpleMessage() + ":\n" + observersMap;
     }
 
     public String getSimpleMessage() {
-    	return  observers.findFirst().get().root().preState().get(() -> {
-    		return "Too many observers (" + observers.size() + ") of " + observed;
-    	});
+        return observers.findFirst().get().root().preState().get(() -> {
+            return "Too many observers (" + observers.size() + ") of " + observed;
+        });
     }
 
     public int getNrOfObservers() {

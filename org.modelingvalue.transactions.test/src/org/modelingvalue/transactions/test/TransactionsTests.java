@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
 import org.modelingvalue.transactions.Compound;
+import org.modelingvalue.transactions.Contained;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Root;
@@ -33,7 +34,7 @@ public class TransactionsTests {
     public void test0() throws Exception {
         Observed<String, Integer> A = Observed.of("A", 0);
         String obj = "o";
-        Root root = Root.of("R", THE_POOL, 100);
+        Root root = Root.of(Contained.of("R"), THE_POOL, 100);
         Rule rule = Rule.of("X", o -> {
             A.get(obj);
             A.set(obj, 10);
@@ -49,12 +50,12 @@ public class TransactionsTests {
     @Test
     public void test1() throws Exception {
         long begin = System.currentTimeMillis();
-        Root root = Root.of("R", THE_POOL, 100, r -> TIME_MILLIS.set(r, System.currentTimeMillis()));
+        Root root = Root.of(Contained.of("R"), THE_POOL, 100, r -> TIME_MILLIS.set(r, System.currentTimeMillis()));
         root.put("test1", () -> {
             for (int io = 0; io < 8; io++) {
-                Compound o = Compound.of("O" + io, root);
+                Compound o = Compound.of(Contained.of("O" + io), root);
                 for (int il = 0; il < 8; il++) {
-                    Observer.of(Rule.of("L" + il, x -> {
+                    Observer.of(Rule.of(Contained.of("L" + il), x -> {
                         long time = TIME_MILLIS.get(root);
                         System.err.println("TIME: " + time);
                         if (time - begin > 1000) {
@@ -80,11 +81,11 @@ public class TransactionsTests {
         Observed<Compound, Integer> NR = Observed.of("nr", 0);
         Observed<Compound, Integer> TOT = Observed.of("tot", 0);
         int depth = 100;
-        Root root = Root.of("R", THE_POOL, 100);
+        Root root = Root.of(Contained.of("R"), THE_POOL, 100);
         Compound[] last = new Compound[1];
         root.put("test2", () -> {
             for (int io = 0; io < depth; io++) {
-                Compound o = Compound.of("O" + io, root);
+                Compound o = Compound.of(Contained.of("O" + io), root);
                 Compound p = last[0];
                 Observer.of(Rule.of("C" + io, x -> {
                     TOT.set(o, NR.get(o) + (p != null ? TOT.get(p) : 0));

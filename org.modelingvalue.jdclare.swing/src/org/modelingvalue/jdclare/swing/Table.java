@@ -37,7 +37,6 @@ import org.modelingvalue.jdclare.Default;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.Table.TableNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(TableNative.class)
 public interface Table<R, C, V> extends DComponent {
@@ -103,7 +102,7 @@ public interface Table<R, C, V> extends DComponent {
 
         @SuppressWarnings("serial")
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             DTableModel<R, C, V> model = new DTableModel<R, C, V>(visible);
             swing = new JTable(model) {
                 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -130,12 +129,12 @@ public interface Table<R, C, V> extends DComponent {
             };
             selectionModel = swing.getSelectionModel();
             selectionModel.addListSelectionListener(this);
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
-            super.exit(parent, tx);
+        public void exit(DObject parent) {
+            super.exit(parent);
             selectionModel.removeListSelectionListener(this);
         }
 

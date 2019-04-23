@@ -25,7 +25,6 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.Panel.PanelNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(PanelNative.class)
 public interface Panel extends DComponent {
@@ -48,14 +47,14 @@ public interface Panel extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JPanel(visible.layoutManager());
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         @Override
-        public void exit(DObject parent, Compound tx) {
-            super.exit(parent, tx);
+        public void exit(DObject parent) {
+            super.exit(parent);
         }
 
         public void content(Map<DComponent, Object> pre, Map<DComponent, Object> post) {

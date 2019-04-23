@@ -19,7 +19,6 @@ import javax.swing.JTextField;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.swing.DTextField.TextFieldNative;
-import org.modelingvalue.transactions.Compound;
 
 @Native(TextFieldNative.class)
 public interface DTextField extends DTextComponent {
@@ -30,10 +29,10 @@ public interface DTextField extends DTextComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JTextField();
             swing.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            super.init(parent, tx);
+            super.init(parent);
         }
     }
 

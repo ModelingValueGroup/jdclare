@@ -30,7 +30,6 @@ import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DButton.ButtonNative;
 import org.modelingvalue.jdclare.swing.draw2d.DImage;
-import org.modelingvalue.transactions.Compound;
 
 @Native(ButtonNative.class)
 public interface DButton extends DComponent {
@@ -54,7 +53,7 @@ public interface DButton extends DComponent {
         }
 
         @Override
-        public void init(DObject parent, Compound tx) {
+        public void init(DObject parent) {
             swing = new JButton();
             swing.setBorder(new EmptyBorder(2, 2, 2, 2));
             swing.addActionListener(x -> {
@@ -64,7 +63,7 @@ public interface DButton extends DComponent {
                 DClare.set(visible, DButton::selected, swing.isSelected());
             });
             updateImageAndText(visible.imageLink() != null ? visible.imageLink().image() : null, visible.text());
-            super.init(parent, tx);
+            super.init(parent);
         }
 
         private void updateImageAndText(Image i, String text) {

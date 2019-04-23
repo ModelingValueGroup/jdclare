@@ -16,14 +16,12 @@ package org.modelingvalue.jdclare;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.modelingvalue.transactions.Compound;
-
 public interface DNative<T extends DObject> {
 
-    default void init(DObject parent, Compound tx) {
+    default void init(DObject parent) {
     }
 
-    default void exit(DObject parent, Compound tx) {
+    default void exit(DObject parent) {
     }
 
     public class ChangeHandler<O extends DObject, V> {

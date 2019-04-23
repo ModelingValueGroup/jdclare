@@ -189,15 +189,15 @@ public final class DClare<U extends DUniverse> extends Root {
 
     private static final Setable<Compound, Set<Compound>>                        CHILDREN_TRANSACTIONS        = Setable.of("dChildrenTransactions", Set.of(), ($, o, b, a) -> {
                                                                                                                   Setable.<Set<Compound>, Compound> diff(Set.<Compound> of(), b, a,                                                                 //
-                                                                                                                          nc -> start((DObject) nc.getId(), nc),                                                                                    //
-                                                                                                                          oc -> stop((DObject) oc.getId(), oc));
+                                                                                                                          nc -> start((DObject) nc.contained(), nc),                                                                                //
+                                                                                                                          oc -> stop((DObject) oc.contained(), oc));
                                                                                                               });
 
     private static final Setable<Compound, Set<Observer>>                        OBSERVERS                    = Setable.of("dObservers", Set.of(), ($, o, b, a) -> {
                                                                                                                   Setable.<Set<Observer>, Observer> diff(Set.of(), b, a, Leaf::trigger,                                                             //
                                                                                                                           r -> {
                                                                                                                               for (Observerds obs : r.rule().observeds()) {
-                                                                                                                                  obs.set(r.parent().getId(), obs.getDefault());
+                                                                                                                                  obs.set(r.parent().contained(), obs.getDefault());
                                                                                                                               }                                                                                                                     //
                                                                                                                           });
                                                                                                               });
@@ -953,7 +953,7 @@ public final class DClare<U extends DUniverse> extends Root {
                     dChildren.set((DObject) object, Set::remove, (DObject) r);
                     dParent.set((DObject) r, (a, b) -> b.equals(a) ? null : a, object);
                     dContainmentProperty.set((DObject) r, (a, b) -> b.equals(a) ? null : a, newCp);
-                    TRANSACTION.set((DObject) r, (t, p) -> t != null && p.equals(t.parent().getId()) ? null : t, (DObject) object);
+                    TRANSACTION.set((DObject) r, (t, p) -> t != null && p.equals(t.parent().contained()) ? null : t, (DObject) object);
                 });
     }
 
@@ -1333,8 +1333,7 @@ public final class DClare<U extends DUniverse> extends Root {
                             Pair<Object, Object> tpair = e0.getValue().get(TRANSACTION);
                             if (tpair != null) {
                                 if (tpair.a() == null) {
-                                    DObject parent = (DObject) post.get(dObject, getable(D_PARENT));
-                                    no.init(parent, (Compound) tpair.b());
+                                    no.init((DObject) post.get(dObject, getable(D_PARENT)));
                                     dObject.dObjectClass().allProperties().forEach(p -> {
                                         ChangeHandler nch = p.nativeChangeHandler();
                                         if (nch != null) {
@@ -1342,8 +1341,7 @@ public final class DClare<U extends DUniverse> extends Root {
                                         }
                                     });
                                 } else if (tpair.b() == null) {
-                                    DObject parent = (DObject) pre.get(dObject, getable(D_PARENT));
-                                    no.exit(parent, (Compound) tpair.a());
+                                    no.exit((DObject) pre.get(dObject, getable(D_PARENT)));
                                 }
                             } else if (TRANSACTION.get(dObject) != null) {
                                 e0.getValue().forEach(e1 -> {
@@ -1504,7 +1502,7 @@ public final class DClare<U extends DUniverse> extends Root {
     }
 
     public U universe() {
-        return (U) getId();
+        return (U) contained();
     }
 
     private static KeyGetable cyclicKey(Method method, int nr) {
