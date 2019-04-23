@@ -1,7 +1,10 @@
 package org.modelingvalue.jdclare.test;
 
-import static org.modelingvalue.jdclare.DClare.*;
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
+import static org.modelingvalue.jdclare.DClare.dclare;
+import static org.modelingvalue.jdclare.DClare.set;
+import static org.modelingvalue.jdclare.PropertyQualifier.constant;
+import static org.modelingvalue.jdclare.PropertyQualifier.containment;
+import static org.modelingvalue.jdclare.PropertyQualifier.optional;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
@@ -16,13 +19,6 @@ public interface BirdUniverse extends DUniverse {
 
     @Property(containment)
     Set<Bird> birds();
-    
-
-    default void addBird(Class<? extends Bird> clazz, String name, String color) {
-        Bird bird = dclare(clazz, this, name);
-        set(this, BirdUniverse::birds, Set::add, bird);
-        set(bird, Bird::color, color);
-    }
 
     interface Bird extends DStruct2<DObject, String>, DNamed {
 
@@ -81,7 +77,7 @@ public interface BirdUniverse extends DUniverse {
     interface Condor extends Bird {
 
         @Rule
-        default void setColor() {
+        default void setWingColor() {
             if ("white".equals(color())) {
                 set(this, Bird::wingColor, "snowy");
                 set(this, Bird::wingColor, "ivory");
@@ -89,21 +85,21 @@ public interface BirdUniverse extends DUniverse {
         }
 
         @Rule
-        default void setColor1() {
+        default void setWingColor1() {
             if ("red".equals(color())) {
                 set(this, Bird::wingColor, "ruby");
             }
         }
 
         @Rule
-        default void setColor2() {
+        default void setWingColor2() {
             if ("red".equals(color())) {
                 set(this, Bird::wingColor, "cherry");
             }
         }
 
         @Rule
-        default void addWing() {
+        default void addLeftWing() {
             if ("green".equals(color())) {
                 Wing wing = dclare(Wing.class, this, "Left");
                 set(this, Bird::wings, Set::add, wing);
@@ -111,7 +107,7 @@ public interface BirdUniverse extends DUniverse {
         }
 
         @Rule
-        default void removeWing() {
+        default void removeLeftWing() {
             if ("green".equals(color())) {
                 Wing wing = dclare(Wing.class, this, "Left");
                 set(this, Bird::wings, Set::remove, wing);
@@ -119,7 +115,7 @@ public interface BirdUniverse extends DUniverse {
         }
 
         @Rule
-        default void addAndRemoveWing() {
+        default void addAndRemoveLeftWing() {
             if ("blue".equals(this.color())) {
                 Wing wing = dclare(Wing.class, this, "Left");
                 set(this, Bird::wings, Set::remove, wing);
@@ -128,7 +124,7 @@ public interface BirdUniverse extends DUniverse {
         }
 
         @Rule
-        default void increaseSpan() {
+        default void increaseLeftWingSpan() {
             if ("black".equals(this.color())) {
                 Wing wing = dclare(Wing.class, this, "Left");
                 int span = wing.span();
@@ -146,6 +142,25 @@ public interface BirdUniverse extends DUniverse {
                 }
             }
         }
+
+        @Rule
+        default void addGenerations() {
+            if ("brown".equals(this.color()) && name().length() < 10000) {
+                Bird child = dclare(Condor.class, this, name() + "+");
+                set(this, Bird::children, Set::add, child);
+                set(child, Bird::color, "brown");
+            }
+        }
+
+        @Rule
+        default void addPigeons() {
+            if ("grey".equals(this.color()) && name().length() < 10000) {
+                Bird child = dclare(Pigeon.class, this, name() + "+");
+                set(this, Bird::children, Set::add, child);
+                set(child, Bird::color, "grey");
+            }
+
+        }
     }
 
     interface Pigeon extends Bird {
@@ -158,15 +173,6 @@ public interface BirdUniverse extends DUniverse {
                     set(this, Bird::children, Set::add, child);
                     set(child, Bird::color, "gray");
                 }
-            }
-        }
-
-        @Rule
-        default void addGenerations() {
-            if ("blue".equals(this.color()) && name().length() < 10000) {
-                Bird child = dclare(Pigeon.class, this, name() + "+");
-                set(this, Bird::children, Set::add, child);
-                set(child, Bird::color, "blue");
             }
         }
 
@@ -194,7 +200,8 @@ public interface BirdUniverse extends DUniverse {
                     for (int j = 0; j < 0; j++) {
                         Sparrow grandChild = dclare(Sparrow.class, child, name() + j); //
                         // TODO
-                        // what happens if you create objects with same identity but properties are not equal?
+                        // what happens if you create objects with same identity but properties are not
+                        // equal?
                         set(grandChild, Bird::color, "gray");
                         set(child, Bird::children, Set::add, grandChild);
                     }
@@ -205,100 +212,100 @@ public interface BirdUniverse extends DUniverse {
         @Rule
         default void parentColor1() {
             // TODO
-            dclare(Bird.class, dclare(BirdUniverse.class), "0").color(); //throws an EmptyMandatoryException.
+            dclare(Bird.class, dclare(BirdUniverse.class), "0").color(); // throws an EmptyMandatoryException.
             // This exception is not propagated to the user - why not?
-            String parentColor = dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            String parentColor = dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
             System.err.println("parent color is " + parentColor);
         }
 
         @Rule
         default void parentColor2() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor3() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor4() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor5() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor6() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor7() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor8() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor9() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor10() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor11() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor12() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor13() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor14() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor15() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor16() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor17() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor18() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
         @Rule
         default void parentColor19() {
-            dclare(Sparrow.class, dclare(BlackSparrowUniverse.class), "0").color();
+            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
         }
 
     }
@@ -311,7 +318,7 @@ public interface BirdUniverse extends DUniverse {
                 set(this, Bird::children, Set::add, child);
             }
         }
-        
+
         @Rule
         default void nullPointerInMandatoryProperty() {
             if ("blue".equals(color())) {
@@ -319,11 +326,11 @@ public interface BirdUniverse extends DUniverse {
                 set(child, Bird::color, null);
                 String color = child.color();
                 if (color == null) {
-                	System.err.println(color.length());
+                    System.err.println(color.length());
                 }
             }
         }
-        
+
         @Rule
         default void nullPointerInOptionalProperty() {
             if ("yellow".equals(color())) {
@@ -331,83 +338,88 @@ public interface BirdUniverse extends DUniverse {
                 set(child, Bird::wingColor, null);
                 String wingColor = child.wingColor();
                 if (wingColor == null) {
-                	System.err.println(wingColor.length());
+                    System.err.println(wingColor.length());
                 }
             }
         }
+
+        @Rule
+        default void divisionByZero() {
+            if ("red".equals(color())) {
+                Wing wing = dclare(Wing.class, this, "Left");
+                int span = wing.span();
+                set(wing, Wing::span, span / 0);
+            }
+        }
     }
-    
+
     interface Pheasant extends Bird {
 
-    	@Property(constant)
+        @Property(constant)
         String tailColor();
-    	
-    	@Property(constant)
-        String headColor();
-    	
-    	@Property(constant)
-        default String leg1Color() {
-    		return "";
-    	}
-    	
-    	@Property(constant)
-        default String leg2Color() {
-    		return "";
-    	}
-    	
-    	@Rule
-    	default void setTailColor1() {
-    		if ("blue".equals(color())) {
-    			set(this, Pheasant::tailColor, "blue");
-    			set(this, Pheasant::tailColor, "cobalt");
-    		}
-    	}
 
-    	@Rule
-    	default void setTailColor2() {
-    		set(this, Pheasant::tailColor, color());
-    	}
-    	
-    
-    	@Rule
-    	default void setTailColor3() {
-    		if ("yellow".equals(color())) {
-    			set(this, Bird::color, "gold");
-    		}
-    	}
-    	
-    	@Rule
-    	default void setTailColor4() {
-    		if ("red".equals(color())) {
-    			set(this, Pheasant::headColor, headColor());
-    		}
-    	}
-    	
-    	@Rule
-    	default void setTailColor5() {
-    		if ("black".equals(color())) {
-    			set(this, Pheasant::leg1Color, "black");
-    		}
-    	}
-    	
-    	@Rule
-    	default void setTailColorCircular1() {
-    		if ("white".equals(color())) {
-    			String color = leg1Color();
-    			set(this, Pheasant::leg2Color, color);
-    		}
-    	}
-    	
-    	@Rule
-    	default void setTailColorCircular2() {
-    		if ("white".equals(color())) {
-    			String color = leg2Color();
-    			set(this, Pheasant::leg1Color, color);
-    		}
-    	}
-    	
-    
-    	 
+        @Property(constant)
+        String headColor();
+
+        @Property(constant)
+        default String leftLegColor() {
+            return "";
+        }
+
+        @Property(constant)
+        default String rightLegColor() {
+            return "";
+        }
+
+        @Rule
+        default void setTailColor1() {
+            if ("blue".equals(color())) {
+                set(this, Pheasant::tailColor, "cobalt");
+            }
+        }
+
+        @Rule
+        default void setTailColor2() {
+            set(this, Pheasant::tailColor, color());
+        }
+
+        @Rule
+        default void setColor() {
+            if ("yellow".equals(color())) {
+                set(this, Bird::color, "gold");
+            }
+        }
+
+        @Rule
+        default void setHeadColor() {
+            if ("red".equals(color())) {
+                set(this, Pheasant::headColor, headColor());
+            }
+        }
+
+        @Rule
+        default void setLeftLegColor() {
+            if ("black".equals(color())) {
+                set(this, Pheasant::leftLegColor, "black");
+            }
+        }
+
+        @Rule
+        default void setLegColorCircular1() {
+            if ("white".equals(color())) {
+                String color = leftLegColor();
+                set(this, Pheasant::rightLegColor, color);
+            }
+        }
+
+        @Rule
+        default void setLegColorCircular2() {
+            if ("white".equals(color())) {
+                String color = rightLegColor();
+                set(this, Pheasant::leftLegColor, color);
+            }
+        }
+
     }
 
     @Override
@@ -419,178 +431,4 @@ public interface BirdUniverse extends DUniverse {
         DClare.run(BirdUniverse.class);
     }
 
-    public interface RedCondorUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "red");
-        }
-    }
-
-    public interface GreenCondorUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "green");
-        }
-    }
-
-    public interface BlueCondorUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "blue");
-        }
-    }
-
-    public interface WhiteCondorUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "white");
-        }
-    }
-
-    public interface BlackCondorUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "black");
-        }
-    }
-
-    public interface YellowCondorUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Condor.class, "0", "yellow");
-        }
-    }
-
-    public interface GreyPigeonUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pigeon.class, "0", "grey");
-        }
-    }
-
-    public interface BluePigeonUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pigeon.class, "0", "blue");
-        }
-    }
-
-    public interface GreenPigeonUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pigeon.class, "0", "green");
-        }
-    }
-
-    public interface BlackSparrowUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Sparrow.class, "0", "black");
-        }
-    }
-
-    public interface GreenHummingBirdUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(HummingBird.class, "0", "green");
-        }
-    }
-    
-    public interface BlueHummingBirdUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(HummingBird.class, "0", "blue");
-        }
-    }
-    
-    public interface YellowHummingBirdUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(HummingBird.class, "0", "yellow");
-        }
-    }
-    
-    public interface BluePhaesantUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pheasant.class, "0", "blue");
-        }
-    }
-    
-    public interface GreenPhaesantUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pheasant.class, "0", "green");
-            
-            Pheasant pheasant = dclare(Pheasant.class, this, "0");
-            set(pheasant, Bird::color, "yellow");
-        }
-    }
-    
-    public interface YellowPheasantUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pheasant.class, "0", "yellow");
-        }
-    }
-    
-    public interface RedPheasantUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pheasant.class, "0", "red");
-        }
-    }
-    
-    public interface BlackPheasantUniverse extends BirdUniverse {
-
-        @Override
-        default void init() {
-            BirdUniverse.super.init();
-            addBird(Pheasant.class, "0", "black");
-        }
-    }
-    
-
-    public interface MultipleBirdsUniverse extends GreyPigeonUniverse, RedCondorUniverse {
-
-        @Override
-        default void init() {
-            GreyPigeonUniverse.super.init();
-            RedCondorUniverse.super.init();
-        }
-    }
 }
