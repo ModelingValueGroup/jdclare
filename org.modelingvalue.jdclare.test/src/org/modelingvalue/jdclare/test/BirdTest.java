@@ -263,7 +263,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, NonDeterministicException.class, "Constant is not consistent 0.Constants:0=blue!=cobalt");
+            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 0.Constants:0=blue!=cobalt"));
         }
     }
 
@@ -277,7 +277,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, NonDeterministicException.class, "Constant is not consistent 0.Constants:0=yellow!=gold");
+            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 0.Constants:0=yellow!=gold"));
         }
     }
 
@@ -294,7 +294,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, NonDeterministicException.class, "Constant is not consistent 1.Constants:1=yellow!=gold");
+            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 1.Constants:1=yellow!=gold"));
         }
     }
 
@@ -356,6 +356,7 @@ public class BirdTest {
         } catch (Throwable t) {
             Throwable cause = getCause(t);
             assertThrowable(cause, Error.class, "Constant (left|right)LegColor is derived");
+
         }
     }
 
