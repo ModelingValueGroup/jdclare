@@ -20,9 +20,9 @@ import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class Transaction {
 
-    private final Object     id;
-    protected final Compound parent;
-    private final int        hashCode;
+    private final Object   id;
+    private final Compound parent;
+    private final int      hashCode;
 
     protected Transaction(Object id, Compound parent) {
         this.id = id;
@@ -65,7 +65,7 @@ public abstract class Transaction {
     public Root root() {
         Compound p = parent;
         while (!(p instanceof Root)) {
-            p = p.parent;
+            p = p.parent();
         }
         return (Root) p;
     }

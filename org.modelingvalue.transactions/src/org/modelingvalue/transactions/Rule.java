@@ -86,7 +86,7 @@ public class Rule extends Action {
                         d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), Set<Observer>::remove, (Observer) tx.transaction()));
                     } else {
                         d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), (Set<Observer> s, Object k) -> {
-                            return s.filter(r -> !r.rule().equals(rule) || r.rule().initDirection() != direction || !r.parent.contained().equals(k)).toSet();
+                            return s.filter(r -> !r.rule().equals(rule) || r.rule().initDirection() != direction || !r.parent().contained().equals(k)).toSet();
                         }, object));
                     }
                 }

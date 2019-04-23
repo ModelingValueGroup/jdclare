@@ -49,7 +49,7 @@ public class Compound extends Transaction {
     }
 
     public boolean ancestorId(Contained contained) {
-        return contained().equals(contained) || (parent != null && parent.ancestorId(contained));
+        return contained().equals(contained) || (parent() != null && parent().ancestorId(contained));
     }
 
     @Override
@@ -159,11 +159,11 @@ public class Compound extends Transaction {
     }
 
     protected State trigger(State state, AbstractLeaf leaf, Direction direction) {
-        Compound p = leaf.parent;
+        Compound p = leaf.parent();
         state = state.set(p.contained(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
-        while (Direction.backward == direction ? p.parent != null : !contained().equals(p.contained())) {
-            state = state.set(p.parent.contained(), direction.depth, Set::add, p);
-            p = p.parent;
+        while (Direction.backward == direction ? p.parent() != null : !contained().equals(p.contained())) {
+            state = state.set(p.parent().contained(), direction.depth, Set::add, p);
+            p = p.parent();
         }
         return state;
     }

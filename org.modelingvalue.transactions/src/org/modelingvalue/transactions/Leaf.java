@@ -39,7 +39,7 @@ public class Leaf extends AbstractLeaf {
     }
 
     protected void run(LeafRun<?> run, State pre, Root root) {
-        action().run(parent.contained());
+        action().run(parent().contained());
     }
 
     @Override

@@ -95,11 +95,11 @@ public abstract class AbstractLeaf extends Transaction {
         }
 
         protected void trigger(AbstractLeaf leaf, Direction direction) {
-            Compound p = leaf.parent, parent = parent();
+            Compound p = leaf.parent(), parent = parent();
             set(p.contained(), direction.priorities[leaf.leafClass().priority().nr], Set::add, leaf);
-            while (Direction.backward == direction ? p.parent != null : !p.isAncestorOf(parent)) {
-                set(p.parent.contained(), direction.depth, Set::add, p);
-                p = p.parent;
+            while (Direction.backward == direction ? p.parent() != null : !p.isAncestorOf(parent)) {
+                set(p.parent().contained(), direction.depth, Set::add, p);
+                p = p.parent();
             }
         }
 
