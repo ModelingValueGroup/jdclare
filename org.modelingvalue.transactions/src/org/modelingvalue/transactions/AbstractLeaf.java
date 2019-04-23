@@ -29,7 +29,7 @@ public abstract class AbstractLeaf extends Transaction {
     }
 
     public LeafClass leafClass() {
-        return (LeafClass) getId();
+        return (LeafClass) id();
     }
 
     public void trigger() {

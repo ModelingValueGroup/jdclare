@@ -45,7 +45,7 @@ public class Compound extends Transaction {
     }
 
     public Contained contained() {
-        return (Contained) getId();
+        return (Contained) id();
     }
 
     public boolean ancestorId(Contained contained) {

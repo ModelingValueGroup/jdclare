@@ -30,13 +30,13 @@ public abstract class Transaction {
         this.hashCode = parent != null ? (id.hashCode() * 31 + parent.hashCode()) : id.hashCode();
     }
 
-    protected final Object getId() {
+    final Object id() {
         return id;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@" + (parent != null ? StringUtil.toString(parent.getId()) + "." : "") + StringUtil.toString(id);
+        return getClass().getSimpleName() + "@" + (parent != null ? StringUtil.toString(parent.contained()) + "." : "") + StringUtil.toString(id);
     }
 
     @Override
@@ -53,8 +53,8 @@ public abstract class Transaction {
         } else if (getClass() != obj.getClass()) {
             return false;
         } else {
-            Transaction transaction = (Transaction) obj;
-            return id.equals(transaction.id) && Objects.equals(parent, transaction.parent);
+            Transaction tx = (Transaction) obj;
+            return id.equals(tx.id) && Objects.equals(parent, tx.parent);
         }
     }
 

@@ -35,7 +35,7 @@ public class Leaf extends AbstractLeaf {
     }
 
     public Action action() {
-        return (Action) getId();
+        return (Action) id();
     }
 
     protected void run(LeafRun<?> run, State pre, Root root) {
