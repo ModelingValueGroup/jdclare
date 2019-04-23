@@ -36,32 +36,30 @@ import org.modelingvalue.transactions.TooManyObservedException;
 import org.modelingvalue.transactions.TooManyObserversException;
 
 public class BirdTest {
-	
-	
-	//TODO : refactor - use one universe, and different birds
-	//TODO : add transactionException (e.g. by division by zero)
-	//TODO : solve TODOs
-	
+
+    //TODO : refactor - use one universe, and different birds
+    //TODO : add transactionException (e.g. by division by zero)
+    //TODO : solve TODOs
 
     @Test
     public void tooManyChangesException1() {
-//        try {
-//        	DClare<BirdUniverse> birdUniverse = of(BirdUniverse.class);
-//        	BirdUniverse universe = birdUniverse.universe();
-//         	universe.addBird(Condor.class, "0", "red");
-//         	Assert.fail();
-//		 } catch (Throwable t) {
-//			 Throwable cause = getCause(t);
-//			 assertThrowable(cause, TooManyChangesException.class);
-//		 }	
-    	try {
+        //        try {
+        //        	DClare<BirdUniverse> birdUniverse = of(BirdUniverse.class);
+        //        	BirdUniverse universe = birdUniverse.universe();
+        //         	universe.addBird(Condor.class, "0", "red");
+        //         	Assert.fail();
+        //		 } catch (Throwable t) {
+        //			 Throwable cause = getCause(t);
+        //			 assertThrowable(cause, TooManyChangesException.class);
+        //		 }	
+        try {
             DClare<RedCondorUniverse> redCondorUniverse = of(RedCondorUniverse.class);
             redCondorUniverse.run();
             Assert.fail();
-    	} catch (Throwable t) {
-    		Throwable cause = getCause(t);
-    		assertThrowable(cause, TooManyChangesException.class);
-    	}
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertThrowable(cause, TooManyChangesException.class);
+        }
     }
 
     @Test
@@ -132,7 +130,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObservedException.class,  "Too many observed (10002) by 0.Pigeon::addChildren", x -> ((TooManyObservedException)x).getSimpleMessage());
+            assertThrowable(cause, TooManyObservedException.class, "Too many observed (10002) by 0.Pigeon::addChildren", x -> ((TooManyObservedException) x).getSimpleMessage());
         }
     }
 
@@ -182,7 +180,7 @@ public class BirdTest {
             assertThrowable(cause, Error.class, "Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']");
         }
     }
-    
+
     //@Test TODO this test fails
     public void missingMandatory2() {
         try {
@@ -194,7 +192,7 @@ public class BirdTest {
             assertThrowable(cause, Error.class, "Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']");
         }
     }
-    
+
     @Test
     public void nullPointerException() {
         try {
@@ -206,7 +204,7 @@ public class BirdTest {
             assertThrowable(cause, NullPointerException.class);
         }
     }
-    
+
     @Test
     public void nonDeterministicException1() {
         try {
@@ -218,7 +216,7 @@ public class BirdTest {
             assertThrowable(cause, NonDeterministicException.class, "Constant is not consistent 0.Constants:0=blue!=cobalt");
         }
     }
-    
+
     @Test
     public void concurrentModificationException() {
         try {
@@ -230,7 +228,7 @@ public class BirdTest {
             assertThrowable(cause, ConcurrentModificationException.class, "0.color= null -> green | yellow");
         }
     }
-    
+
     @Test
     public void nonDeterministicException2() {
         try {
@@ -242,7 +240,7 @@ public class BirdTest {
             assertThrowable(cause, NonDeterministicException.class, "Constant is not consistent 0.Constants:0=yellow!=gold");
         }
     }
-    
+
     @Test
     public void constantNotSetAndNotDerivedError() {
         try {
@@ -254,7 +252,7 @@ public class BirdTest {
             assertThrowable(cause, Error.class, "Constant headColor is not set and not derived");
         }
     }
-    
+
     @Test
     public void constantIsDerivedError() {
         try {
@@ -266,7 +264,7 @@ public class BirdTest {
             assertThrowable(cause, Error.class, "Constant leg1Color is derived");
         }
     }
-    
+
     private Throwable getCause(Throwable t) {
         while (t.getCause() != null) {
             t = t.getCause();
@@ -278,18 +276,17 @@ public class BirdTest {
         cause.printStackTrace();
         assertEquals(throwable, cause.getClass());
     }
-    
+
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String message) {
         cause.printStackTrace();
         assertEquals(throwable, cause.getClass());
         assertEquals(message, cause.getMessage());
     }
-    
+
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String message, Function<Throwable, String> f) {
         cause.printStackTrace();
         assertEquals(throwable, cause.getClass());
         assertEquals(message, f.apply(cause));
     }
-
 
 }
