@@ -180,9 +180,7 @@ public class BirdTest {
         assertEquals("Unexpected Birds: " + birds, 1, birds.size());
     }
 
-    //@Test
-    // TODO
-    // Test does not throw expected exception.
+    @Test
     public void tooManyObserversException() {
         try {
             DClare<BirdUniverse> root = of(BirdUniverse.class);
@@ -192,7 +190,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class);
+            assertThrowable(cause, TooManyObserversException.class, "Too many observers (4003) of color", x -> ((TooManyObserversException) x).getSimpleMessage());
         }
     }
 
@@ -311,7 +309,6 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            //assertThrowable(cause, ConcurrentModificationException.class, "0\\.color= null \\-\\> green \\| yellow");
             assertThrowable(cause, ConcurrentModificationException.class, java.util.regex.Pattern.quote("0.color= null -> green | yellow"));
         }
     }

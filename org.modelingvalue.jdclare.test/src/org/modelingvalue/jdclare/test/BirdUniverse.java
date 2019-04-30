@@ -45,6 +45,7 @@ public interface BirdUniverse extends DUniverse {
         Set<Bird> orphans();
 
         String notAProperty();
+
     }
 
     interface Wing extends DStruct2<Bird, String>, DNamed {
@@ -152,15 +153,6 @@ public interface BirdUniverse extends DUniverse {
             }
         }
 
-        @Rule
-        default void addPigeons() {
-            if ("grey".equals(this.color()) && name().length() < 10000) {
-                Bird child = dclare(Pigeon.class, this, name() + "+");
-                set(this, Bird::children, Set::add, child);
-                set(child, Bird::color, "grey");
-            }
-
-        }
     }
 
     interface Pigeon extends Bird {
@@ -210,102 +202,51 @@ public interface BirdUniverse extends DUniverse {
         }
 
         @Rule
-        default void parentColor1() {
+        default void setWingColor1() {
             // TODO
             // dclare(Bird.class, dclare(BirdUniverse.class), "0").color(); // throws an EmptyMandatoryException.
             // This exception is not propagated to the user - why not?
-            String parentColor = dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-            System.err.println("parent color is " + parentColor);
+            Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
+            if (parent.color().equals("black")) {
+                set(this, Bird::wingColor, parent.color());
+                set(parent, Bird::color, "ebony");
+            }
         }
 
         @Rule
-        default void parentColor2() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
+        default void setWingColor2() {
+            Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
+            if (parent.color().equals("black")) {
+                set(this, Bird::wingColor, parent.color());
+                set(parent, Bird::color, "ebony");
+            }
         }
 
         @Rule
-        default void parentColor3() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
+        default void setWingColor3() {
+            Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
+            if (parent.color().equals("black")) {
+                set(this, Bird::wingColor, parent.color());
+                set(parent, Bird::color, "ebony");
+            }
         }
 
         @Rule
-        default void parentColor4() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
+        default void setWingColor4() {
+            Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
+            if (parent.color().equals("black")) {
+                set(this, Bird::wingColor, parent.color());
+                set(parent, Bird::color, "ebony");
+            }
         }
 
         @Rule
-        default void parentColor5() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor6() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor7() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor8() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor9() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor10() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor11() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor12() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor13() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor14() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor15() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor16() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor17() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor18() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
-        }
-
-        @Rule
-        default void parentColor19() {
-            dclare(Sparrow.class, dclare(BirdUniverse.class), "0").color();
+        default void setWingColor5() {
+            Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
+            if (parent.color().equals("black")) {
+                set(this, Bird::wingColor, parent.color());
+                set(parent, Bird::color, "ebony");
+            }
         }
 
     }
