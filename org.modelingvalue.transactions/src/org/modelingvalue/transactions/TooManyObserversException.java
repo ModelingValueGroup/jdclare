@@ -20,26 +20,31 @@ import org.modelingvalue.collections.Set;
 @SuppressWarnings("rawtypes")
 public final class TooManyObserversException extends Error {
 
-    private static final long   serialVersionUID = -1059588522731393631L;
-    private final Set<Observer> observers;
-    private final Observed      observed;
+    private static final long         serialVersionUID = -1059588522731393631L;
 
-    public TooManyObserversException(Observed observed, Set<Observer> observers) {
+    private final Set<ActionInstance> observers;
+    private final Object              object;
+    private final Observed            observed;
+    private final UniverseTransaction universeTransaction;
+
+    public TooManyObserversException(Object object, Observed observed, Set<ActionInstance> observers, UniverseTransaction universeTransaction) {
         this.observers = observers;
+        this.object = object;
         this.observed = observed;
+        this.universeTransaction = universeTransaction;
     }
 
     @Override
     public String getMessage() {
-        String observersMap = observers.findFirst().get().root().preState().get(() -> {
+        String observersMap = universeTransaction.preState().get(() -> {
             return observers.map(String::valueOf).collect(Collectors.joining("\n  "));
         });
         return getSimpleMessage() + ":\n" + observersMap;
     }
 
     public String getSimpleMessage() {
-        return observers.findFirst().get().root().preState().get(() -> {
-            return "Too many observers (" + observers.size() + ") of " + observed;
+        return universeTransaction.preState().get(() -> {
+            return "Too many observers (" + observers.size() + ") of " + object + "." + observed;
         });
     }
 
@@ -47,8 +52,12 @@ public final class TooManyObserversException extends Error {
         return observers.size();
     }
 
-    public Set<Observer> getObservers() {
+    public Set<ActionInstance> getObservers() {
         return observers;
+    }
+
+    public Object getObject() {
+        return object;
     }
 
     public Observed getObserved() {

@@ -15,7 +15,6 @@ import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 @SuppressWarnings("rawtypes")
 public class ConstantState {
@@ -95,26 +94,26 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V get(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant) {
+        public <V> V get(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
                 if (constant.deriver() == null) {
                     throw new Error("Constant " + constant + " is not set and not derived");
                 } else {
-                    V soll = derive(leaf, object, constant);
-                    ist = set(leaf, object, constant, prev, soll == null ? (V) NULL : soll);
+                    V soll = derive(leafTransaction, object, constant);
+                    ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
                 }
             }
             return ist == NULL ? null : ist;
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, V soll) {
+        public <V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, V soll) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
-                ist = set(leaf, object, constant, prev, soll == null ? (V) NULL : soll);
+                ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
                 throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
@@ -123,12 +122,12 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        public <V, E> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> function, E element) {
+        public <V, E> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, BiFunction<V, E, V> function, E element) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             V soll = function.apply(constant.getDefault(), element);
             if (ist == null) {
-                ist = set(leaf, object, constant, prev, soll == null ? (V) NULL : soll);
+                ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
                 throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
@@ -152,7 +151,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        private <V> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
+        private <V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
             V ist;
             Map<Constant<O, ?>, Object> next = prev.put(constant, soll);
             while (!UPDATOR.compareAndSet(this, prev, next)) {
@@ -163,12 +162,12 @@ public class ConstantState {
                 }
                 next = prev.put(constant, soll);
             }
-            constant.changed(leaf, object, constant.getDefault(), soll == NULL ? null : soll);
+            constant.changed(leafTransaction, object, constant.getDefault(), soll == NULL ? null : soll);
             return soll;
         }
 
         @SuppressWarnings({"unchecked", "resource"})
-        private <V> V derive(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant) {
+        private <V> V derive(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
             int depth = Constant.DEPTH.get();
             List<Pair<Object, Constant>> list = List.of();
             while (true) {
@@ -182,7 +181,7 @@ public class ConstantState {
                                     Pair<Object, Constant> me = Pair.of(object, constant);
                                     throw new NonDeterministicException("Circular constant definition: " + list.sublist(list.lastIndexOf(me), list.size()).add(me));
                                 }
-                                ConstantState.this.get(leaf, lazy.a(), lazy.b());
+                                ConstantState.this.get(leafTransaction, lazy.a(), lazy.b());
                             }
                         } finally {
                             WEAK.set(weak);
@@ -224,24 +223,24 @@ public class ConstantState {
         remover.interrupt();
     }
 
-    public <O, V> V get(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant) {
-        return getConstants(leaf, object).get(leaf, object, constant);
+    public <O, V> V get(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
+        return getConstants(leafTransaction, object).get(leafTransaction, object, constant);
     }
 
-    public <O, V> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, V value) {
-        return getConstants(leaf, object).set(leaf, object, constant, value);
+    public <O, V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, V value) {
+        return getConstants(leafTransaction, object).set(leafTransaction, object, constant, value);
     }
 
-    public <O, V, E> V set(AbstractLeafRun<?> leaf, O object, Constant<O, V> constant, BiFunction<V, E, V> deriver, E element) {
-        return getConstants(leaf, object).set(leaf, object, constant, deriver, element);
+    public <O, V, E> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, BiFunction<V, E, V> deriver, E element) {
+        return getConstants(leafTransaction, object).set(leafTransaction, object, constant, deriver, element);
     }
 
     @SuppressWarnings("unchecked")
-    private <O> Constants<O> getConstants(AbstractLeafRun<?> leaf, O object) {
+    private <O> Constants<O> getConstants(LeafTransaction leafTransaction, O object) {
         QualifiedSet<Object, Constants> prev = state.get();
         Constants constants = prev.get(object);
         if (constants == null) {
-            object = leaf.state().canonical(object);
+            object = leafTransaction.state().canonical(object);
             constants = new Constants<O>(object, WEAK.get(), queue);
             QualifiedSet<Object, Constants> next = prev.add(constants);
             Constants<O> now;

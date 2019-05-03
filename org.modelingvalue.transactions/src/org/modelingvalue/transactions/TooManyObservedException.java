@@ -20,27 +20,31 @@ import org.modelingvalue.collections.util.StringUtil;
 
 public final class TooManyObservedException extends Error {
 
-    private static final long serialVersionUID = 2091236807252565002L;
+    private static final long           serialVersionUID = 2091236807252565002L;
 
-    private final Observer    observer;
-    private final Set<Slot>   observed;
+    private final Mutable               mutable;
+    private final Observer<?>           observer;
+    private final Set<ObservedInstance> observed;
+    private final UniverseTransaction   universeTransaction;
 
-    public TooManyObservedException(Observer observer, Set<Slot> observed) {
+    public TooManyObservedException(Mutable mutable, Observer<?> observer, Set<ObservedInstance> observed, UniverseTransaction universeTransaction) {
+        this.mutable = mutable;
         this.observer = observer;
         this.observed = observed;
+        this.universeTransaction = universeTransaction;
     }
 
     @Override
     public String getMessage() {
-        String observedMap = observer.root().preState().get(() -> {
+        String observedMap = universeTransaction.preState().get(() -> {
             return observed.map(String::valueOf).collect(Collectors.joining("\n  "));
         });
         return getSimpleMessage() + ":\n  " + observedMap;
     }
 
     public String getSimpleMessage() {
-        return observer.root().preState().get(() -> {
-            return "Too many observed (" + observed.size() + ") by " + (observer.parent() != null ? StringUtil.toString(observer.parent().contained()) + "." : "") + StringUtil.toString(observer.rule());
+        return universeTransaction.preState().get(() -> {
+            return "Too many observed (" + observed.size() + ") by " + StringUtil.toString(mutable) + "." + StringUtil.toString(observer);
         });
     }
 
@@ -48,11 +52,15 @@ public final class TooManyObservedException extends Error {
         return observed.size();
     }
 
-    public Observer getObserver() {
+    public Mutable getMutable() {
+        return mutable;
+    }
+
+    public Observer<?> getObserver() {
         return observer;
     }
 
-    public Set<Slot> getObserved() {
+    public Set<ObservedInstance> getObserved() {
         return observed;
     }
 }

@@ -24,12 +24,12 @@ public enum Direction {
 
     scheduled(2);
 
-    public final DirectionSetable<AbstractLeaf>   preDepth;
-    public final DirectionSetable<Compound>       depth;
-    public final DirectionSetable<AbstractLeaf>   postDepth;
-    public final int                              nr;
-    public final DirectionSetable<AbstractLeaf>[] priorities;
-    public final DirectionSetable<Transaction>[]  sequence;
+    public final DirectionSetable<Action<?>>          preDepth;
+    public final DirectionSetable<Mutable>            depth;
+    public final DirectionSetable<Action<?>>          postDepth;
+    public final int                                  nr;
+    public final DirectionSetable<Action<?>>[]        priorities;
+    public final DirectionSetable<TransactionClass>[] sequence;
 
     @SuppressWarnings("unchecked")
     private Direction(int nr) {
@@ -41,11 +41,11 @@ public enum Direction {
         this.nr = nr;
     }
 
-    public final class DirectionSetable<T extends Transaction> extends Setable<Contained, Set<T>> {
+    public final class DirectionSetable<T extends TransactionClass> extends Setable<Mutable, Set<T>> {
         private final Priority priority;
 
         private DirectionSetable(Priority priority) {
-            super(Pair.of(Direction.this, priority), Set.of(), null);
+            super(Pair.of(Direction.this, priority), Set.of(), false, null);
             this.priority = priority;
         }
 

@@ -13,65 +13,40 @@
 
 package org.modelingvalue.transactions;
 
-import org.modelingvalue.collections.util.StringUtil;
+import java.util.ArrayList;
 
-public class LeafClass {
+public class TransactionList<C extends TransactionClass, T extends Transaction> extends ArrayList<T> {
 
-    public static LeafClass of(Object id) {
-        return new LeafClass(id, Direction.forward, Priority.postDepth);
+    private static final long         serialVersionUID = 9116265671882887291L;
+
+    private static final int          CHUNCK_SIZE      = 4;
+
+    private final UniverseTransaction universeTransaction;
+
+    private int                       level            = -1;
+
+    public TransactionList(UniverseTransaction universeTransaction) {
+        super(0);
+        this.universeTransaction = universeTransaction;
     }
 
-    public static LeafClass of(Object id, Priority priority) {
-        return new LeafClass(id, Direction.forward, priority);
-    }
-
-    public static LeafClass of(Object id, Direction initDirection, Priority priority) {
-        return new LeafClass(id, initDirection, priority);
-    }
-
-    private final Object    id;
-    private final Direction initDirection;
-    private final Priority  priority;
-
-    protected LeafClass(Object id, Direction initDirection, Priority priority) {
-        this.id = id;
-        this.initDirection = initDirection;
-        this.priority = priority;
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            return id.equals(((LeafClass) obj).id);
+    @SuppressWarnings("unchecked")
+    public T open(C cls, MutableTransaction parent) {
+        if (++level >= size()) {
+            ensureCapacity(size() + CHUNCK_SIZE);
+            for (int i = 0; i < CHUNCK_SIZE; i++) {
+                add((T) cls.newTransaction(universeTransaction));
+            }
         }
+        T tx = get(level);
+        tx.start(cls, parent);
+        return tx;
     }
 
-    @Override
-    public String toString() {
-        return StringUtil.toString(id);
-    }
-
-    public Object id() {
-        return id;
-    }
-
-    protected Direction initDirection() {
-        return initDirection;
-    }
-
-    protected Priority priority() {
-        return priority;
+    public void close(T tx) {
+        tx.stop();
+        for (; level >= 0 && !get(level).isOpen(); level--) {
+        }
     }
 
 }

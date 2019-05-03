@@ -15,20 +15,27 @@ package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.util.QuadConsumer;
-import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public class MandatoryObserved<O, T> extends Observed<O, T> {
 
     public static <C, V> MandatoryObserved<C, V> of(Object id, V def) {
-        return of(id, def, null);
+        return of(id, def, false, null);
     }
 
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
-        return new MandatoryObserved<C, V>(id, def, changed);
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return of(id, def, false, changed);
     }
 
-    protected MandatoryObserved(Object id, T def, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
-        super(id, def, changed);
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment) {
+        return of(id, def, containment, null);
+    }
+
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new MandatoryObserved<C, V>(id, def, containment, changed);
+    }
+
+    protected MandatoryObserved(Object id, T def, boolean containment, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        super(id, def, containment, changed);
     }
 
     @SuppressWarnings("rawtypes")

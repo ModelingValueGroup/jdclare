@@ -13,12 +13,15 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
-import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public class Setable<O, T> extends Getable<O, T> {
 
@@ -26,20 +29,63 @@ public class Setable<O, T> extends Getable<O, T> {
         return of(id, def, null);
     }
 
-    public static <C, V> Setable<C, V> of(Object id, V def, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
-        return new Setable<C, V>(id, def, changed);
+    public static <C, V> Setable<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return of(id, def, false, changed);
     }
 
-    protected QuadConsumer<AbstractLeafRun<?>, O, T, T> changed;
+    public static <C, V> Setable<C, V> of(Object id, V def, boolean containment) {
+        return of(id, def, containment, null);
+    }
 
-    protected Setable(Object id, T def, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
+    public static <C, V> Setable<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Setable<C, V>(id, def, containment, changed);
+    }
+
+    protected QuadConsumer<LeafTransaction, O, T, T> changed;
+    protected final boolean                          containment;
+    private Pair<Mutable, Setable<Mutable, ?>>       target = null;
+
+    protected Setable(Object id, T def, boolean containment, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def);
+        this.containment = containment;
         this.changed = changed;
     }
 
-    protected void changed(AbstractLeafRun<?> $, O object, T preValue, T postValue) {
+    public boolean containment() {
+        return containment;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void changed(LeafTransaction tx, O object, T preValue, T postValue) {
         if (changed != null) {
-            changed.accept($, object, preValue, postValue);
+            changed.accept(tx, object, preValue, postValue);
+        }
+        if (containment) {
+            Pair<Mutable, Setable<Mutable, ?>> self = Pair.of((Mutable) object, (Setable<Mutable, ?>) this);
+            Setable.<T, Mutable> diff(preValue, postValue, added -> {
+                Pair<Mutable, Setable<Mutable, ?>> source = Mutable.D_PARENT_CONTAINING.get(added);
+                if (source != null) {
+                    source.b().move(source.a(), added, self);
+                }
+                Mutable.D_PARENT_CONTAINING.set(added, self);
+                if (source == null) {
+                    Action.of(added, o -> added.dActivate(), Priority.preDepth).trigger((Mutable) object);
+                }
+            }, removed -> {
+                if (target == null) {
+                    Mutable.D_PARENT_CONTAINING.set(removed, null);
+                    removed.dDeactivate();
+                }
+            });
+        }
+    }
+
+    private void move(O object, Mutable moved, Pair<Mutable, Setable<Mutable, ?>> target) {
+        this.target = target;
+        try {
+            remove(object, moved);
+        } finally {
+            this.target = null;
         }
     }
 
@@ -52,14 +98,25 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T, E> void diff(T def, T pre, T post, Consumer<E> added, Consumer<E> removed) {
-        if (def instanceof ContainingCollection) {
+    public static <T, E> void diff(T pre, T post, Consumer<E> added, Consumer<E> removed) {
+        if (pre instanceof ContainingCollection && post instanceof ContainingCollection) {
             ((ContainingCollection<Object>) pre).compare((ContainingCollection<Object>) post).forEach(d -> {
                 if (d[0] == null) {
                     d[1].forEach(a -> added.accept((E) a));
                 }
                 if (d[1] == null) {
                     d[0].forEach(r -> removed.accept((E) r));
+                }
+            });
+        } else if (pre instanceof java.util.Collection && post instanceof java.util.Collection) {
+            ((java.util.Collection<Object>) post).stream().forEach(a -> {
+                if (!((java.util.Collection<Object>) pre).contains(a)) {
+                    added.accept((E) a);
+                }
+            });
+            ((java.util.Collection<Object>) pre).stream().forEach(r -> {
+                if (!((java.util.Collection<Object>) post).contains(r)) {
+                    removed.accept((E) r);
                 }
             });
         } else {
@@ -70,6 +127,27 @@ public class Setable<O, T> extends Getable<O, T> {
                 added.accept((E) post);
             }
         }
+    }
+
+    @SuppressWarnings({"unchecked", "unlikely-arg-type"})
+    public <E> void remove(O obj, E e) {
+        set(obj, (v, r) -> {
+            if (v instanceof ContainingCollection && ((ContainingCollection<E>) v).contains(r)) {
+                return (T) ((ContainingCollection<E>) v).remove(r);
+            } else if (v instanceof java.util.List && ((java.util.List<E>) v).contains(r)) {
+                java.util.List<E> l = new ArrayList<E>((java.util.List<E>) v);
+                l.remove(r);
+                return (T) Collections.unmodifiableList(l);
+            } else if (v instanceof java.util.Set && ((java.util.Set<E>) v).contains(r)) {
+                java.util.Set<E> s = new HashSet<E>((java.util.Set<E>) v);
+                s.remove(r);
+                return (T) Collections.unmodifiableSet(s);
+            } else if (r.equals(v)) {
+                return null;
+            } else {
+                return v;
+            }
+        }, e);
     }
 
 }

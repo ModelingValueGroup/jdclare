@@ -15,29 +15,49 @@ package org.modelingvalue.transactions;
 
 import java.util.function.Consumer;
 
-public class Action extends LeafClass {
+public class Action<O extends Mutable> extends Leaf {
 
-    public static Action of(Object id, Consumer<Contained> action) {
-        return new Action(id, action, Direction.forward, Priority.postDepth);
+    public static <M extends Mutable> Action<M> of(Object id, Consumer<M> action) {
+        return new Action<M>(id, action, Direction.forward, Priority.postDepth);
     }
 
-    public static Action of(Object id, Consumer<Contained> action, Priority priority) {
-        return new Action(id, action, Direction.forward, priority);
+    public static <M extends Mutable> Action<M> of(Object id, Consumer<M> action, Priority priority) {
+        return new Action<M>(id, action, Direction.forward, priority);
     }
 
-    public static Action of(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
-        return new Action(id, action, initDirection, priority);
+    public static <M extends Mutable> Action<M> of(Object id, Consumer<M> action, Direction initDirection, Priority priority) {
+        return new Action<M>(id, action, initDirection, priority);
     }
 
-    private final Consumer<Contained> action;
+    private final Consumer<O> action;
 
-    protected Action(Object id, Consumer<Contained> action, Direction initDirection, Priority priority) {
+    protected Action(Object id, Consumer<O> action, Direction initDirection, Priority priority) {
         super(id, initDirection, priority);
         this.action = action;
     }
 
-    public void run(Contained object) {
+    @Override
+    public ActionTransaction openTransaction(MutableTransaction parent) {
+        return parent.universeTransaction().actionTransactions.get().open(this, parent);
+    }
+
+    @Override
+    public void closeTransaction(Transaction tx) {
+        tx.universeTransaction().actionTransactions.get().close((ActionTransaction) tx);
+    }
+
+    public void run(O object) {
         action.accept(object);
+    }
+
+    public void trigger(O mutable) {
+        LeafTransaction leafTransaction = LeafTransaction.getCurrent();
+        leafTransaction.trigger(mutable, this, initDirection());
+    }
+
+    @Override
+    public ActionTransaction newTransaction(UniverseTransaction universeTransaction) {
+        return new ActionTransaction(universeTransaction);
     }
 
 }

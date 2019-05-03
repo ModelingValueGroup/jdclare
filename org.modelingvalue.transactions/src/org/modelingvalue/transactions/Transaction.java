@@ -14,117 +14,59 @@
 package org.modelingvalue.transactions;
 
 import java.util.ConcurrentModificationException;
-import java.util.Objects;
 
 import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class Transaction {
 
-    private final Object   id;
-    private final Compound parent;
-    private final int      hashCode;
+    private final UniverseTransaction universeTransaction;
+    private TransactionClass          cls;
+    private MutableTransaction        parent;
 
-    protected Transaction(Object id, Compound parent) {
-        this.id = id;
-        this.parent = parent;
-        this.hashCode = parent != null ? (id.hashCode() * 31 + parent.hashCode()) : id.hashCode();
-    }
-
-    final Object id() {
-        return id;
+    protected Transaction(UniverseTransaction universeTransaction) {
+        this.universeTransaction = universeTransaction;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "@" + (parent != null ? StringUtil.toString(parent.contained()) + "." : "") + StringUtil.toString(id);
+        return getClass().getSimpleName() + "@" + (cls != null ? (parent != null ? StringUtil.toString(parent.mutable()) + "." : "") + StringUtil.toString(cls) : super.toString());
     }
 
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            Transaction tx = (Transaction) obj;
-            return id.equals(tx.id) && Objects.equals(parent, tx.parent);
-        }
-    }
-
-    public Compound parent() {
+    public MutableTransaction parent() {
         return parent;
     }
 
-    public Root root() {
-        Compound p = parent;
-        while (!(p instanceof Root)) {
-            p = p.parent();
+    protected abstract State run(State state);
+
+    final TransactionClass cls() {
+        if (cls == null) {
+            throw new ConcurrentModificationException();
         }
-        return (Root) p;
+        return cls;
     }
 
-    protected abstract State run(State state, Root root);
+    public boolean isOpen() {
+        return cls != null;
+    }
 
-    public abstract boolean isAncestorOf(Compound child);
+    public UniverseTransaction universeTransaction() {
+        return universeTransaction;
+    }
 
-    public abstract static class TransactionRun<T extends Transaction> {
-
-        private T    transaction;
-        private Root root;
-
-        protected TransactionRun() {
+    protected void start(TransactionClass cls, MutableTransaction parent) {
+        if (this.cls != null) {
+            throw new ConcurrentModificationException();
         }
+        this.cls = cls;
+        this.parent = parent;
+    }
 
-        public boolean isOpen() {
-            return transaction != null;
+    protected void stop() {
+        if (cls == null) {
+            throw new ConcurrentModificationException();
         }
-
-        public Root root() {
-            if (root == null) {
-                throw new ConcurrentModificationException();
-            }
-            return root;
-        }
-
-        public Compound parent() {
-            return transaction().parent();
-        }
-
-        public T transaction() {
-            if (transaction == null) {
-                throw new ConcurrentModificationException();
-            }
-            return transaction;
-        }
-
-        protected void start(T transaction, Root root) {
-            if (this.transaction != null) {
-                throw new ConcurrentModificationException();
-            }
-            this.transaction = transaction;
-            this.root = root;
-        }
-
-        protected void stop() {
-            if (transaction == null) {
-                throw new ConcurrentModificationException();
-            }
-            transaction = null;
-            root = null;
-        }
-
-        @Override
-        public String toString() {
-            return transaction != null ? (transaction + "#Run") : super.toString();
-        }
-
+        cls = null;
+        parent = null;
     }
 
 }

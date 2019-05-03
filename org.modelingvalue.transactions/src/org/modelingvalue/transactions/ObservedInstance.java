@@ -16,15 +16,15 @@ package org.modelingvalue.transactions;
 import org.modelingvalue.collections.struct.impl.Struct2Impl;
 
 @SuppressWarnings("rawtypes")
-public class Slot extends Struct2Impl<Object, Observed> {
+public class ObservedInstance extends Struct2Impl<Object, Observed> {
 
     private static final long serialVersionUID = 5217882450935295451L;
 
-    public static Slot of(Object object, Observed property) {
-        return new Slot(object, property);
+    public static ObservedInstance of(Object object, Observed property) {
+        return new ObservedInstance(object, property);
     }
 
-    private Slot(Object object, Observed property) {
+    private ObservedInstance(Object object, Observed property) {
         super(object, property);
     }
 

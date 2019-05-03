@@ -16,88 +16,82 @@ package org.modelingvalue.transactions;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-public class ReadOnly extends AbstractLeaf {
+public class ReadOnlyTransaction extends LeafTransaction {
 
-    public static ReadOnly of(LeafClass cls, Root root) {
-        return new ReadOnly(cls, root);
+    private State[] states;
+
+    protected ReadOnlyTransaction(UniverseTransaction universeTransaction) {
+        super(universeTransaction);
     }
 
-    private ReadOnly(LeafClass cls, Root root) {
-        super(cls, root);
+    public ReadOnly readOnlyCls() {
+        return (ReadOnly) cls();
     }
 
     @Override
-    protected State run(State state, Root root) {
+    protected State run(State state) {
         throw new UnsupportedOperationException();
     }
 
     public <R> R get(Supplier<R> action, State... states) {
-        Root root = states[0].root();
-        ReadOnlyRun run = root.startRun(this);
-        run.states = states;
+        this.states = states;
         try {
-            return CURRENT.get(run, action);
+            return CURRENT.get(this, action);
         } finally {
-            root.stopRun(run);
+            this.states = null;
         }
     }
 
     public void run(Runnable action, State... states) {
-        Root root = states[0].root();
-        ReadOnlyRun run = root.startRun(this);
-        run.states = states;
+        this.states = states;
         try {
-            CURRENT.run(run, action);
+            CURRENT.run(this, action);
         } finally {
-            root.stopRun(run);
+            this.states = null;
         }
     }
 
-    protected static class ReadOnlyRun extends AbstractLeafRun<ReadOnly> {
-        private State[] states;
+    @Override
+    public State state() {
+        return states[0];
+    }
 
-        protected ReadOnlyRun() {
-            super();
-        }
-
-        @Override
-        public State state() {
-            return states[0];
-        }
-
-        @Override
-        public <O, T> T get(O object, Getable<O, T> property) {
-            T def = property.getDefault();
-            for (State state : states) {
-                T val = state.get(object, property);
-                if (val != def) {
-                    return val;
-                }
+    @Override
+    public <O, T> T get(O object, Getable<O, T> property) {
+        T def = property.getDefault();
+        for (State state : states) {
+            T val = state.get(object, property);
+            if (val != def) {
+                return val;
             }
-            return def;
         }
+        return def;
+    }
 
-        @Override
-        public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-            throw new UnsupportedOperationException();
-        }
+    @Override
+    public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
+        throw new UnsupportedOperationException();
+    }
 
-        @Override
-        public <O, T> T set(O object, Setable<O, T> property, T post) {
-            throw new UnsupportedOperationException();
-        }
+    @Override
+    public <O, T> T set(O object, Setable<O, T> property, T post) {
+        throw new UnsupportedOperationException();
+    }
 
-        @Override
-        protected void trigger(AbstractLeaf leaf, Direction direction) {
-            // Do nothing
-        }
+    @Override
+    public ActionInstance actionInstance() {
+        throw new UnsupportedOperationException();
+    }
 
-        @Override
-        protected void stop() {
-            super.stop();
-            states = null;
-        }
+    @Override
+    protected <O extends Mutable> void trigger(O mutable, Action<O> action, Direction direction) {
+        // Do nothing
+    }
 
+    @Override
+    protected void stop() {
+        super.stop();
+        states = null;
     }
 
 }

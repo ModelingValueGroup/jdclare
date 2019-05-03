@@ -29,14 +29,18 @@ public final class TooManyChangesException extends Error {
     @Override
     public String getMessage() {
         String message = "" + nrOfChanges;
-        return state.get(() -> last.trace("\n  ", message, last.observer().root().maxNrOfChanges()));
+        return state.get(() -> last.trace("\n  ", message, state.universeTransaction().maxNrOfChanges()));
     }
 
     public State getState() {
         return state;
     }
 
-    public Observer getObserver() {
+    public Mutable getMutable() {
+        return last.mutable();
+    }
+
+    public Observer<?> getObserver() {
         return last.observer();
     }
 

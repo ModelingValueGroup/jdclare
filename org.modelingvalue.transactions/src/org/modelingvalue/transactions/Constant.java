@@ -20,32 +20,47 @@ import java.util.function.Function;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.QuadConsumer;
 import org.modelingvalue.collections.util.Triple;
-import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public class Constant<O, T> extends Setable<O, T> {
 
     public static final Context<Integer> DEPTH = Context.of(0);
 
     public static <C, V> Constant<C, V> of(Object id, Function<C, V> deriver) {
-        return new Constant<C, V>(id, null, deriver, null);
+        return new Constant<C, V>(id, null, false, deriver, null);
     }
 
     public static <C, V> Constant<C, V> of(Object id, V def, Function<C, V> deriver) {
-        return new Constant<C, V>(id, def, deriver, null);
+        return new Constant<C, V>(id, def, false, deriver, null);
     }
 
-    public static <C, V> Constant<C, V> of(Object id, V def, Function<C, V> deriver, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
-        return new Constant<C, V>(id, def, deriver, changed);
+    public static <C, V> Constant<C, V> of(Object id, V def, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Constant<C, V>(id, def, false, deriver, changed);
     }
 
-    public static <C, V> Constant<C, V> of(Object id, Function<C, V> deriver, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
-        return new Constant<C, V>(id, null, deriver, changed);
+    public static <C, V> Constant<C, V> of(Object id, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Constant<C, V>(id, null, false, deriver, changed);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, boolean containment, Function<C, V> deriver) {
+        return new Constant<C, V>(id, null, containment, deriver, null);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, V def, boolean containment, Function<C, V> deriver) {
+        return new Constant<C, V>(id, def, containment, deriver, null);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, V def, boolean containment, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Constant<C, V>(id, def, containment, deriver, changed);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, boolean containment, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Constant<C, V>(id, null, containment, deriver, changed);
     }
 
     private final Function<O, T> deriver;
 
-    protected Constant(Object id, T def, Function<O, T> deriver, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
-        super(id, def, changed);
+    protected Constant(Object id, T def, boolean containment, Function<O, T> deriver, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        super(id, def, containment, changed);
         this.deriver = deriver;
     }
 
@@ -55,9 +70,9 @@ public class Constant<O, T> extends Setable<O, T> {
 
     @Override
     public <E> T set(O object, BiFunction<T, E, T> function, E element) {
-        AbstractLeafRun<?> leaf = AbstractLeaf.getCurrent();
-        ConstantState constants = leaf.root().constantState;
-        return constants.set(leaf, object, this, function, element);
+        LeafTransaction leafTransaction = LeafTransaction.getCurrent();
+        ConstantState constants = leafTransaction.universeTransaction().constantState;
+        return constants.set(leafTransaction, object, this, function, element);
     }
 
     @Override
@@ -65,22 +80,22 @@ public class Constant<O, T> extends Setable<O, T> {
         if (deriver != null) {
             throw new Error("Constant " + this + " is derived");
         }
-        AbstractLeafRun<?> leaf = AbstractLeaf.getCurrent();
-        ConstantState constants = leaf.root().constantState;
-        return constants.set(leaf, object, this, value);
+        LeafTransaction leafTransaction = LeafTransaction.getCurrent();
+        ConstantState constants = leafTransaction.universeTransaction().constantState;
+        return constants.set(leafTransaction, object, this, value);
     }
 
     public T force(O object, T value) {
-        AbstractLeafRun<?> leaf = AbstractLeaf.getCurrent();
-        ConstantState constants = leaf.root().constantState;
-        return constants.set(leaf, object, this, value);
+        LeafTransaction leafTransaction = LeafTransaction.getCurrent();
+        ConstantState constants = leafTransaction.universeTransaction().constantState;
+        return constants.set(leafTransaction, object, this, value);
     }
 
     @Override
     public T get(O object) {
-        AbstractLeafRun<?> leaf = AbstractLeaf.getCurrent();
-        ConstantState constants = leaf.root().constantState;
-        return constants.get(leaf, object, this);
+        LeafTransaction leafTransaction = LeafTransaction.getCurrent();
+        ConstantState constants = leafTransaction.universeTransaction().constantState;
+        return constants.get(leafTransaction, object, this);
     }
 
     @Override
@@ -89,9 +104,9 @@ public class Constant<O, T> extends Setable<O, T> {
     }
 
     @Override
-    protected void changed(AbstractLeafRun<?> leaf, O object, T preValue, T postValue) {
+    protected void changed(LeafTransaction leafTransaction, O object, T preValue, T postValue) {
         if (changed != null && !Objects.equals(preValue, postValue)) {
-            Leaf.of(Action.of(Triple.of(object, this, "changed"), o -> super.changed(leaf, object, preValue, postValue)), leaf.parent()).trigger();
+            Action.of(Triple.of(object, this, "changed"), o -> super.changed(leafTransaction, object, preValue, postValue)).trigger(leafTransaction.parent().mutable());
         }
     }
 

@@ -16,16 +16,23 @@ package org.modelingvalue.transactions;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
-import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public class Observed<O, T> extends Setable<O, T> {
 
     public static <C, V> Observed<C, V> of(Object id, V def) {
-        return of(id, def, null);
+        return of(id, def, false, null);
     }
 
-    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<AbstractLeafRun<?>, C, V, V> changed) {
-        return new Observed<C, V>(id, def, changed);
+    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return of(id, def, false, changed);
+    }
+
+    public static <C, V> Observed<C, V> of(Object id, V def, boolean containment) {
+        return of(id, def, containment, null);
+    }
+
+    public static <C, V> Observed<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Observed<C, V>(id, def, containment, changed);
     }
 
     private final Setable<Object, Set<ObserverTrace>> readers = Setable.of(Pair.of(this, "readers"), Set.of());
@@ -33,8 +40,8 @@ public class Observed<O, T> extends Setable<O, T> {
     private final Observers<O, T>[]                   observers;
 
     @SuppressWarnings("unchecked")
-    protected Observed(Object id, T def, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
-        this(id, def, observers(id), changed);
+    protected Observed(Object id, T def, boolean containment, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        this(id, def, containment, observers(id), changed);
     }
 
     @SuppressWarnings("rawtypes")
@@ -46,16 +53,17 @@ public class Observed<O, T> extends Setable<O, T> {
         return observers;
     }
 
-    private Observed(Object id, T def, Observers<O, T>[] observers, QuadConsumer<AbstractLeafRun<?>, O, T, T> changed) {
-        super(id, def, null);
+    @SuppressWarnings("unchecked")
+    private Observed(Object id, T def, boolean containment, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        super(id, def, containment, null);
         this.changed = (l, o, p, n) -> {
             if (changed != null) {
                 changed.accept(l, o, p, n);
             }
             for (int ia = 0; ia < 2; ia++) {
-                for (Observer obs : l.get(o, observers[ia])) {
-                    if (!l.transaction().equals(obs)) {
-                        l.trigger(obs, Direction.values()[ia]);
+                for (ActionInstance obs : l.get(o, observers[ia])) {
+                    if (!l.cls().equals(obs.action()) || !l.parent().mutable().equals(obs.mutable())) {
+                        l.trigger(obs.mutable(), obs.action(), Direction.values()[ia]);
                     }
                 }
             }
@@ -83,15 +91,15 @@ public class Observed<O, T> extends Setable<O, T> {
     }
 
     public int getNrOfObservers(O object) {
-        AbstractLeafRun<?> leaf = AbstractLeaf.getCurrent();
+        LeafTransaction leafTransaction = LeafTransaction.getCurrent();
         int nr = 0;
         for (int ia = 0; ia < 2; ia++) {
-            nr += leaf.get(object, observers[ia]).size();
+            nr += leafTransaction.get(object, observers[ia]).size();
         }
         return nr;
     }
 
-    public static final class Observers<O, T> extends Setable<O, Set<Observer>> {
+    public static final class Observers<O, T> extends Setable<O, Set<ActionInstance>> {
 
         private Observed<O, T>  observed;
         private final Direction direction;
@@ -101,8 +109,8 @@ public class Observed<O, T> extends Setable<O, T> {
         }
 
         private Observers(Object id, Direction direction) {
-            super(Pair.of(id, direction), Set.of(), null);
-            changed = (tx, o, b, a) -> tx.transaction().checkTooManyObservers(tx, o, observed, a);
+            super(Pair.of(id, direction), Set.of(), false, null);
+            changed = (tx, o, b, a) -> tx.checkTooManyObservers(tx, o, observed, a);
             this.direction = direction;
         }
 

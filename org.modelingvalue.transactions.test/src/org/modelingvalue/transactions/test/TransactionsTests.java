@@ -15,33 +15,34 @@ package org.modelingvalue.transactions.test;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
-import org.modelingvalue.transactions.Compound;
-import org.modelingvalue.transactions.Contained;
+import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Root;
-import org.modelingvalue.transactions.Rule;
+import org.modelingvalue.transactions.Setable;
 import org.modelingvalue.transactions.State;
+import org.modelingvalue.transactions.UniverseTransaction;
 
 public class TransactionsTests {
 
-    static final Observed<Root, Long> TIME_MILLIS = Observed.of("timeMillis", System.currentTimeMillis());
-    static final ContextPool          THE_POOL    = ContextThread.createPool();
+    static final ContextPool THE_POOL = ContextThread.createPool();
 
     @Test
     public void test0() throws Exception {
-        Observed<String, Integer> A = Observed.of("A", 0);
-        String obj = "o";
-        Root root = Root.of(Contained.of("R"), THE_POOL, 100);
-        Rule rule = Rule.of("X", o -> {
-            A.get(obj);
-            A.set(obj, 10);
-        });
-        root.put("P", () -> Observer.of(rule, root).trigger());
-        root.stop();
-        State result = root.waitForEnd();
+        Observed<DUniverse, DObject> child = Observed.of("child", null, true);
+        Observed<DObject, Integer> source = Observed.of("source", 0);
+        Setable<DObject, Integer> target = Setable.of("target", 0);
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        DClass dClass = DClass.of("Object", Observer.of("observer", o -> target.set(o, source.get(o))));
+        DObject object = DObject.of("object", dClass);
+        UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL, 100);
+        universeTransaction.put("step1", () -> child.set(universe, object));
+        universeTransaction.put("step2", () -> source.set(object, 10));
+        universeTransaction.stop();
+        State result = universeTransaction.waitForEnd();
+        Assert.assertEquals(10, (int) result.get(object, target));
         System.err.println("********************************************************************");
         System.err.println(result.asString());
         System.err.println("********************************************************************");
@@ -49,28 +50,27 @@ public class TransactionsTests {
 
     @Test
     public void test1() throws Exception {
+        Observed<DUniverse, Long> currentTime = Observed.of("time", System.currentTimeMillis());
         long begin = System.currentTimeMillis();
-        Root root = Root.of(Contained.of("R"), THE_POOL, 100, r -> TIME_MILLIS.set(r, System.currentTimeMillis()));
-        root.put("test1", () -> {
+        Observed<DUniverse, Set<Mutable>> children = Observed.of("children", Set.of(), true);
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL, 100, r -> currentTime.set(universe, System.currentTimeMillis()));
+        DClass dClass = DClass.of("Object", Observer.of("observer", o -> {
+            long time = currentTime.get(universe);
+            if (time - begin > 1000) {
+                UniverseTransaction.STOPPED.set(universe, true);
+            }
+        }));
+        universeTransaction.put("step1", () -> {
             for (int io = 0; io < 8; io++) {
-                Compound o = Compound.of(Contained.of("O" + io), root);
-                for (int il = 0; il < 8; il++) {
-                    Observer.of(Rule.of(Contained.of("L" + il), x -> {
-                        long time = TIME_MILLIS.get(root);
-                        System.err.println("TIME: " + time);
-                        if (time - begin > 1000) {
-                            Root.STOPPED.set(root, true);
-                        }
-                    }), o).trigger();
-                }
-
+                children.set(universe, Set::add, DObject.of(io, dClass));
             }
         });
-        State result = root.waitForEnd();
+        State result = universeTransaction.waitForEnd();
         System.err.println("********************************************************************");
         System.err.println(result.asString());
         System.err.println("********************************************************************");
-        long end = result.get(root, TIME_MILLIS);
+        long end = result.get(universe, currentTime);
         long duration = (end - begin) / 1000;
         System.err.println(duration + " s");
         System.err.println("********************************************************************");
@@ -78,28 +78,32 @@ public class TransactionsTests {
 
     @Test
     public void test2() throws Exception {
-        Observed<Compound, Integer> NR = Observed.of("nr", 0);
-        Observed<Compound, Integer> TOT = Observed.of("tot", 0);
-        int depth = 100;
-        Root root = Root.of(Contained.of("R"), THE_POOL, 100);
-        Compound[] last = new Compound[1];
-        root.put("test2", () -> {
-            for (int io = 0; io < depth; io++) {
-                Compound o = Compound.of(Contained.of("O" + io), root);
-                Compound p = last[0];
-                Observer.of(Rule.of("C" + io, x -> {
-                    TOT.set(o, NR.get(o) + (p != null ? TOT.get(p) : 0));
-                }), o).trigger();
-                NR.set(o, 1);
-                last[0] = o;
+        Observed<DUniverse, Set<Mutable>> children = Observed.of("children", Set.of(), true);
+        Observed<DObject, Integer> number = Observed.of("number", 0);
+        Observed<DObject, Integer> total = Observed.of("total", 0);
+        int length = 30;
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL, 100);
+        DClass dClass = DClass.of("Object", Observer.of("observer", o -> {
+            int i = (int) o.id();
+            total.set(o, number.get(o) + (i > 0 ? total.get(DObject.of(i - 1, o.dClass())) : 0));
+        }));
+        universeTransaction.put("step1", () -> {
+            for (int io = 0; io < length; io++) {
+                children.set(universe, Set::add, DObject.of(io, dClass));
             }
         });
-        root.stop();
-        State result = root.waitForEnd();
+        universeTransaction.put("step2", () -> {
+            for (int io = 0; io < length; io++) {
+                number.set(DObject.of(io, dClass), 1);
+            }
+        });
+        universeTransaction.stop();
+        State result = universeTransaction.waitForEnd();
         System.err.println("********************************************************************");
         System.err.println(result.asString());
         System.err.println("********************************************************************");
-        Assert.assertEquals(depth, (int) result.get(last[0], TOT));
+        Assert.assertEquals(length, (int) result.get(DObject.of(length - 1, dClass), total));
     }
 
 }

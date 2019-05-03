@@ -16,7 +16,6 @@ package org.modelingvalue.transactions;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.transactions.AbstractLeaf.AbstractLeafRun;
 
 public abstract class Getable<O, T> {
 
@@ -68,8 +67,8 @@ public abstract class Getable<O, T> {
         return currentLeaf(object).pre(object, this);
     }
 
-    protected AbstractLeafRun<?> currentLeaf(O object) {
-        AbstractLeafRun<?> current = AbstractLeaf.getCurrent();
+    protected LeafTransaction currentLeaf(O object) {
+        LeafTransaction current = LeafTransaction.getCurrent();
         if (current == null) {
             throw new NullPointerException("No current transaction in " + Thread.currentThread() + " , while reading " + toString());
         } else if (object == null) {

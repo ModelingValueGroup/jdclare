@@ -42,16 +42,16 @@ public class State implements Serializable {
 
     @SuppressWarnings("rawtypes")
     private final Map<Object, Map<Setable, Object>> map;
-    private final Root                              root;
+    private final UniverseTransaction               universeTransaction;
 
     @SuppressWarnings("rawtypes")
-    State(Root root, Map<Object, Map<Setable, Object>> map) {
-        this.root = root;
+    State(UniverseTransaction universeTransaction, Map<Object, Map<Setable, Object>> map) {
+        this.universeTransaction = universeTransaction;
         this.map = map;
     }
 
-    protected State clone(Root root) {
-        return new State(root, map);
+    protected State clone(UniverseTransaction universeTransaction) {
+        return new State(universeTransaction, map);
     }
 
     @SuppressWarnings("rawtypes")
@@ -119,9 +119,9 @@ public class State implements Serializable {
             return this;
         } else if (post == null) {
             Map<Object, Map<Setable, Object>> niw = map == null ? null : map.removeKey(object);
-            return niw == null || niw.isEmpty() ? root.emptyState() : new State(root, niw);
+            return niw == null || niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
         } else {
-            return new State(root, map == null ? Map.of(Entry.of(object, post)) : map.put(object, post));
+            return new State(universeTransaction, map == null ? Map.of(Entry.of(object, post)) : map.put(object, post));
         }
     }
 
@@ -191,13 +191,13 @@ public class State implements Serializable {
             }
             return props == null || props.isEmpty() ? null : Entry.of(o, props);
         }, maps);
-        return niw == null || niw.isEmpty() ? root.emptyState() : new State(root, niw);
+        return niw == null || niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
 
     }
 
     @Override
     public String toString() {
-        return "State" + "[" + root.getClass().getSimpleName() + properties(root).toString().substring(3) + "]";
+        return "State" + "[" + universeTransaction.getClass().getSimpleName() + properties(universeTransaction).toString().substring(3) + "]";
     }
 
     public String asString() {
@@ -220,11 +220,23 @@ public class State implements Serializable {
     }
 
     public <R> R get(Supplier<R> supplier) {
-        return ReadOnly.of(LeafClass.of(Pair.of(this, "getOnState")), root).get(supplier, this);
+        ReadOnly cls = ReadOnly.of(Pair.of(this, "getOnState"));
+        ReadOnlyTransaction tx = cls.openTransaction(universeTransaction);
+        try {
+            return tx.get(supplier, this);
+        } finally {
+            cls.closeTransaction(tx);
+        }
     }
 
     public void run(Runnable action) {
-        ReadOnly.of(LeafClass.of(Pair.of(this, "runOnState")), root).run(action, this);
+        ReadOnly cls = ReadOnly.of(Pair.of(this, "runOnState"));
+        ReadOnlyTransaction tx = cls.openTransaction(universeTransaction);
+        try {
+            tx.run(action, this);
+        } finally {
+            cls.closeTransaction(tx);
+        }
     }
 
     public <T> Collection<T> getObjects(Class<T> filter) {
@@ -250,7 +262,7 @@ public class State implements Serializable {
 
     @SuppressWarnings("rawtypes")
     public State copy(Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
-        return map == null ? root.emptyState() : new State(root, map.filter(e1 -> //
+        return map == null ? universeTransaction.emptyState() : new State(universeTransaction, map.filter(e1 -> //
         objectFilter.test(e1.getKey())).map(e1 -> Entry.of(e1.getKey(), e1.getValue().filter(e2 -> setableFilter.test(e2.getKey())))).//
                 toMap(e0 -> Entry.of(e0.getKey(), e0.getValue().toMap(Function.identity()))));
     }
@@ -303,7 +315,7 @@ public class State implements Serializable {
 
     @Override
     public int hashCode() {
-        return map == null ? root.hashCode() : root.hashCode() + map.hashCode();
+        return map == null ? universeTransaction.hashCode() : universeTransaction.hashCode() + map.hashCode();
     }
 
     @Override
@@ -312,15 +324,15 @@ public class State implements Serializable {
             return true;
         } else if (!(obj instanceof State)) {
             return false;
-        } else if (!root.equals(((State) obj).root)) {
+        } else if (!universeTransaction.equals(((State) obj).universeTransaction)) {
             return false;
         } else {
             return Objects.equals(map, ((State) obj).map);
         }
     }
 
-    public Root root() {
-        return root;
+    public UniverseTransaction universeTransaction() {
+        return universeTransaction;
     }
 
 }
