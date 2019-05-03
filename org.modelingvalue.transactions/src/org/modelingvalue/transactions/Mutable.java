@@ -13,6 +13,7 @@
 
 package org.modelingvalue.transactions;
 
+import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 
@@ -30,7 +31,7 @@ public interface Mutable extends TransactionClass {
         return p != null ? p.a() : null;
     }
 
-    default Setable<?, ?> dContaining() {
+    default Setable<Mutable, ?> dContaining() {
         Pair<Mutable, Setable<Mutable, ?>> p = D_PARENT_CONTAINING.get(this);
         return p != null ? p.b() : null;
     }
@@ -52,6 +53,15 @@ public interface Mutable extends TransactionClass {
     @SuppressWarnings("rawtypes")
     default Set<Observer> dObservers() {
         return Set.of();
+    }
+
+    default Set<Setable<Mutable, ?>> dContainers() {
+        return Set.of();
+    }
+
+    @SuppressWarnings("unchecked")
+    default Collection<Mutable> dChildren() {
+        return (Collection<Mutable>) dContainers().flatMap(c -> c.getCollection(this));
     }
 
     @Override

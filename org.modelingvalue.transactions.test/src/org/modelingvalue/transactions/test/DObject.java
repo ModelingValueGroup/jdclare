@@ -4,6 +4,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.Observer;
+import org.modelingvalue.transactions.Setable;
 
 public class DObject implements Mutable {
     private final Object id;
@@ -25,7 +26,12 @@ public class DObject implements Mutable {
     @SuppressWarnings("rawtypes")
     @Override
     public Set<Observer> dObservers() {
-        return dClass().dObservers();
+        return dClass.dObservers();
+    }
+
+    @Override
+    public Set<Setable<Mutable, ?>> dContainers() {
+        return dClass.dContainers();
     }
 
     public Object id() {
