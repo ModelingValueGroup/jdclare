@@ -87,6 +87,7 @@ public class UniverseTransaction extends MutableTransaction {
     private final Action<Universe>                                                stop;
     private final Action<Universe>                                                backward;
     private final Action<Universe>                                                forward;
+    private final Action<Universe>                                                clearOrphans;
     protected final BlockingQueue<Action<Universe>>                               inQueue;
     private final BlockingQueue<State>                                            resultQueue;
     private final State                                                           emptyState    = new State(this, null);
@@ -126,6 +127,7 @@ public class UniverseTransaction extends MutableTransaction {
         this.forward = Action.of("forward", o -> {
         });
         this.pre = cycle != null ? Action.of("cycle", o -> cycle.accept(this)) : null;
+        this.clearOrphans = Action.of("clearOrphans", o -> clearOrphans(o));
         pool.execute(() -> {
             start(universe, null);
             State state = start != null ? start.clone(this) : emptyState;
@@ -210,8 +212,25 @@ public class UniverseTransaction extends MutableTransaction {
         return state;
     }
 
-    protected State post(State state) {
-        return state;
+    protected void clearOrphans(Universe universe) {
+        LeafTransaction tx = LeafTransaction.getCurrent();
+        State state = tx.state();
+        preState().diff(state, o -> o instanceof Mutable, s -> s.equals(Mutable.D_PARENT_CONTAINING)).forEach(e0 -> {
+            if (e0.getValue().get(Mutable.D_PARENT_CONTAINING).b() == null) {
+                clear(tx, state, (Mutable) e0.getKey());
+            }
+        });
+    }
+
+    protected void clear(LeafTransaction tx, State state, Mutable orphan) {
+        tx.clear(orphan);
+        for (Mutable child : state.get(orphan, Mutable.D_CHILDREN)) {
+            clear(tx, state, child);
+        }
+    }
+
+    protected State post(State pre) {
+        return run(trigger(pre, universe(), clearOrphans, Direction.backward));
     }
 
     public boolean isStopped(State state) {

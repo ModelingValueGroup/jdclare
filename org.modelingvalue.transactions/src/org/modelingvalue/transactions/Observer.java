@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.transactions.Direction.DirectionSetable;
 
 public class Observer<O extends Mutable> extends Action<O> {
 
@@ -76,7 +77,12 @@ public class Observer<O extends Mutable> extends Action<O> {
 
     public void deObserve(O mutable) {
         for (int ia = 0; ia < 2; ia++) {
-            observeds[ia].set(mutable, observeds[ia].getDefault());
+            observeds[ia].setDefault(mutable);
+        }
+        for (Direction dir : Direction.values()) {
+            for (DirectionSetable<Action<?>> set : dir.priorities) {
+                set.setDefault(mutable);
+            }
         }
     }
 

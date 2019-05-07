@@ -58,14 +58,22 @@ public interface Mutable extends TransactionClass {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    default <T> T dParent(Class<T> cls) {
+        Mutable p = dParent();
+        return cls.isInstance(p) ? (T) p : null;
+    }
+
     default void dActivate() {
         D_OBSERVERS_RULE.trigger(this);
-        dChildren().forEach(c -> c.dActivate());
     }
 
     default void dDeactivate() {
         D_OBSERVERS_RULE.deObserve(this);
-        dChildren().forEach(c -> c.dDeactivate());
+        D_OBSERVERS.setDefault(this);
+        for (Direction dir : Direction.values()) {
+            dir.depth.set(dParent(), Set::remove, this);
+        }
     }
 
     Collection<? extends Observer<?>> dObservers();

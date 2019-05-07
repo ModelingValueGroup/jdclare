@@ -224,9 +224,9 @@ public class MutableTransaction extends Transaction {
 
     protected <O extends Mutable> State trigger(State state, O mutable, Action<O> leaf, Direction direction) {
         Mutable object = mutable;
-        Pair<Mutable, ?> parent = state.get(object, Mutable.D_PARENT_CONTAINING);
         state = state.set(object, direction.priorities[leaf.priority().nr], Set::add, leaf);
-        while (Direction.backward == direction ? parent != null : !mutable().equals(object)) {
+        Pair<Mutable, ?> parent = state.get(object, Mutable.D_PARENT_CONTAINING);
+        while (parent != null && (Direction.backward == direction || !mutable().equals(object))) {
             state = state.set(parent.a(), direction.depth, Set::add, object);
             object = parent.a();
             parent = state.get(object, Mutable.D_PARENT_CONTAINING);

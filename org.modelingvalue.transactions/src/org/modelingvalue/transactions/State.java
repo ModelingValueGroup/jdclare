@@ -274,7 +274,7 @@ public class State implements Serializable {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Collection<Entry<Object, Map<Setable, Pair<Object, Object>>>> diff(State other, Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
-        return map(map).diff(other.map).filter(d1 -> objectFilter.test(d1.getKey())).map(d2 -> {
+        return map(map).diff(map(other.map)).filter(d1 -> objectFilter.test(d1.getKey())).map(d2 -> {
             Map<Setable, Object> a = map(val(d2.getValue().a()));
             Map<Setable, Object> b = map(val(d2.getValue().b()));
             Map<Setable, Pair<Object, Object>> diff = a.diff(b).filter(d3 -> setableFilter.test(d3.getKey())).toMap(e -> {

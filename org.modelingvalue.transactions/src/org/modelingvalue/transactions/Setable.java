@@ -92,6 +92,10 @@ public class Setable<O, T> extends Getable<O, T> {
         }
     }
 
+    public T setDefault(O object) {
+        return currentLeaf(object).set(object, this, getDefault());
+    }
+
     public T set(O object, T value) {
         return currentLeaf(object).set(object, this, value);
     }
@@ -134,7 +138,7 @@ public class Setable<O, T> extends Getable<O, T> {
             }
             if (post != null) {
                 if (post instanceof Iterable) {
-                    for (E e : (Iterable<E>) pre) {
+                    for (E e : (Iterable<E>) post) {
                         added.accept(e);
                     }
                 } else {
