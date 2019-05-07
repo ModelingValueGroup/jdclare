@@ -204,7 +204,7 @@ public interface BirdUniverse extends DUniverse {
         @Rule
         default void setWingColor1() {
             // TODO
-            // dclare(Bird.class, dclare(BirdUniverse.class), "0").color(); // throws an EmptyMandatoryException.
+            //Bird parent = dclare(Bird.class, dclare(BirdUniverse.class), "0");// throws an EmptyMandatoryException.
             // This exception is not propagated to the user - why not?
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
@@ -305,7 +305,11 @@ public interface BirdUniverse extends DUniverse {
         String headColor();
 
         @Property(constant)
+        default String legColor() {
+            return "";
+        }
 
+        @Property(constant)
         default String leftLegColor() {
             return "";
         }
@@ -313,6 +317,13 @@ public interface BirdUniverse extends DUniverse {
         @Property(constant)
         default String rightLegColor() {
             return "";
+        }
+
+        @Rule
+        default void setColor() {
+            if ("yellow".equals(color())) {
+                set(this, Bird::color, "gold");
+            }
         }
 
         @Rule
@@ -328,39 +339,30 @@ public interface BirdUniverse extends DUniverse {
         }
 
         @Rule
-        default void setColor() {
-            if ("yellow".equals(color())) {
-                set(this, Bird::color, "gold");
-            }
-        }
-
-        @Rule
-        default void setHeadColor() {
+        default void setHeadColor1() {
             if ("red".equals(color())) {
                 set(this, Pheasant::headColor, headColor());
             }
         }
 
         @Rule
-        default void setLeftLegColor() {
+        default void setLegColor() {
             if ("black".equals(color())) {
-                set(this, Pheasant::leftLegColor, "black");
+                set(this, Pheasant::legColor, "black");
             }
         }
 
         @Rule
         default void setLegColorCircular1() {
             if ("white".equals(color())) {
-                String color = leftLegColor();
-                set(this, Pheasant::rightLegColor, color);
+                set(this, Pheasant::rightLegColor, leftLegColor());
             }
         }
 
         @Rule
         default void setLegColorCircular2() {
             if ("white".equals(color())) {
-                String color = rightLegColor();
-                set(this, Pheasant::leftLegColor, color);
+                set(this, Pheasant::leftLegColor, rightLegColor());
             }
         }
 

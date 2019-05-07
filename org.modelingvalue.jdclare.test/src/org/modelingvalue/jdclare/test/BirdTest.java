@@ -170,7 +170,8 @@ public class BirdTest {
     }
 
     //@Test
-    // TODO this test fails - when are orphans deleted ?
+    // TODO this test fails
+    // orphans below "0" are not deleted, one level lower "orphans" are deleted ???
     public void noOrphans() {
         DClare<BirdUniverse> root = of(BirdUniverse.class);
         start(root);
@@ -210,6 +211,7 @@ public class BirdTest {
 
     //@Test
     //TODO this test fails
+    //The EmptyMandatory Exception is caught in DEqualize.java and in Observer.java
     public void missingMandatory2() {
         try {
             DClare<BirdUniverse> root = of(BirdUniverse.class);
@@ -315,7 +317,6 @@ public class BirdTest {
 
     @Test
     public void constantNotSetAndNotDerivedError() {
-        //TODO I was expecting a circular constant error here
         try {
             DClare<BirdUniverse> root = of(BirdUniverse.class);
             start(root);
@@ -338,7 +339,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, "Constant leftLegColor is derived");
+            assertThrowable(cause, Error.class, "Constant legColor is derived");
         }
     }
 
@@ -372,7 +373,7 @@ public class BirdTest {
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String regex) {
         cause.printStackTrace();
         assertEquals(throwable, cause.getClass());
-        assertTrue(cause.getMessage().matches(regex));
+        assertTrue(cause.getMessage() + " != " + regex, cause.getMessage().matches(regex));
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String message, Function<Throwable, String> f) {
