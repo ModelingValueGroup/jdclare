@@ -124,10 +124,22 @@ public class Setable<O, T> extends Getable<O, T> {
             });
         } else {
             if (pre != null) {
-                removed.accept((E) pre);
+                if (pre instanceof Iterable) {
+                    for (E e : (Iterable<E>) pre) {
+                        removed.accept(e);
+                    }
+                } else {
+                    removed.accept((E) pre);
+                }
             }
             if (post != null) {
-                added.accept((E) post);
+                if (post instanceof Iterable) {
+                    for (E e : (Iterable<E>) pre) {
+                        added.accept(e);
+                    }
+                } else {
+                    added.accept((E) post);
+                }
             }
         }
     }

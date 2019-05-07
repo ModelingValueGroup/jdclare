@@ -31,20 +31,21 @@ public class ImperativeTransaction extends LeafTransaction {
     private static Setable<ImperativeTransaction, Long> CHANGE_NR = Setable.of("CHANGE_NR", 0l);
 
     private final Consumer<Runnable>                    scheduler;
-    @SuppressWarnings("rawtypes")
-    private Set<Pair<Object, Setable>>                  setted    = Set.of();
 
+    @SuppressWarnings("rawtypes")
+    private Set<Pair<Object, Setable>>                  setted;
     private State                                       pre;
     private State                                       state;
     private TriConsumer<State, State, Boolean>          diffHandler;
 
     protected ImperativeTransaction(Leaf cls, State init, UniverseTransaction universeTransaction, Consumer<Runnable> scheduler, TriConsumer<State, State, Boolean> diffHandler) {
         super(universeTransaction);
+        this.pre = init;
+        this.state = init;
+        this.setted = Set.of();
+        this.diffHandler = diffHandler;
+        super.start(cls, universeTransaction);
         this.scheduler = r -> scheduler.accept(() -> {
-            this.pre = init;
-            this.state = init;
-            this.diffHandler = diffHandler;
-            super.start(cls, universeTransaction);
             LeafTransaction.setCurrent(this);
             r.run();
         });
@@ -53,12 +54,12 @@ public class ImperativeTransaction extends LeafTransaction {
     @Override
     public void stop() {
         scheduler.accept(() -> {
-            LeafTransaction.setCurrent(null);
             super.stop();
             pre = null;
             state = null;
             setted = null;
             diffHandler = null;
+            LeafTransaction.setCurrent(null);
         });
     }
 
@@ -83,7 +84,7 @@ public class ImperativeTransaction extends LeafTransaction {
             CHANGE_NR.set(this, (n, i) -> n + i, 1);
             State finalState = state;
             pre = finalState;
-            this.universeTransaction().put(Pair.of(this, "toDClare"), () -> {
+            universeTransaction().put(Pair.of(this, "toDClare"), () -> {
                 finalPre.diff(finalState, o -> true, s -> true).forEach(s -> {
                     Object o = s.getKey();
                     for (Entry<Setable, Pair<Object, Object>> d : s.getValue()) {

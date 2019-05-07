@@ -48,6 +48,16 @@ public interface Mutable extends TransactionClass {
         return p != null ? p.b() : null;
     }
 
+    @SuppressWarnings("unchecked")
+    default <T> T dAncestor(Class<T> cls) {
+        for (Mutable p = dParent(); p != null; p = p.dParent()) {
+            if (cls.isInstance(p)) {
+                return (T) p;
+            }
+        }
+        return null;
+    }
+
     default void dActivate() {
         D_OBSERVERS_RULE.trigger(this);
         dChildren().forEach(c -> c.dActivate());

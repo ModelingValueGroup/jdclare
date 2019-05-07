@@ -105,7 +105,7 @@ public class Constant<O, T> extends Setable<O, T> {
 
     @Override
     protected void changed(LeafTransaction leafTransaction, O object, T preValue, T postValue) {
-        if (changed != null && !Objects.equals(preValue, postValue)) {
+        if ((containment || changed != null) && !Objects.equals(preValue, postValue)) {
             Action.of(Triple.of(object, this, "changed"), o -> super.changed(leafTransaction, object, preValue, postValue)).trigger(leafTransaction.parent().mutable());
         }
     }
