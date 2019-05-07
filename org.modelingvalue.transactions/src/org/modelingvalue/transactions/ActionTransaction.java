@@ -26,9 +26,8 @@ import org.modelingvalue.collections.util.TraceTimer;
 
 public class ActionTransaction extends LeafTransaction {
 
-    @SuppressWarnings("rawtypes")
-    private Concurrent<Map<Pair<Object, Setable>, Object>> setted = new Setted();
-    private State                                          preState;
+    private Setted setted = new Setted();
+    private State  preState;
 
     protected ActionTransaction(UniverseTransaction universeTransaction) {
         super(universeTransaction);
@@ -158,6 +157,13 @@ public class ActionTransaction extends LeafTransaction {
         } else {
             throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Mutable dParent(Mutable object) {
+        Pair<Mutable, ?> set = (Pair<Mutable, ?>) setted.get().get(Pair.of(object, Mutable.D_PARENT_CONTAINING));
+        return set != null ? set.a() : super.dParent(object);
     }
 
     @Override

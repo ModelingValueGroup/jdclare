@@ -15,42 +15,25 @@ package org.modelingvalue.transactions.test;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Setable;
 
 public class DClass {
 
     @SafeVarargs
     static DClass of(Object id, Observer<DObject>... observers) {
-        return new DClass(id, Set.of(), Set.of(observers));
+        return new DClass(id, Set.of(observers));
     }
 
-    @SafeVarargs
-    static DClass of(Object id, Setable<? extends Mutable, ?>... containers) {
-        return new DClass(id, Set.of(containers), Set.of());
-    }
+    private final Object                     id;
+    private final Set<? extends Observer<?>> observers;
 
-    private final Object                             id;
-    @SuppressWarnings("rawtypes")
-    private final Set<Observer>                      observers;
-    private final Set<Setable<? extends Mutable, ?>> containers;
-
-    @SuppressWarnings("rawtypes")
-    protected DClass(Object id, Set<Setable<? extends Mutable, ?>> containers, Set<Observer> observers) {
+    protected DClass(Object id, Set<? extends Observer<?>> observers) {
         this.id = id;
-        this.containers = containers;
         this.observers = observers;
     }
 
-    @SuppressWarnings("rawtypes")
-    public Set<Observer> dObservers() {
+    public Set<? extends Observer<?>> dObservers() {
         return observers;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public Set<Setable<Mutable, ?>> dContainers() {
-        return (Set) containers;
     }
 
     @Override

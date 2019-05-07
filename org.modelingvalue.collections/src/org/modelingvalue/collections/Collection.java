@@ -118,7 +118,7 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     }
 
     static <T> Collection<T> of(Stream<T> base) {
-        return new StreamCollectionImpl<T>(base);
+        return base instanceof Collection ? (Collection<T>) base : new StreamCollectionImpl<T>(base);
     }
 
     static <T> Collection<T> of(Spliterator<T> base) {
@@ -126,7 +126,7 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     }
 
     static <T> Collection<T> of(Iterable<T> base) {
-        return new StreamCollectionImpl<T>(base);
+        return base instanceof Collection ? (Collection<T>) base : new StreamCollectionImpl<T>(base);
     }
 
     static <T> Collection<T> of(Supplier<T> base) {

@@ -19,6 +19,7 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.Pair;
 
 public abstract class LeafTransaction extends Transaction {
 
@@ -80,15 +81,18 @@ public abstract class LeafTransaction extends Transaction {
 
     protected <O extends Mutable> void trigger(O mutable, Action<O> action, Direction direction) {
         Mutable object = mutable;
-        State state = state();
-        Mutable container = object.dParent(state);
-        MutableTransaction parent = parent();
         set(object, direction.priorities[action.priority().nr], Set::add, action);
-        while (container != null && (Direction.backward == direction || !parent.ancestorId(object))) {
+        Mutable container = dParent(object);
+        while (container != null && (Direction.backward == direction || !parent().ancestorId(object))) {
             set(container, direction.depth, Set::add, object);
             object = container;
-            container = object.dParent(state);
+            container = dParent(object);
         }
+    }
+
+    protected Mutable dParent(Mutable object) {
+        Pair<Mutable, ?> parent = state().get(object, Mutable.D_PARENT_CONTAINING);
+        return parent != null ? parent.a() : null;
     }
 
     public void runNonObserving(Runnable action) {

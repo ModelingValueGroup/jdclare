@@ -21,13 +21,25 @@ public interface Mutable extends TransactionClass {
 
     Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>> D_PARENT_CONTAINING = Observed.of("D_PARENT_CONTAINING", null);
 
+    Observed<Mutable, Set<Mutable>>                       D_CHILDREN          = Observed.of("D_CHILDREN", Set.of(), (tx, obj, pre, post) -> {
+                                                                                  Setable.<Set<Mutable>, Mutable> diff(pre, post,                  //
+                                                                                          added -> added.dActivate(),                              //
+                                                                                          removed -> removed.dDeactivate());
+                                                                              });
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Setable<Mutable, Set<? extends Observer<?>>>          D_OBSERVERS         = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
+                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,   //
+                                                                                          added -> added.trigger(obj),                             //
+                                                                                          removed -> removed.deObserve(obj));
+                                                                              });
+
+    Observer<Mutable>                                     D_OBSERVERS_RULE    = Observer.of(D_OBSERVERS, m -> {
+                                                                                  D_OBSERVERS.set(m, m.dObservers().toSet());
+                                                                              }, Priority.preDepth);
+
     default Mutable dParent() {
         Pair<Mutable, Setable<Mutable, ?>> p = D_PARENT_CONTAINING.get(this);
-        return p != null ? p.a() : null;
-    }
-
-    default Mutable dParent(State state) {
-        Pair<Mutable, Setable<Mutable, ?>> p = state.get(this, D_PARENT_CONTAINING);
         return p != null ? p.a() : null;
     }
 
@@ -36,32 +48,20 @@ public interface Mutable extends TransactionClass {
         return p != null ? p.b() : null;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     default void dActivate() {
-        for (Observer observer : dObservers()) {
-            observer.trigger(this);
-        }
+        D_OBSERVERS_RULE.trigger(this);
+        dChildren().forEach(c -> c.dActivate());
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     default void dDeactivate() {
-        for (Observer observer : dObservers()) {
-            observer.deObserve(this);
-        }
+        D_OBSERVERS_RULE.deObserve(this);
+        dChildren().forEach(c -> c.dDeactivate());
     }
 
-    @SuppressWarnings("rawtypes")
-    default Set<Observer> dObservers() {
-        return Set.of();
-    }
+    Collection<? extends Observer<?>> dObservers();
 
-    default Set<Setable<Mutable, ?>> dContainers() {
-        return Set.of();
-    }
-
-    @SuppressWarnings("unchecked")
-    default Collection<Mutable> dChildren() {
-        return (Collection<Mutable>) dContainers().flatMap(c -> c.getCollection(this));
+    default Set<? extends Mutable> dChildren() {
+        return D_CHILDREN.get(this);
     }
 
     @Override

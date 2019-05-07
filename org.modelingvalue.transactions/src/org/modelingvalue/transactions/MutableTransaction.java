@@ -21,6 +21,7 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.NotMergeableException;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.transactions.Observed.Observers;
 
@@ -223,12 +224,12 @@ public class MutableTransaction extends Transaction {
 
     protected <O extends Mutable> State trigger(State state, O mutable, Action<O> leaf, Direction direction) {
         Mutable object = mutable;
-        Mutable parent = object.dParent(state);
+        Pair<Mutable, ?> parent = state.get(object, Mutable.D_PARENT_CONTAINING);
         state = state.set(object, direction.priorities[leaf.priority().nr], Set::add, leaf);
         while (Direction.backward == direction ? parent != null : !mutable().equals(object)) {
-            state = state.set(parent, direction.depth, Set::add, object);
-            object = parent;
-            parent = object.dParent(state);
+            state = state.set(parent.a(), direction.depth, Set::add, object);
+            object = parent.a();
+            parent = state.get(object, Mutable.D_PARENT_CONTAINING);
         }
         return state;
     }

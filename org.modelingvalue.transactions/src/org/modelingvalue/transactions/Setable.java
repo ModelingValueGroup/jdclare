@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 
@@ -43,7 +44,7 @@ public class Setable<O, T> extends Getable<O, T> {
 
     protected QuadConsumer<LeafTransaction, O, T, T> changed;
     protected final boolean                          containment;
-    private Pair<Mutable, Setable<Mutable, ?>>       target = null;
+    private Pair<Mutable, Setable<Mutable, ?>>       post = null;
 
     protected Setable(Object id, T def, boolean containment, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def);
@@ -61,31 +62,33 @@ public class Setable<O, T> extends Getable<O, T> {
             changed.accept(tx, object, preValue, postValue);
         }
         if (containment) {
-            Pair<Mutable, Setable<Mutable, ?>> self = Pair.of((Mutable) object, (Setable<Mutable, ?>) this);
+            Pair<Mutable, Setable<Mutable, ?>> now = Pair.of((Mutable) object, (Setable<Mutable, ?>) this);
             Setable.<T, Mutable> diff(preValue, postValue, added -> {
-                Pair<Mutable, Setable<Mutable, ?>> source = Mutable.D_PARENT_CONTAINING.get(added);
-                if (source != null) {
-                    source.b().move(source.a(), added, self);
+                Pair<Mutable, Setable<Mutable, ?>> pre = Mutable.D_PARENT_CONTAINING.get(added);
+                if (pre != null) {
+                    pre.b().move(pre.a(), added, now);
                 }
-                Mutable.D_PARENT_CONTAINING.set(added, self);
-                if (source == null) {
-                    Action.of(added, o -> added.dActivate(), Priority.preDepth).trigger((Mutable) object);
+                Mutable.D_PARENT_CONTAINING.set(added, now);
+                if (pre == null || !pre.a().equals(now.a())) {
+                    Mutable.D_CHILDREN.set(now.a(), Set::add, added);
                 }
             }, removed -> {
-                if (target == null) {
+                if (post == null || !post.a().equals(now.a())) {
+                    Mutable.D_CHILDREN.set(now.a(), Set::remove, removed);
+                }
+                if (post == null) {
                     Mutable.D_PARENT_CONTAINING.set(removed, null);
-                    removed.dDeactivate();
                 }
             });
         }
     }
 
-    private void move(O object, Mutable moved, Pair<Mutable, Setable<Mutable, ?>> target) {
-        this.target = target;
+    private void move(O object, Mutable moved, Pair<Mutable, Setable<Mutable, ?>> post) {
+        this.post = post;
         try {
             remove(object, moved);
         } finally {
-            this.target = null;
+            this.post = null;
         }
     }
 
