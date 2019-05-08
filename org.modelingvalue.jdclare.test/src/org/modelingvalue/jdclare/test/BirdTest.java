@@ -100,7 +100,6 @@ public class BirdTest {
 
     @Test
     public void tooManyChangesException4() {
-
         try {
             DClare<BirdUniverse> root = of(BirdUniverse.class);
             start(root);
@@ -182,6 +181,7 @@ public class BirdTest {
     }
 
     @Test
+    //TODO this exception is not thrown when the rules are only reading a property
     public void tooManyObserversException() {
         try {
             DClare<BirdUniverse> root = of(BirdUniverse.class);
