@@ -20,19 +20,27 @@ import org.modelingvalue.collections.util.QuadConsumer;
 public class Observed<O, T> extends Setable<O, T> {
 
     public static <C, V> Observed<C, V> of(Object id, V def) {
-        return of(id, def, false, null);
+        return new Observed<C, V>(id, def, false, null, null);
     }
 
     public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return of(id, def, false, changed);
+        return new Observed<C, V>(id, def, false, null, changed);
     }
 
     public static <C, V> Observed<C, V> of(Object id, V def, boolean containment) {
-        return of(id, def, containment, null);
+        return new Observed<C, V>(id, def, containment, null, null);
+    }
+
+    public static <C, V> Observed<C, V> of(Object id, V def, Setable<?, ?> opposite) {
+        return new Observed<C, V>(id, def, false, opposite, null);
     }
 
     public static <C, V> Observed<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Observed<C, V>(id, def, containment, changed);
+        return new Observed<C, V>(id, def, containment, null, changed);
+    }
+
+    public static <C, V> Observed<C, V> of(Object id, V def, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Observed<C, V>(id, def, false, opposite, changed);
     }
 
     private final Setable<Object, Set<ObserverTrace>> readers = Setable.of(Pair.of(this, "readers"), Set.of());
@@ -40,8 +48,8 @@ public class Observed<O, T> extends Setable<O, T> {
     private final Observers<O, T>[]                   observers;
 
     @SuppressWarnings("unchecked")
-    protected Observed(Object id, T def, boolean containment, QuadConsumer<LeafTransaction, O, T, T> changed) {
-        this(id, def, containment, observers(id), changed);
+    protected Observed(Object id, T def, boolean containment, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        this(id, def, containment, opposite, observers(id), changed);
     }
 
     @SuppressWarnings("rawtypes")
@@ -54,8 +62,8 @@ public class Observed<O, T> extends Setable<O, T> {
     }
 
     @SuppressWarnings("unchecked")
-    private Observed(Object id, T def, boolean containment, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed) {
-        super(id, def, containment, null);
+    private Observed(Object id, T def, boolean containment, Setable<?, ?> opposite, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        super(id, def, containment, opposite, null);
         this.changed = (l, o, p, n) -> {
             if (changed != null) {
                 changed.accept(l, o, p, n);
@@ -109,7 +117,7 @@ public class Observed<O, T> extends Setable<O, T> {
         }
 
         private Observers(Object id, Direction direction) {
-            super(Pair.of(id, direction), Set.of(), false, null);
+            super(Pair.of(id, direction), Set.of(), false, null, null);
             changed = (tx, o, b, a) -> tx.checkTooManyObservers(tx, o, observed, a);
             this.direction = direction;
         }

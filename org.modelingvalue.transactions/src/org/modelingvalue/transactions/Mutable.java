@@ -49,19 +49,18 @@ public interface Mutable extends TransactionClass {
     }
 
     @SuppressWarnings("unchecked")
-    default <T> T dAncestor(Class<T> cls) {
-        for (Mutable p = dParent(); p != null; p = p.dParent()) {
-            if (cls.isInstance(p)) {
-                return (T) p;
-            }
+    default <C> C dAncestor(Class<C> cls) {
+        Mutable parent = dParent();
+        while (parent != null && !cls.isInstance(parent)) {
+            parent = parent.dParent();
         }
-        return null;
+        return (C) parent;
     }
 
     @SuppressWarnings("unchecked")
     default <T> T dParent(Class<T> cls) {
         Mutable p = dParent();
-        return cls.isInstance(p) ? (T) p : null;
+        return p != null && cls.isInstance(p) ? (T) p : null;
     }
 
     default void dActivate() {

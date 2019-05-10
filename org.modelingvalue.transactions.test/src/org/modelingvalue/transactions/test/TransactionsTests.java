@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
-import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Setable;
@@ -52,7 +51,7 @@ public class TransactionsTests {
     public void cycle1second() throws Exception {
         Observed<DUniverse, Long> currentTime = Observed.of("time", System.currentTimeMillis());
         long begin = System.currentTimeMillis();
-        Observed<DUniverse, Set<Mutable>> children = Observed.of("children", Set.of(), true);
+        Observed<DUniverse, Set<DObject>> children = Observed.of("children", Set.of(), true);
         DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
         UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL, 100, r -> currentTime.set(universe, System.currentTimeMillis()));
         DClass dClass = DClass.of("Object", Observer.of("observer", o -> {
@@ -78,7 +77,7 @@ public class TransactionsTests {
 
     @Test
     public void derivationChain() throws Exception {
-        Observed<DUniverse, Set<Mutable>> children = Observed.of("children", Set.of(), true);
+        Observed<DUniverse, Set<DObject>> children = Observed.of("children", Set.of(), true);
         Observed<DObject, Integer> number = Observed.of("number", 0);
         Observed<DObject, Integer> total = Observed.of("total", 0);
         int length = 30;
@@ -104,6 +103,36 @@ public class TransactionsTests {
         System.err.println(result.asString());
         System.err.println("********************************************************************");
         Assert.assertEquals(length, (int) result.get(DObject.of(length - 1, dClass), total));
+    }
+
+    @Test
+    public void opposites() throws Exception {
+        Observed<DUniverse, Set<DObject>> children = Observed.of("children", Set.of(), true);
+        Observed<DObject, DObject> next = Observed.of("next", null);
+        Observed<DObject, DObject> previous = Observed.of("previous", null, next);
+        int length = 30;
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);
+        DClass dClass = DClass.of("Object");
+        universeTransaction.put("backwards", () -> {
+            for (int i = 0; i < length; i++) {
+                DObject o = DObject.of(i, dClass);
+                children.set(universe, Set::add, o);
+                next.set(o, i > 0 ? DObject.of(i - 1, dClass) : null);
+            }
+        });
+        universeTransaction.put("forwards", () -> {
+            for (int i = 0; i < length; i++) {
+                DObject o = DObject.of(i, dClass);
+                previous.set(o, i > 0 ? DObject.of(i - 1, dClass) : null);
+            }
+        });
+        universeTransaction.stop();
+        State result = universeTransaction.waitForEnd();
+        System.err.println("********************************************************************");
+        System.err.println(result.asString());
+        System.err.println("********************************************************************");
+        Assert.assertEquals(DObject.of(11, dClass), result.get(DObject.of(10, dClass), next));
     }
 
     @Test

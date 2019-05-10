@@ -24,41 +24,57 @@ public class Constant<O, T> extends Setable<O, T> {
     public static final Context<Integer> DEPTH = Context.of(0);
 
     public static <C, V> Constant<C, V> of(Object id, Function<C, V> deriver) {
-        return new Constant<C, V>(id, null, false, deriver, null);
+        return new Constant<C, V>(id, null, false, null, deriver, null);
     }
 
     public static <C, V> Constant<C, V> of(Object id, V def, Function<C, V> deriver) {
-        return new Constant<C, V>(id, def, false, deriver, null);
+        return new Constant<C, V>(id, def, false, null, deriver, null);
     }
 
     public static <C, V> Constant<C, V> of(Object id, V def, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Constant<C, V>(id, def, false, deriver, changed);
+        return new Constant<C, V>(id, def, false, null, deriver, changed);
     }
 
     public static <C, V> Constant<C, V> of(Object id, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Constant<C, V>(id, null, false, deriver, changed);
+        return new Constant<C, V>(id, null, false, null, deriver, changed);
     }
 
     public static <C, V> Constant<C, V> of(Object id, boolean containment, Function<C, V> deriver) {
-        return new Constant<C, V>(id, null, containment, deriver, null);
+        return new Constant<C, V>(id, null, containment, null, deriver, null);
     }
 
     public static <C, V> Constant<C, V> of(Object id, V def, boolean containment, Function<C, V> deriver) {
-        return new Constant<C, V>(id, def, containment, deriver, null);
+        return new Constant<C, V>(id, def, containment, null, deriver, null);
     }
 
     public static <C, V> Constant<C, V> of(Object id, V def, boolean containment, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Constant<C, V>(id, def, containment, deriver, changed);
+        return new Constant<C, V>(id, def, containment, null, deriver, changed);
     }
 
     public static <C, V> Constant<C, V> of(Object id, boolean containment, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Constant<C, V>(id, null, containment, deriver, changed);
+        return new Constant<C, V>(id, null, containment, null, deriver, changed);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, Setable<?, ?> opposite, Function<C, V> deriver) {
+        return new Constant<C, V>(id, null, false, opposite, deriver, null);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, V def, Setable<?, ?> opposite, Function<C, V> deriver) {
+        return new Constant<C, V>(id, def, false, opposite, deriver, null);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, V def, Setable<?, ?> opposite, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Constant<C, V>(id, def, false, opposite, deriver, changed);
+    }
+
+    public static <C, V> Constant<C, V> of(Object id, Setable<?, ?> opposite, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Constant<C, V>(id, null, false, opposite, deriver, changed);
     }
 
     private final Function<O, T> deriver;
 
-    protected Constant(Object id, T def, boolean containment, Function<O, T> deriver, QuadConsumer<LeafTransaction, O, T, T> changed) {
-        super(id, def, containment, changed);
+    protected Constant(Object id, T def, boolean containment, Setable<?, ?> opposite, Function<O, T> deriver, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        super(id, def, containment, opposite, changed);
         this.deriver = deriver;
     }
 

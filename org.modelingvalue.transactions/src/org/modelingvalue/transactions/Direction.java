@@ -45,7 +45,7 @@ public enum Direction {
         private final Priority priority;
 
         private DirectionSetable(Priority priority) {
-            super(Pair.of(Direction.this, priority), Set.of(), false, null);
+            super(Pair.of(Direction.this, priority), Set.of(), false, null, null);
             this.priority = priority;
         }
 

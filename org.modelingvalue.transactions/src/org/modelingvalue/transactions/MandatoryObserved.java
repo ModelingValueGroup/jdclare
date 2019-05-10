@@ -19,23 +19,31 @@ import org.modelingvalue.collections.util.QuadConsumer;
 public class MandatoryObserved<O, T> extends Observed<O, T> {
 
     public static <C, V> MandatoryObserved<C, V> of(Object id, V def) {
-        return of(id, def, false, null);
+        return new MandatoryObserved<C, V>(id, def, false, null, null);
     }
 
     public static <C, V> MandatoryObserved<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return of(id, def, false, changed);
+        return new MandatoryObserved<C, V>(id, def, false, null, changed);
     }
 
     public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment) {
-        return of(id, def, containment, null);
+        return new MandatoryObserved<C, V>(id, def, containment, null, null);
+    }
+
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Setable<?, ?> opposite) {
+        return new MandatoryObserved<C, V>(id, def, false, opposite, null);
     }
 
     public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new MandatoryObserved<C, V>(id, def, containment, changed);
+        return new MandatoryObserved<C, V>(id, def, containment, null, changed);
     }
 
-    protected MandatoryObserved(Object id, T def, boolean containment, QuadConsumer<LeafTransaction, O, T, T> changed) {
-        super(id, def, containment, changed);
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new MandatoryObserved<C, V>(id, def, false, opposite, changed);
+    }
+
+    protected MandatoryObserved(Object id, T def, boolean containment, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
+        super(id, def, containment, opposite, changed);
     }
 
     @SuppressWarnings("rawtypes")

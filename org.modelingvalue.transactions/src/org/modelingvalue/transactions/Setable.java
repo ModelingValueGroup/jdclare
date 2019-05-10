@@ -21,35 +21,54 @@ import java.util.function.Consumer;
 
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 
 public class Setable<O, T> extends Getable<O, T> {
 
+    private static final Context<Pair<Mutable, Setable<Mutable, ?>>> POST = Context.of();
+
     public static <C, V> Setable<C, V> of(Object id, V def) {
-        return of(id, def, null);
+        return new Setable<C, V>(id, def, false, null, null);
     }
 
     public static <C, V> Setable<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return of(id, def, false, changed);
+        return new Setable<C, V>(id, def, false, null, changed);
     }
 
     public static <C, V> Setable<C, V> of(Object id, V def, boolean containment) {
-        return of(id, def, containment, null);
+        return new Setable<C, V>(id, def, containment, null, null);
+    }
+
+    public static <C, V> Setable<C, V> of(Object id, V def, Setable<?, ?> opposite) {
+        return new Setable<C, V>(id, def, false, opposite, null);
     }
 
     public static <C, V> Setable<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Setable<C, V>(id, def, containment, changed);
+        return new Setable<C, V>(id, def, containment, null, changed);
+    }
+
+    public static <C, V> Setable<C, V> of(Object id, V def, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Setable<C, V>(id, def, false, opposite, changed);
     }
 
     protected QuadConsumer<LeafTransaction, O, T, T> changed;
     protected final boolean                          containment;
-    private Pair<Mutable, Setable<Mutable, ?>>       post = null;
+    private Setable<Object, ?>                       opposite;
 
-    protected Setable(Object id, T def, boolean containment, QuadConsumer<LeafTransaction, O, T, T> changed) {
+    @SuppressWarnings("unchecked")
+    protected Setable(Object id, T def, boolean containment, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def);
         this.containment = containment;
         this.changed = changed;
+        if (this.opposite != null && opposite != null && !this.opposite.equals(opposite)) {
+            throw new Error("Opposite inconsistency " + this.opposite + " != " + opposite);
+        }
+        this.opposite = (Setable<Object, ?>) opposite;
+        if (opposite != null) {
+            opposite.opposite = (Setable<Object, ?>) this;
+        }
     }
 
     public boolean containment() {
@@ -63,10 +82,11 @@ public class Setable<O, T> extends Getable<O, T> {
         }
         if (containment) {
             Pair<Mutable, Setable<Mutable, ?>> now = Pair.of((Mutable) object, (Setable<Mutable, ?>) this);
+            Pair<Mutable, Setable<Mutable, ?>> post = POST.get();
             Setable.<T, Mutable> diff(preValue, postValue, added -> {
                 Pair<Mutable, Setable<Mutable, ?>> pre = Mutable.D_PARENT_CONTAINING.get(added);
                 if (pre != null) {
-                    pre.b().move(pre.a(), added, now);
+                    POST.run(now, () -> pre.b().remove(pre.a(), added));
                 }
                 Mutable.D_PARENT_CONTAINING.set(added, now);
                 if (pre == null || !pre.a().equals(now.a())) {
@@ -80,15 +100,12 @@ public class Setable<O, T> extends Getable<O, T> {
                     Mutable.D_PARENT_CONTAINING.set(removed, null);
                 }
             });
-        }
-    }
-
-    private void move(O object, Mutable moved, Pair<Mutable, Setable<Mutable, ?>> post) {
-        this.post = post;
-        try {
-            remove(object, moved);
-        } finally {
-            this.post = null;
+        } else if (opposite != null) {
+            Setable.<T, Object> diff(preValue, postValue, added -> {
+                opposite.add(added, object);
+            }, removed -> {
+                opposite.remove(removed, object);
+            });
         }
     }
 
@@ -149,23 +166,50 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings({"unchecked", "unlikely-arg-type"})
+    public <E> void add(O obj, E e) {
+        set(obj, (v, r) -> {
+            if (v instanceof ContainingCollection) {
+                return (T) ((ContainingCollection<E>) v).add(r);
+            } else if (v instanceof java.util.List) {
+                if (!((java.util.List<E>) v).contains(r)) {
+                    java.util.List<E> l = new ArrayList<E>((java.util.List<E>) v);
+                    l.add(r);
+                    return (T) Collections.unmodifiableList(l);
+                }
+            } else if (v instanceof java.util.Set) {
+                if (!((java.util.Set<E>) v).contains(r)) {
+                    java.util.Set<E> s = new HashSet<E>((java.util.Set<E>) v);
+                    s.add(r);
+                    return (T) Collections.unmodifiableSet(s);
+                }
+            } else if (!r.equals(v)) {
+                return (T) r;
+            }
+            return v;
+        }, e);
+    }
+
+    @SuppressWarnings({"unchecked", "unlikely-arg-type"})
     public <E> void remove(O obj, E e) {
         set(obj, (v, r) -> {
-            if (v instanceof ContainingCollection && ((ContainingCollection<E>) v).contains(r)) {
+            if (v instanceof ContainingCollection) {
                 return (T) ((ContainingCollection<E>) v).remove(r);
-            } else if (v instanceof java.util.List && ((java.util.List<E>) v).contains(r)) {
-                java.util.List<E> l = new ArrayList<E>((java.util.List<E>) v);
-                l.remove(r);
-                return (T) Collections.unmodifiableList(l);
-            } else if (v instanceof java.util.Set && ((java.util.Set<E>) v).contains(r)) {
-                java.util.Set<E> s = new HashSet<E>((java.util.Set<E>) v);
-                s.remove(r);
-                return (T) Collections.unmodifiableSet(s);
+            } else if (v instanceof java.util.List) {
+                if (((java.util.List<E>) v).contains(r)) {
+                    java.util.List<E> l = new ArrayList<E>((java.util.List<E>) v);
+                    l.remove(r);
+                    return (T) Collections.unmodifiableList(l);
+                }
+            } else if (v instanceof java.util.Set) {
+                if (((java.util.Set<E>) v).contains(r)) {
+                    java.util.Set<E> s = new HashSet<E>((java.util.Set<E>) v);
+                    s.remove(r);
+                    return (T) Collections.unmodifiableSet(s);
+                }
             } else if (r.equals(v)) {
                 return null;
-            } else {
-                return v;
             }
+            return v;
         }, e);
     }
 
