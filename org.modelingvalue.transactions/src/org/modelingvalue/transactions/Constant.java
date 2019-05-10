@@ -13,13 +13,11 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.QuadConsumer;
-import org.modelingvalue.collections.util.Triple;
 
 public class Constant<O, T> extends Setable<O, T> {
 
@@ -101,13 +99,6 @@ public class Constant<O, T> extends Setable<O, T> {
     @Override
     public T pre(O object) {
         return get(object);
-    }
-
-    @Override
-    protected void changed(LeafTransaction leafTransaction, O object, T preValue, T postValue) {
-        if ((containment || changed != null) && !Objects.equals(preValue, postValue)) {
-            Action.of(Triple.of(object, this, "changed"), o -> super.changed(leafTransaction, object, preValue, postValue)).trigger(leafTransaction.parent().mutable());
-        }
     }
 
 }
