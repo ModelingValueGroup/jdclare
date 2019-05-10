@@ -149,6 +149,7 @@ public class TransactionsTests {
         System.err.println(result.asString());
         System.err.println("********************************************************************");
         Assert.assertEquals(Set.of(), result.get(c1, children));
+        Assert.assertEquals(null, result.get(ggc6, qualifiedName));
         Assert.assertEquals("u.c2.gc2.ggc3", result.get(ggc3, qualifiedName));
     }
 
