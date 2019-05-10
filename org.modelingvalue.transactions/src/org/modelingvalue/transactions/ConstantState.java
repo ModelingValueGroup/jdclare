@@ -53,7 +53,7 @@ public class ConstantState {
         Constants<O> constants();
     }
 
-    private class Constants<O> {
+    public class Constants<O> {
 
         private class WeakRef extends WeakReference<O> implements Ref<O> {
             private WeakRef(O referent, ReferenceQueue<? super O> queue) {
@@ -77,9 +77,9 @@ public class ConstantState {
             }
         }
 
-        protected volatile Map<Constant<O, ?>, Object> constants;
-        private final int                              hash;
-        private final Reference<O>                     ref;
+        public volatile Map<Constant<O, ?>, Object> constants;
+        private final int                           hash;
+        private final Reference<O>                  ref;
 
         public Constants(O object, boolean weak, ReferenceQueue<? super O> queue) {
             ref = weak ? new WeakRef(object, queue) : new SoftRef(object, queue);
