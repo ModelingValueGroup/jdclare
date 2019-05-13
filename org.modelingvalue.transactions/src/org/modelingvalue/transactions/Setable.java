@@ -20,7 +20,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.ContainingCollection;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
@@ -89,14 +88,12 @@ public class Setable<O, T> extends Getable<O, T> {
                     POST.run(now, () -> pre.b().remove(pre.a(), added));
                 }
                 Mutable.D_PARENT_CONTAINING.set(added, now);
-                if (pre == null || !pre.a().equals(now.a())) {
-                    Mutable.D_CHILDREN.set(now.a(), Set::add, added);
+                if (pre == null) {
+                    added.dActivate();
                 }
             }, removed -> {
-                if (post == null || !post.a().equals(now.a())) {
-                    Mutable.D_CHILDREN.set(now.a(), Set::remove, removed);
-                }
                 if (post == null) {
+                    removed.dDeactivate();
                     Mutable.D_PARENT_CONTAINING.set(removed, null);
                 }
             });

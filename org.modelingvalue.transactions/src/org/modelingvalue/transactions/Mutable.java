@@ -19,24 +19,26 @@ import org.modelingvalue.collections.util.Pair;
 
 public interface Mutable extends TransactionClass {
 
-    Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>> D_PARENT_CONTAINING = Observed.of("D_PARENT_CONTAINING", null);
-
-    Observed<Mutable, Set<Mutable>>                       D_CHILDREN          = Observed.of("D_CHILDREN", Set.of(), (tx, obj, pre, post) -> {
-                                                                                  Setable.<Set<Mutable>, Mutable> diff(pre, post,                  //
-                                                                                          added -> added.dActivate(),                              //
-                                                                                          removed -> removed.dDeactivate());
-                                                                              });
+    Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>>          D_PARENT_CONTAINING        = Observed.of("D_PARENT_CONTAINING", null);
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    Setable<Mutable, Set<? extends Observer<?>>>          D_OBSERVERS         = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
-                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,   //
-                                                                                          added -> added.trigger(obj),                             //
-                                                                                          removed -> removed.deObserve(obj));
-                                                                              });
+    Setable<Mutable, Set<? extends Observer<?>>>                   D_OBSERVERS                = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
+                                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                           //
+                                                                                                          added -> added.trigger(obj),                                                                     //
+                                                                                                          removed -> removed.deObserve(obj));
+                                                                                              });
 
-    Observer<Mutable>                                     D_OBSERVERS_RULE    = Observer.of(D_OBSERVERS, m -> {
-                                                                                  D_OBSERVERS.set(m, m.dObservers().toSet());
-                                                                              }, Priority.preDepth);
+    Observer<Mutable>                                              D_OBSERVERS_RULE           = Observer.of(D_OBSERVERS, m -> {
+                                                                                                  D_OBSERVERS.set(m, m.dObservers().toSet());
+                                                                                              }, Priority.preDepth);
+
+    @SuppressWarnings("rawtypes")
+    Constant<Set<? extends Setable<?, ?>>, Set<? extends Setable>> D_CONSTANT_CONTAINERS      = Constant.of("D_CONSTANT_CONTAINERS", s -> s.filter(c -> c instanceof Constant && c.containment()).toSet());
+
+    @SuppressWarnings("unchecked")
+    Observer<Mutable>                                              D_CONSTANT_CONTAINERS_RULE = Observer.of(D_CONSTANT_CONTAINERS, m -> {
+                                                                                                  D_CONSTANT_CONTAINERS.get(m.dContainers().toSet()).forEach(c -> c.get(m));
+                                                                                              }, Priority.preDepth);
 
     default Mutable dParent() {
         Pair<Mutable, Setable<Mutable, ?>> p = D_PARENT_CONTAINING.get(this);
@@ -65,6 +67,7 @@ public interface Mutable extends TransactionClass {
 
     default void dActivate() {
         D_OBSERVERS_RULE.trigger(this);
+        D_CONSTANT_CONTAINERS_RULE.trigger(this);
     }
 
     default void dDeactivate() {
@@ -77,8 +80,11 @@ public interface Mutable extends TransactionClass {
 
     Collection<? extends Observer<?>> dObservers();
 
-    default Set<? extends Mutable> dChildren() {
-        return D_CHILDREN.get(this);
+    Collection<? extends Setable<? extends Mutable, ?>> dContainers();
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default Collection<? extends Mutable> dChildren() {
+        return dContainers().flatMap(c -> (Collection<? extends Mutable>) ((Setable) c).getCollection(this));
     }
 
     @Override

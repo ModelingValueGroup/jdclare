@@ -49,7 +49,7 @@ public class TransactionsTests {
         Observed<DUniverse, DObject> child = Observed.of("child", null, true);
         Observed<DObject, Integer> source = Observed.of("source", 0);
         Setable<DObject, Integer> target = Setable.of("target", 0);
-        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", child));
         DClass dClass = DClass.of("Object", Observer.of("observer", o -> target.set(o, source.get(o))));
         DObject object = DObject.of("object", dClass);
         UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);
@@ -68,7 +68,7 @@ public class TransactionsTests {
         Observed<DUniverse, Long> currentTime = Observed.of("time", System.currentTimeMillis());
         long begin = System.currentTimeMillis();
         Observed<DUniverse, Set<DObject>> children = Observed.of("children", Set.of(), true);
-        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", children));
         UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL, 100, r -> currentTime.set(universe, System.currentTimeMillis()));
         DClass dClass = DClass.of("Object", Observer.of("observer", o -> {
             long time = currentTime.get(universe);
@@ -97,7 +97,7 @@ public class TransactionsTests {
         Observed<DObject, Integer> number = Observed.of("number", 0);
         Observed<DObject, Integer> total = Observed.of("total", 0);
         int length = 30;
-        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", children));
         UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);
         DClass dClass = DClass.of("Object", Observer.of("observer", o -> {
             int i = (int) o.id();
@@ -127,7 +127,7 @@ public class TransactionsTests {
         Observed<DObject, DObject> next = Observed.of("next", null);
         Observed<DObject, DObject> previous = Observed.of("previous", null, next);
         int length = 30;
-        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", children));
         UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);
         DClass dClass = DClass.of("Object");
         universeTransaction.put("backwards", () -> {
@@ -156,7 +156,7 @@ public class TransactionsTests {
         Observed<DObject, Set<DObject>> children = Observed.of("children", Set.of(), true);
         Observed<DObject, String> name = Observed.of("name", null);
         Observed<DObject, String> qualifiedName = Observed.of("qualifiedName", null);
-        DClass dClass = DClass.of("Object", //
+        DClass dClass = DClass.of("Object", children, //
                 Observer.of("qualifiedName", o -> qualifiedName.set(o, qualifiedName.get(o.dParent(DObject.class)) + "." + name.get(o))), //
                 Observer.of("name", o -> name.set(o, (String) o.id())));
         DObject c1 = DObject.of("c1", dClass);
@@ -173,7 +173,7 @@ public class TransactionsTests {
         DObject ggc6 = DObject.of("ggc6", dClass);
         DObject ggc7 = DObject.of("ggc7", dClass);
         DObject ggc8 = DObject.of("ggc8", dClass);
-        DUniverse universe = DUniverse.of("universe", DClass.of("Universe"));
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", children));
         UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);
         universeTransaction.put("step1", () -> {
             qualifiedName.set(universe, "u");

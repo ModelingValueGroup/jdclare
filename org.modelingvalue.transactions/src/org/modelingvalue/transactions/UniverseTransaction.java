@@ -214,18 +214,17 @@ public class UniverseTransaction extends MutableTransaction {
 
     protected void clearOrphans(Universe universe) {
         LeafTransaction tx = LeafTransaction.getCurrent();
-        State state = tx.state();
-        preState().diff(state, o -> o instanceof Mutable, s -> s.equals(Mutable.D_PARENT_CONTAINING)).forEach(e0 -> {
+        preState().diff(tx.state(), o -> o instanceof Mutable, s -> s.equals(Mutable.D_PARENT_CONTAINING)).forEach(e0 -> {
             if (e0.getValue().get(Mutable.D_PARENT_CONTAINING).b() == null) {
-                clear(tx, state, (Mutable) e0.getKey());
+                clear(tx, (Mutable) e0.getKey());
             }
         });
     }
 
-    protected void clear(LeafTransaction tx, State state, Mutable orphan) {
+    protected void clear(LeafTransaction tx, Mutable orphan) {
         tx.clear(orphan);
-        for (Mutable child : state.get(orphan, Mutable.D_CHILDREN)) {
-            clear(tx, state, child);
+        for (Mutable child : orphan.dChildren()) {
+            clear(tx, child);
         }
     }
 

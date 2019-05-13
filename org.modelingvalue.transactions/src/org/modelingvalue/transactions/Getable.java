@@ -77,9 +77,10 @@ public abstract class Getable<O, T> {
         return current;
     }
 
-    public Collection<?> getCollection(O object) {
+    @SuppressWarnings("unchecked")
+    public <E> Collection<E> getCollection(O object) {
         T v = get(object);
-        return v instanceof Collection ? (Collection<?>) v : v == null ? Set.of() : Set.of(v);
+        return v instanceof Collection ? (Collection<E>) v : v instanceof Iterable ? Collection.of((Iterable<E>) v) : v == null ? Set.of() : Set.of((E) v);
     }
 
 }

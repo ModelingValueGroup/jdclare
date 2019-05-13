@@ -13,27 +13,55 @@
 
 package org.modelingvalue.transactions.test;
 
+import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.transactions.Observer;
+import org.modelingvalue.transactions.Setable;
 
 public class DClass {
 
     @SafeVarargs
-    static DClass of(Object id, Observer<DObject>... observers) {
-        return new DClass(id, Set.of(observers));
+    static DClass of(Object id, Observer<? extends DObject>... observers) {
+        return new DClass(id, Set.of(), Set.of(observers));
     }
 
-    private final Object                     id;
-    private final Set<? extends Observer<?>> observers;
+    @SafeVarargs
+    static DClass of(Object id, Setable<? extends DObject, ?> container0, Observer<? extends DObject>... observers) {
+        return new DClass(id, Set.of(container0), Set.of(observers));
+    }
 
-    protected DClass(Object id, Set<? extends Observer<?>> observers) {
+    @SafeVarargs
+    static DClass of(Object id, Setable<? extends DObject, ?> container0, Setable<? extends DObject, ?> container1, Observer<? extends DObject>... observers) {
+        return new DClass(id, Set.of(container0, container1), Set.of(observers));
+    }
+
+    @SafeVarargs
+    static DClass of(Object id, Setable<? extends DObject, ?> container0, Setable<? extends DObject, ?> container1, Setable<? extends DObject, ?> container2, Observer<? extends DObject>... observers) {
+        return new DClass(id, Set.of(container0, container1, container2), Set.of(observers));
+    }
+
+    @SafeVarargs
+    static DClass of(Object id, Setable<? extends DObject, ?> container0, Setable<? extends DObject, ?> container1, Setable<? extends DObject, ?> container2, Setable<? extends DObject, ?> container3, Observer<? extends DObject>... observers) {
+        return new DClass(id, Set.of(container0, container1, container2, container3), Set.of(observers));
+    }
+
+    private final Object                       id;
+    private final Set<? extends Observer<?>>   observers;
+    private final Set<? extends Setable<?, ?>> containers;
+
+    protected DClass(Object id, Set<? extends Setable<?, ?>> containers, Set<? extends Observer<?>> observers) {
         this.id = id;
+        this.containers = containers;
         this.observers = observers;
     }
 
     public Set<? extends Observer<?>> dObservers() {
         return observers;
+    }
+
+    public Collection<? extends Setable<?, ?>> dContainers() {
+        return containers;
     }
 
     @Override
