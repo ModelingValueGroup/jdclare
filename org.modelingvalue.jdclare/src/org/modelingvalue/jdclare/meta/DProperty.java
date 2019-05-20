@@ -21,6 +21,7 @@ import java.util.function.Function;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.jdclare.Abstract;
 import org.modelingvalue.jdclare.DClare;
+import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct;
@@ -28,7 +29,13 @@ import org.modelingvalue.jdclare.Default;
 import org.modelingvalue.jdclare.Property;
 
 @Abstract
-public interface DProperty<O extends DStruct, V> extends DFeature<O, V> {
+public interface DProperty<O extends DStruct, V> extends DNamed {
+
+    @Default
+    @Property
+    default boolean isAbstract() {
+        return false;
+    }
 
     @Property
     boolean key();
@@ -68,6 +75,10 @@ public interface DProperty<O extends DStruct, V> extends DFeature<O, V> {
 
     @SuppressWarnings("rawtypes")
     @Property
+    Class type();
+
+    @SuppressWarnings("rawtypes")
+    @Property
     Class elementClass();
 
     @SuppressWarnings("rawtypes")
@@ -83,7 +94,6 @@ public interface DProperty<O extends DStruct, V> extends DFeature<O, V> {
         return true;
     }
 
-    @Override
     default V get(O object) {
         return DClare.get(object, this);
     }

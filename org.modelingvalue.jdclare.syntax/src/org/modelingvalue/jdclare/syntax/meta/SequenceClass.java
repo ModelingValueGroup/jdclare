@@ -32,7 +32,7 @@ public interface SequenceClass<T extends Node> extends NodeClass<T>, SequenceTyp
             while (elements.anyMatch(e -> e.nr() == nr[0] * SyntaxProperty.STEP_SIZE)) {
                 nr[0]++;
             }
-            elements = elements.add(dclare(SequenceElement.class, SyntaxProperty.STEP_SIZE * nr[0]++, (NodeClass<?>) dClass(cls), true, false, null));
+            elements = elements.add(dclare(SequenceElement.class, SyntaxProperty.STEP_SIZE * nr[0]++, (NodeClass<?>) DClare.dClass(cls), true, false, null));
         }
         return elements.sorted((a, b) -> Integer.compare(a.nr(), b.nr())).toList();
     }

@@ -15,38 +15,28 @@ package org.modelingvalue.jdclare.meta;
 
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
-import org.modelingvalue.collections.Map;
+import java.util.function.Consumer;
+
 import org.modelingvalue.jdclare.Abstract;
-import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.expressions.DStatement;
-import org.modelingvalue.transactions.AbstractLeaf;
 import org.modelingvalue.transactions.Direction;
+import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Priority;
-import org.modelingvalue.transactions.Rule;
-import org.modelingvalue.transactions.StopObserverException;
 
 @Abstract
 public interface DRule<O extends DObject> extends DNamed {
 
-    @Property(containment)
-    DStatement<O> statement();
-
     @Property
+    Consumer<O> consumer();
+
+    @Property(constant)
     Direction initDirection();
 
-    @SuppressWarnings("unchecked")
     @Property(constant)
-    default Rule rule() {
-        return Rule.of(this, o -> {
-            if (AbstractLeaf.getCurrent().parent().equals(DClare.TRANSACTION.get((O) o))) {
-                statement().run((O) o, Map.of());
-            } else {
-                throw new StopObserverException("Transaction not Current");
-            }
-        }, initDirection(), Priority.postDepth);
+    default Observer<O> observer() {
+        return Observer.of(this, o -> consumer().accept(o), initDirection(), Priority.postDepth);
     }
 
     @Property

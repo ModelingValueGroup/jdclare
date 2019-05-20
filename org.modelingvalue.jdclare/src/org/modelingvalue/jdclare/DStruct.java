@@ -18,10 +18,9 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles.Lookup;
 
-import org.modelingvalue.jdclare.java.JStructClass;
 import org.modelingvalue.jdclare.meta.DStructClass;
 
-@Extend(JStructClass.class)
+@Extend(DStructClass.class)
 public interface DStruct extends Comparable<DStruct>, Serializable {
 
     int getKeySize();

@@ -22,6 +22,6 @@ import org.modelingvalue.jdclare.Property;
 public interface DClassContainer extends DNamed {
 
     @Property(containment)
-    Set<DClass<?>> classes();
+    Set<DStructClass<?>> classes();
 
 }

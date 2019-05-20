@@ -22,15 +22,14 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.java.FStatement;
-import org.modelingvalue.jdclare.java.JObjectClass;
+import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.syntax.ObjectNode;
 import org.modelingvalue.jdclare.syntax.parser.ElementParser;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 import org.modelingvalue.jdclare.syntax.parser.SequenceParser;
 
-public interface ObjectNodeClass<T extends ObjectNode> extends JObjectClass<T>, NodeClass<T> {
+public interface ObjectNodeClass<T extends ObjectNode> extends DClass<T>, NodeClass<T> {
 
     @Override
     default T create(NodeParser nodeParser, Set<DProblem>[] problems) {
@@ -41,7 +40,7 @@ public interface ObjectNodeClass<T extends ObjectNode> extends JObjectClass<T>, 
     @Override
     @Property(constant)
     default Set<DRule<T>> rules() {
-        Set<DRule<T>> rules = JObjectClass.super.rules();
+        Set<DRule<T>> rules = DClass.super.rules();
         if (this instanceof ObjectSequenceClass) {
             int i = 0;
             for (SequenceElement se : ((ObjectSequenceClass<T>) this).sequenceElements()) {
@@ -62,12 +61,12 @@ public interface ObjectNodeClass<T extends ObjectNode> extends JObjectClass<T>, 
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default SyntaxPropertyRule<T> syntaxRule(SyntaxProperty property, int i) {
-        return dclare(SyntaxPropertyRule.class, property, set(SyntaxPropertyRule::statement, dclare(FStatement.class, property.name(), id((Consumer<T>) o -> {
+        return dclare(SyntaxPropertyRule.class, property, set(SyntaxPropertyRule::consumer, id((Consumer<T>) o -> {
             NodeParser nodeParser = o.sParserNode();
             ElementParser elementParser = nodeParser instanceof SequenceParser ? ((SequenceParser) nodeParser).sequenceElementParsers().get(i) : (ElementParser) nodeParser;
             Set<DProblem> problems = property.transform(elementParser, v -> property.set(o, v), o);
             set(o, DObject::dProblemsMap, (m, p) -> m.put(property, p), problems);
-        }, property))));
+        }, property)));
     }
 
 }

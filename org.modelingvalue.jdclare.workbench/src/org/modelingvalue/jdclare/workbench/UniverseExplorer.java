@@ -35,16 +35,15 @@ import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.Rule;
-import org.modelingvalue.jdclare.meta.DObjectClass;
+import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DProperty;
+import org.modelingvalue.jdclare.meta.DStructClass;
 import org.modelingvalue.jdclare.swing.DTreeNode;
 import org.modelingvalue.jdclare.swing.MenuItem;
 import org.modelingvalue.jdclare.swing.PopupMenu;
 import org.modelingvalue.jdclare.swing.Tree;
 import org.modelingvalue.jdclare.swing.draw2d.D2D;
 import org.modelingvalue.jdclare.syntax.Token;
-import org.modelingvalue.jdclare.types.DClassReference;
-import org.modelingvalue.jdclare.types.DType;
 
 @SuppressWarnings("rawtypes")
 public interface UniverseExplorer extends Tree, DStruct1<WBUniverse> {
@@ -60,7 +59,7 @@ public interface UniverseExplorer extends Tree, DStruct1<WBUniverse> {
         @Override
         default Collection<DTreeNode> children(DObject object) {
             return object//
-                    .dObjectClass()//
+                    .dClass()//
                     .allContainments()//
                     .filter(c -> c.visible())//
                     .sorted()//
@@ -157,11 +156,11 @@ public interface UniverseExplorer extends Tree, DStruct1<WBUniverse> {
         default List<MenuItem> items() {
             DProperty prop = node().object();
             if (prop.many()) {
-                DType et = prop.type().elementType();
-                if (et instanceof DClassReference && ((DClassReference) et).referenced() instanceof DObjectClass) {
+                DStructClass<?> ec = DClare.dClass((Class) prop.elementClass());
+                if (ec instanceof DClass) {
+                    DClass cls = (DClass) ec;
                     DObject parent = (DObject) node().parent().object();
-                    DObjectClass cls = (DObjectClass) ((DClassReference) et).referenced();
-                    return ((Set<DObjectClass<?>>) cls.allSubs())//
+                    return ((Set<DClass<?>>) cls.allSubs())//
                             .filter(c -> !c.isAbstract() && c.keys().size() == 0)//
                             .map(c -> {
                                 Consumer<ActionEvent> action = id(e -> dClare().put(new Object(), () -> {

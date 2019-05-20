@@ -27,7 +27,7 @@ public interface Grammar extends DObject {
     @SuppressWarnings("unchecked")
     @Property({constant, hidden})
     default <T extends Grammar> GrammarClass<T> sSyntaxClass() {
-        return (GrammarClass<T>) (DStruct) dObjectClass();
+        return (GrammarClass<T>) (DStruct) dClass();
     }
 
 }

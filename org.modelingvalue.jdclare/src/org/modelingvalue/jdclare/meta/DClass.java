@@ -15,77 +15,70 @@ package org.modelingvalue.jdclare.meta;
 
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
-import java.util.function.Function;
+import java.lang.reflect.Method;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.jdclare.Abstract;
-import org.modelingvalue.jdclare.Constraints;
 import org.modelingvalue.jdclare.DClare;
+import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.types.DClassReference;
 
-@Abstract
-public interface DClass<T> extends DGeneric, DClassContainer {
-
-    @SuppressWarnings("rawtypes")
-    @Constraints
-    private void metaRelations() {
-        DClare.<DClass, DClass, Object, Object> OPPOSITE(DClass::allSupers, DClass::allSubs);
-    }
-
-    @Property
-    Set<DClassReference> supers();
-
-    @SuppressWarnings("rawtypes")
-    @Property
-    default Set<DClass> allSupers() {
-        return Collection.concat(this, supers().map(DClassReference::referenced).flatMap(DClass::allSupers)).toSet();
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Property
-    default List<DClass> sortedSupers() {
-        return allSupers().sorted((a, b) -> a.equals(b) ? 0 : a.isSubOf(b) ? -1 : a.isSuperOf(b) ? 1 : 0).toList();
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Property
-    Set<DClass> allSubs();
-
-    @SuppressWarnings("rawtypes")
-    default boolean isSubOf(DClass sup) {
-        return allSupers().contains(sup);
-    }
-
-    @SuppressWarnings("rawtypes")
-    default boolean isSuperOf(DClass sub) {
-        return allSubs().contains(sub);
-    }
-
-    @Property(containment)
-    Set<DFunction<T, ?>> functions();
-
-    @Property(containment)
-    Set<DConstraint<T>> constraints();
+public interface DClass<T extends DObject> extends DStructClass<T> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Property
-    default Set<DFunction<T, ?>> allFunctions() {
-        return allSupers().flatMap((Function<DClass, Set<? extends DFunction<T, ?>>>) s -> s.functions()).toSet();
+    default Set<DRule> allRules() {
+        return allSupers().filter(DClass.class).<DRule> flatMap(s -> s.rules()).toSet();
+    }
+
+    @Property
+    default Set<DProperty<T, ?>> allContainments() {
+        return allProperties().filter(DProperty::containment).toSet();
+    }
+
+    @Property
+    default Set<DProperty<T, ?>> allConstantContainments() {
+        return allContainments().filter(DProperty::constant).toSet();
+    }
+
+    @Property
+    default Set<DProperty<T, ?>> allValidations() {
+        return allProperties().filter(DProperty::validation).toSet();
+    }
+
+    @Property
+    default Set<DProperty<T, ?>> allNonContainments() {
+        return allProperties().filter(p -> !p.containment()).toSet();
+    }
+
+    @Property
+    default Map<DProperty<T, ?>, DProperty<T, Collection<?>>> scopedProperties() {
+        return allProperties().map(p -> {
+            DProperty<T, Collection<?>> scope = p.scopeProperty();
+            return scope != null ? Entry.<DProperty<T, ?>, DProperty<T, Collection<?>>> of(p, scope) : null;
+        }).notNull().toMap(e -> e);
+    }
+
+    @Property
+    default Set<DProperty<T, ?>> mandatoryProperties() {
+        return allProperties().filter(p -> !p.constant() && p.mandatory() && //
+                (p.defaultValue() == null || p.defaultValue() instanceof ContainingCollection)).toSet();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    @Property
-    default Set<DConstraint<T>> allConstraints() {
-        return allSupers().flatMap((Function<DClass, Set<? extends DConstraint<T>>>) s -> s.constraints()).toSet();
+    @Property({constant, containment})
+    default Set<DRule<T>> rules() {
+        Set<DRule<T>> rules = Set.of();
+        for (Method method : jClass().getDeclaredMethods()) {
+            DMethodRule r = DClare.RULE.get(method);
+            if (r != null) {
+                rules = rules.add(r);
+            }
+        }
+        return rules;
     }
-
-    @Property
-    Class<T> jClass();
-
-    @Property
-    boolean isAbstract();
 
 }

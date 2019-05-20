@@ -25,7 +25,7 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.DSeverity;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.java.JProperty;
+import org.modelingvalue.jdclare.meta.DMethodProperty;
 import org.modelingvalue.jdclare.syntax.Node;
 import org.modelingvalue.jdclare.syntax.StructNode;
 import org.modelingvalue.jdclare.syntax.Syntax;
@@ -33,7 +33,7 @@ import org.modelingvalue.jdclare.syntax.parser.ElementParser;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 import org.modelingvalue.jdclare.syntax.parser.SequenceParser;
 
-public interface SyntaxProperty<O extends Node, V> extends JProperty<O, V> {
+public interface SyntaxProperty<O extends Node, V> extends DMethodProperty<O, V> {
 
     int STEP_SIZE = 2;
 
@@ -41,7 +41,7 @@ public interface SyntaxProperty<O extends Node, V> extends JProperty<O, V> {
     @Property(constant)
     default NodeClass<?> nodeClass() {
         Class<? extends Node> cls = (Class) method().getDeclaringClass();
-        return cls != null ? (NodeClass) dClass(cls) : null;
+        return cls != null ? (NodeClass) DClare.dClass(cls) : null;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -49,7 +49,7 @@ public interface SyntaxProperty<O extends Node, V> extends JProperty<O, V> {
     default NodeClass<?> nodeType() {
         if (nodeClass() instanceof SequenceClass) {
             Class<? extends Node> type = DClare.ann(method(), Syntax.class).type();
-            return (NodeClass) dClass(type != Node.class ? type : elementClass());
+            return (NodeClass) DClare.dClass(type != Node.class ? type : elementClass());
         } else {
             return nodeClass();
         }
@@ -100,11 +100,11 @@ public interface SyntaxProperty<O extends Node, V> extends JProperty<O, V> {
                 int nr = 0;
                 List<SequenceElement> elements = List.of();
                 for (int i = 0; i < prefix.length; i++) {
-                    elements = elements.add(dclare(SequenceElement.class, nr++, (NodeClass<?>) dClass(prefix[i]), true, false, null));
+                    elements = elements.add(dclare(SequenceElement.class, nr++, (NodeClass<?>) DClare.dClass(prefix[i]), true, false, null));
                 }
                 elements = elements.add(dclare(SequenceElement.class, nr++, nodeType(), true, false, null));
                 for (int i = 0; i < postfix.length; i++) {
-                    elements = elements.add(dclare(SequenceElement.class, nr++, (NodeClass<?>) dClass(postfix[i]), true, false, null));
+                    elements = elements.add(dclare(SequenceElement.class, nr++, (NodeClass<?>) DClare.dClass(postfix[i]), true, false, null));
                 }
                 return dclare(AnonymousSequenceType.class, syntax(), this, elements);
             }
@@ -121,7 +121,7 @@ public interface SyntaxProperty<O extends Node, V> extends JProperty<O, V> {
                 List<SequenceElement> elements = List.of();
                 int nr = 0;
                 for (int i = 0; i < separators.length; i++) {
-                    elements = elements.add(dclare(SequenceElement.class, nr++, (NodeClass<?>) dClass(separators[i]), true, false, null));
+                    elements = elements.add(dclare(SequenceElement.class, nr++, (NodeClass<?>) DClare.dClass(separators[i]), true, false, null));
                 }
                 elements = elements.add(dclare(SequenceElement.class, nr++, elementType(), true, false, null));
                 return dclare(AnonymousSequenceType.class, syntax(), this, elements);

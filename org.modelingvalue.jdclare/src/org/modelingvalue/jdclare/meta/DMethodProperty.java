@@ -11,7 +11,7 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.jdclare.java;
+package org.modelingvalue.jdclare.meta;
 
 import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
@@ -30,25 +30,14 @@ import org.modelingvalue.jdclare.DStruct;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.meta.DOppositeProperty;
-import org.modelingvalue.jdclare.meta.DProperty;
-import org.modelingvalue.jdclare.meta.DStructClass;
-import org.modelingvalue.jdclare.types.DType;
-import org.modelingvalue.transactions.AbstractLeaf;
 import org.modelingvalue.transactions.Action;
-import org.modelingvalue.transactions.Leaf;
+import org.modelingvalue.transactions.LeafTransaction;
 import org.modelingvalue.transactions.State;
 
-public interface JProperty<O extends DStruct, T> extends DProperty<O, T>, DStruct1<Method> {
+public interface DMethodProperty<O extends DStruct, T> extends DProperty<O, T>, DStruct1<Method> {
 
     @Property(key = 0)
     Method method();
-
-    @Override
-    @Property(constant)
-    default DType type() {
-        return dType(method().getGenericReturnType());
-    }
 
     @Override
     @Property(constant)
@@ -61,6 +50,14 @@ public interface JProperty<O extends DStruct, T> extends DProperty<O, T>, DStruc
     default boolean containment() {
         Method method = method();
         return qual(method, containment);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    @Property(constant)
+    default Class type() {
+        Method method = method();
+        return DClare.rawClass(method.getGenericReturnType());
     }
 
     @SuppressWarnings("rawtypes")
@@ -111,10 +108,10 @@ public interface JProperty<O extends DStruct, T> extends DProperty<O, T>, DStruc
         }) : null;
         if (opposite != null) {
             return dProperty(opposite);
-        } else if (!D_CONTAINMENT_PROPERTY.equals(method) && !D_PARENT.equals(method) && !D_CHILDREN.equals(method) && !D_OBJECT_CLASS.equals(method) && //
-                !containment() && !constant() && DObject.class.isAssignableFrom(objectClass()) && DObject.class.isAssignableFrom(elementClass())) {
+        } else if (!D_OBJECT_CLASS.equals(method) && !containment() && !constant() && //
+                DObject.class.isAssignableFrom(objectClass()) && DObject.class.isAssignableFrom(elementClass())) {
             DOppositeProperty<?, ?> oppos = dclare(DOppositeProperty.class, this);
-            Leaf.of(Action.of(Pair.of(this, "setOpposite"), o -> DClare.set(this, DProperty::containedOpposite, oppos)), AbstractLeaf.getCurrent().parent()).trigger();
+            Action.of(Pair.of(this, "setOpposite"), o -> DClare.set(this, DProperty::containedOpposite, oppos)).trigger(LeafTransaction.getCurrent().parent().mutable());
             return oppos;
         } else {
             return null;

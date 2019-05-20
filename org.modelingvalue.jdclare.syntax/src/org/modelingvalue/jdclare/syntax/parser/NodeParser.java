@@ -29,7 +29,7 @@ import org.modelingvalue.jdclare.syntax.meta.NodeType;
 public interface NodeParser extends DObject {
 
     default boolean match(NodeParser synt) {
-        return synt.dObjectClass().equals(dObjectClass());
+        return synt.dClass().equals(dClass());
     }
 
     @Property(constant)

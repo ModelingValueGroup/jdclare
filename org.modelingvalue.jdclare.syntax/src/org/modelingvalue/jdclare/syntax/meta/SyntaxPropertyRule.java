@@ -15,9 +15,10 @@ package org.modelingvalue.jdclare.syntax.meta;
 
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
+import java.util.function.Consumer;
+
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.expressions.DStatement;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.syntax.ObjectNode;
 import org.modelingvalue.transactions.Direction;
@@ -29,7 +30,7 @@ public interface SyntaxPropertyRule<O extends ObjectNode> extends DRule<O>, DStr
 
     @Override
     @Property(constant)
-    DStatement<O> statement();
+    Consumer<O> consumer();
 
     @Override
     @Property(constant)

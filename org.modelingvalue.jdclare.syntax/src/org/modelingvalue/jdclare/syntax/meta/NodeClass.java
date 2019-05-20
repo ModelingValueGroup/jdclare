@@ -13,31 +13,31 @@
 
 package org.modelingvalue.jdclare.syntax.meta;
 
-import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.java.JStructClass;
+import org.modelingvalue.jdclare.meta.DStructClass;
 import org.modelingvalue.jdclare.syntax.Node;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 
-public interface NodeClass<T extends Node> extends JStructClass<T>, NodeType {
+public interface NodeClass<T extends Node> extends DStructClass<T>, NodeType {
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     @Property(constant)
     default GrammarClass<?> grammar() {
-        return (GrammarClass) dClass(jClass().getDeclaringClass());
+        return (GrammarClass) DClare.dClass((Class) jClass().getDeclaringClass());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Property(constant)
     default Set<NodeType> options() {
         Class cls = jClass();
-        return Collection.of(cls.getDeclaringClass().getClasses()).filter(c -> cls.isAssignableFrom(c)).map(c -> (NodeType) dClass(c)).//
+        return Collection.of(cls.getDeclaringClass().getClasses()).filter(c -> cls.isAssignableFrom(c)).map(c -> (NodeType) DClare.dClass(c)).//
                 filter(c -> c instanceof TerminalClass || c instanceof SequenceType).toSet();
     }
 

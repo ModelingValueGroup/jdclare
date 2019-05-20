@@ -25,8 +25,6 @@ import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.swing.Table;
-import org.modelingvalue.jdclare.types.DClassReference;
-import org.modelingvalue.jdclare.types.DType;
 
 public interface PropertiesTable extends Table<DProperty<DObject, ?>, PropertiesTableColumn, Object>, DStruct1<WBUniverse> {
 
@@ -36,7 +34,7 @@ public interface PropertiesTable extends Table<DProperty<DObject, ?>, Properties
     @Override
     default List<DProperty<DObject, ?>> rowObjects() {
         DObject object = object();
-        return object == null ? List.of() : object.dObjectClass().allNonContainments().//
+        return object == null ? List.of() : object.dClass().allNonContainments().//
                 filter(DProperty::visible).sorted().toList();
     }
 
@@ -83,8 +81,7 @@ public interface PropertiesTable extends Table<DProperty<DObject, ?>, Properties
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     default Class type(DProperty<DObject, ?> p, PropertiesTableColumn ct) {
-        DType type = p.type();
-        return type instanceof DClassReference ? ((DClassReference) type).referenced().jClass() : null;
+        return p.type();
     }
 
     @Property(optional)

@@ -26,7 +26,7 @@ import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.DStruct3;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.meta.DClass;
+import org.modelingvalue.jdclare.meta.DStructClass;
 import org.modelingvalue.jdclare.swing.draw2d.DCanvas;
 import org.modelingvalue.jdclare.swing.draw2d.DDimension;
 import org.modelingvalue.jdclare.swing.draw2d.DLine;
@@ -65,9 +65,9 @@ public interface DiagramCanvas extends DStruct1<WBUniverse>, DCanvas {
     @Property
     default Set<ClassRectangle> classes() {
         DObject sel = wb().selected();
-        if (sel instanceof DClass) {
-            Set<DClass> all = ((DClass) sel).allSubs();
-            all = all.addAll(all.flatMap(DClass::allSupers));
+        if (sel instanceof DStructClass) {
+            Set<DStructClass> all = ((DStructClass) sel).allSubs();
+            all = all.addAll(all.flatMap(DStructClass::allSupers));
             return all.map(c -> dclare(ClassRectangle.class, this, c)).toSet();
         } else {
             return Set.of();
@@ -124,13 +124,13 @@ public interface DiagramCanvas extends DStruct1<WBUniverse>, DCanvas {
 
     }
 
-    interface ClassRectangle extends DStruct2<DiagramCanvas, DClass<?>>, DRectangle {
+    interface ClassRectangle extends DStruct2<DiagramCanvas, DStructClass<?>>, DRectangle {
 
         @Property(key = 0)
         DiagramCanvas diagram();
 
         @Property(key = 1)
-        DClass<?> cls();
+        DStructClass<?> cls();
 
         @Override
         default String text() {
@@ -149,7 +149,7 @@ public interface DiagramCanvas extends DStruct1<WBUniverse>, DCanvas {
 
         @Property
         default Set<ClassRectangle> supers() {
-            return cls().supers().map(s -> dclare(ClassRectangle.class, diagram(), s.referenced())).toSet();
+            return cls().supers().map(s -> dclare(ClassRectangle.class, diagram(), s)).toSet();
         }
 
         @Property

@@ -28,7 +28,6 @@ import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct;
 import org.modelingvalue.jdclare.DUniverse;
-import org.modelingvalue.jdclare.meta.DTyped;
 import org.modelingvalue.jdclare.test.PrioUniverse.Prio;
 import org.modelingvalue.transactions.State;
 
@@ -121,10 +120,8 @@ public class JDclareTests {
     private void check(State result) {
         assertEquals("No Parent:", Set.of(), result.getObjects(DObject.class).filter(o -> !(o instanceof DUniverse) && o.dParent() == null).toSet());
         assertEquals("No dStructType:", Set.of(), result.getObjects(DStruct.class).filter(o -> o.dStructClass() == null).toSet());
-        assertEquals("No dClass:", Set.of(), result.getObjects(DObject.class).filter(o -> o.dObjectClass() == null).toSet());
+        assertEquals("No dClass:", Set.of(), result.getObjects(DObject.class).filter(o -> o.dClass() == null).toSet());
         assertEquals("No name:", Set.of(), result.getObjects(DNamed.class).filter(o -> o.name() == null).toSet());
-        assertEquals("No type:", Set.of(), result.getObjects(DTyped.class).filter(o -> o.type() == null).toSet());
-        assertEquals("No Transaction:", Set.of(), result.getObjects(DObject.class).filter(o -> DClare.TRANSACTION.get(o) == null).toSet());
         assertEquals("Problems", Set.of(), result.getObjects(DUniverse.class).flatMap(t -> t.dAllProblems()).toSet());
     }
 
@@ -187,7 +184,7 @@ public class JDclareTests {
         Set<Prio> prios = result.getObjects(Prio.class).toSet();
         assertEquals("Unexpected Priorities: " + prios, 3, prios.size());
         prios.forEach(p -> {
-            String target = p.dObjectClass().name();
+            String target = p.dClass().name();
             target = target.substring(target.length() - 1);
             assertEquals(target, p.x());
             assertEquals(target, p.y());

@@ -13,8 +13,19 @@
 
 package org.modelingvalue.jdclare.meta;
 
-import org.modelingvalue.jdclare.DNamed;
+import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
-public interface DPackage extends DNamed, DPackageContainer, DClassContainer {
+import org.modelingvalue.jdclare.DNamed;
+import org.modelingvalue.jdclare.DStruct2;
+import org.modelingvalue.jdclare.Property;
+
+public interface DPackage extends DNamed, DPackageContainer, DClassContainer, DStruct2<DPackageContainer, String> {
+
+    @Property(key = 0)
+    DPackageContainer parent();
+
+    @Override
+    @Property(value = visible, key = 1)
+    String name();
 
 }

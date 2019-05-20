@@ -23,7 +23,7 @@ public enum PropertiesTableColumn {
 
     property((o, p) -> p.name(), 20),
 
-    value((o, p) -> o.dObjectClass().allNonContainments().contains(p) ? StringUtil.toString(p.get(o)) : "null", 80);
+    value((o, p) -> o.dClass().allNonContainments().contains(p) ? StringUtil.toString(p.get(o)) : "null", 80);
 
     private final BiFunction<DObject, DProperty<DObject, ?>, Object> function;
     private final int                                                width;

@@ -17,8 +17,9 @@ import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.jdclare.meta.DPackageContainer;
+import org.modelingvalue.transactions.Universe;
 
-public interface DUniverse extends DPackageContainer, DStruct0 {
+public interface DUniverse extends DPackageContainer, DStruct0, Universe {
 
     @Default
     @Property(hidden)
@@ -45,9 +46,5 @@ public interface DUniverse extends DPackageContainer, DStruct0 {
 
     @Property(hidden)
     boolean stop();
-
-    default void init() {
-        // dClare().addAugmentation(JavaOperators.class, Math.class);
-    }
 
 }

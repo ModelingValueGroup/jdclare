@@ -13,34 +13,22 @@
 
 package org.modelingvalue.jdclare.meta;
 
-import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.types.DClassReference;
-import org.modelingvalue.jdclare.types.DType;
 
 public interface DOppositeProperty<O extends DObject, E extends DObject> extends DProperty<O, Set<E>>, DStruct1<DProperty<E, ?>> {
 
     @Override
     @Property(key = 0)
     DProperty<E, ?> opposite();
-
-    @SuppressWarnings("unchecked")
-    @Override
-    @Property(constant)
-    default DType type() {
-        return dclare(DClassReference.class, dClass(Set.class), //
-                List.of(dclare(DClassReference.class, dClass(opposite().objectClass()), List.of())));
-    }
 
     @Override
     @Property(constant)

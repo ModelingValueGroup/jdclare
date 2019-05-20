@@ -17,6 +17,7 @@ import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.DSeverity;
@@ -38,13 +39,13 @@ public interface Text<S extends Grammar, R extends Node> extends DObject {
 
     @Property(constant)
     default NodeClass<R> rootNodeClass() {
-        return (NodeClass<R>) dClass(rootClass());
+        return (NodeClass<R>) DClare.dClass(rootClass());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Property(constant)
     default GrammarClass<S> grammar() {
-        return (GrammarClass) dClass(syntaxClass());
+        return (GrammarClass) DClare.dClass(syntaxClass());
     }
 
     @SuppressWarnings("unchecked")

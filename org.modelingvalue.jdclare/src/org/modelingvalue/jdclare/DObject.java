@@ -26,45 +26,39 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.NonLockingPrintWriter;
 import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.jdclare.java.JObjectClass;
-import org.modelingvalue.jdclare.meta.DObjectClass;
+import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.meta.DStructClass;
-import org.modelingvalue.transactions.Contained;
 import org.modelingvalue.transactions.EmptyMandatoryException;
+import org.modelingvalue.transactions.Mutable;
 
-@Extend(JObjectClass.class)
-public interface DObject extends DStruct, Contained {
+@Extend(DClass.class)
+public interface DObject extends DStruct, Mutable {
 
     @Override
-    default Contained dContainer() {
-        return dParent();
+    @Property({optional, hidden})
+    default DObject dParent() {
+        return (DObject) Mutable.super.dParent();
     }
 
     @Property({optional, hidden})
-    DObject dParent();
-
-    @Property({optional, hidden})
-    DProperty<?, ?> dContainmentProperty();
-
-    @Property(hidden)
-    Set<DObject> dChildren();
+    default DProperty<?, ?> dContainmentProperty() {
+        return (DProperty<?, ?>) Mutable.super.dContaining().id();
+    }
 
     @SuppressWarnings("unchecked")
-    default <C extends DObject> C dAncestor(Class<C> cls) {
-        DObject parent = dParent();
-        while (parent != null && !cls.isInstance(parent)) {
-            parent = parent.dParent();
-        }
-        return (C) parent;
+    @Override
+    @Property(hidden)
+    default Set<DObject> dChildren() {
+        return (Set<DObject>) Mutable.super.dChildren();
     }
 
     @SuppressWarnings("unchecked")
     @Property({constant, hidden})
-    default <T extends DObject> DObjectClass<T> dObjectClass() {
+    default <T extends DObject> DClass<T> dClass() {
         DStructClass<DStruct> dStructClass = dStructClass();
-        return (DObjectClass<T>) (DStruct) dStructClass;
+        return (DClass<T>) (DStruct) dStructClass;
     }
 
     @Property(hidden)
@@ -73,7 +67,7 @@ public interface DObject extends DStruct, Contained {
     @SuppressWarnings("unchecked")
     @Property(hidden)
     default Set<DProblem> dProblems() {
-        return Collection.concat(dObjectClass().allValidations().flatMap(p -> (Collection<DProblem>) p.getCollection(this)), //
+        return Collection.concat(dClass().allValidations().flatMap(p -> (Collection<DProblem>) p.getCollection(this)), //
                 dProblemsMap().flatMap(e -> e.getValue())).toSet();
     }
 
@@ -115,8 +109,8 @@ public interface DObject extends DStruct, Contained {
 
     @SuppressWarnings("unchecked")
     default void dDump(PrintWriter writer, String prefix) {
-        writer.println(prefix + this + " (" + dObjectClass().name() + ") {");
-        DObjectClass<DObject> cls = dObjectClass();
+        writer.println(prefix + this + " (" + dClass().name() + ") {");
+        DClass<DObject> cls = dClass();
         if (cls != null) {
             for (DProperty<DObject, ?> p : cls.allNonContainments().sorted()) {
                 if (p.visible()) {
@@ -146,13 +140,13 @@ public interface DObject extends DStruct, Contained {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Property({containment, hidden})
     private Set<ScopeChecker> scopeCheckers() {
-        return dObjectClass().scopedProperties().map(p -> dclare(ScopeChecker.class, this, p.getKey(), p.getValue())).toSet();
+        return dClass().scopedProperties().map(p -> dclare(ScopeChecker.class, this, p.getKey(), p.getValue())).toSet();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Property({containment, hidden})
     private Set<MandatoryChecker> mandatoryCheckers() {
-        return dObjectClass().mandatoryProperties().map(p -> dclare(MandatoryChecker.class, this, p)).toSet();
+        return dClass().mandatoryProperties().map(p -> dclare(MandatoryChecker.class, this, p)).toSet();
     }
 
     interface ScopeChecker<T extends DObject> extends DObject, DStruct3<T, DProperty<T, ?>, DProperty<T, Collection<?>>> {

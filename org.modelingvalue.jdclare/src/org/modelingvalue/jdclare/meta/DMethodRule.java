@@ -11,40 +11,56 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.jdclare.java;
+package org.modelingvalue.jdclare.meta;
 
+import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
+import java.lang.reflect.Method;
+import java.util.function.Consumer;
+
+import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DObject;
-import org.modelingvalue.jdclare.DStruct2;
+import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.expressions.DEqualize;
-import org.modelingvalue.jdclare.expressions.DStatement;
-import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.transactions.Direction;
 
-public interface ORule<O extends DObject> extends DRule<O>, DStruct2<O, String> {
+public interface DMethodRule<O extends DObject, T> extends DRule<O>, DStruct1<Method> {
 
     @Property(key = 0)
-    O object();
-
-    @Property(key = 1)
-    String id();
-
-    @Override
-    @Property(constant)
-    DStatement<O> statement();
+    Method method();
 
     @Override
     @Property(constant)
     default String name() {
-        return object() + "::" + id();
+        Method method = method();
+        return method.getDeclaringClass().getSimpleName() + "::" + method.getName();
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    @Property(constant)
+    default Consumer<O> consumer() {
+        Method method = method();
+        if (method.getReturnType() == Void.TYPE) {
+            return o -> DClare.run(o, method);
+        } else {
+            DProperty p = DClare.dProperty(method);
+            return o -> p.set(o, DClare.run(o, method));
+        }
+    }
+
+    @Override
+    @Property(constant)
+    default boolean validation() {
+        Method method = method();
+        return qual(method, validation);
     }
 
     @Override
     @Property(constant)
     default Direction initDirection() {
-        return statement() instanceof DEqualize ? Direction.forward : Direction.backward;
+        return method().getReturnType() == Void.TYPE ? Direction.backward : Direction.forward;
     }
 
 }

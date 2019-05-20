@@ -20,13 +20,13 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.java.JObjectClass;
+import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.syntax.Grammar;
 import org.modelingvalue.jdclare.syntax.Node;
 import org.modelingvalue.jdclare.syntax.Skipped;
 import org.modelingvalue.jdclare.syntax.regex.DPattern;
 
-public interface GrammarClass<T extends Grammar> extends JObjectClass<T> {
+public interface GrammarClass<T extends Grammar> extends DClass<T> {
 
     @Property(constant)
     default DPattern newLinePattern() {
