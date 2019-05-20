@@ -244,7 +244,7 @@ public class UniverseTransaction extends MutableTransaction {
         put(Action.of(id, o -> action.run(), priority));
     }
 
-    private void put(Action<Universe> action) {
+    protected void put(Action<Universe> action) {
         try {
             inQueue.put(action);
         } catch (InterruptedException e) {
