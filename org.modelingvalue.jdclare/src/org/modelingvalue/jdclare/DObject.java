@@ -32,6 +32,8 @@ import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.meta.DStructClass;
 import org.modelingvalue.transactions.EmptyMandatoryException;
 import org.modelingvalue.transactions.Mutable;
+import org.modelingvalue.transactions.Observer;
+import org.modelingvalue.transactions.Setable;
 
 @Extend(DClass.class)
 public interface DObject extends DStruct, Mutable {
@@ -52,6 +54,17 @@ public interface DObject extends DStruct, Mutable {
     @Property(hidden)
     default Set<DObject> dChildren() {
         return (Set<DObject>) Mutable.super.dChildren();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    default Collection<? extends Observer<?>> dObservers() {
+        return (Collection<? extends Observer<?>>) Collection.concat(dClass().allRules(), dObjectRules()).map(DRule::observer);
+    }
+
+    @Override
+    default Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
+        return dClass().allContainments().map(DClare::setable);
     }
 
     @SuppressWarnings("unchecked")

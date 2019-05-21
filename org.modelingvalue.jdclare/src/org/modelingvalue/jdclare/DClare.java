@@ -59,10 +59,10 @@ import org.modelingvalue.collections.util.SerializableRunnable;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
+import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DClassContainer;
 import org.modelingvalue.jdclare.meta.DMethodProperty;
 import org.modelingvalue.jdclare.meta.DMethodRule;
-import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DObjectRule;
 import org.modelingvalue.jdclare.meta.DPackage;
 import org.modelingvalue.jdclare.meta.DPackageContainer;
@@ -613,7 +613,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return (T) Proxy.newProxyInstance(jClass1.getClassLoader(), new Class<?>[]{jClass1, jClass2}, new DStructHandler(key, jClass1));
     }
 
-    private static <O, V> Getable<O, V> getable(DProperty property) {
+    public static <O, V> Getable<O, V> getable(DProperty property) {
         return GETABLE.get(property);
     }
 
@@ -629,7 +629,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return (Setable<O, V>) getable(method);
     }
 
-    private static <O, V> Setable<O, V> setable(DProperty property) {
+    public static <O, V> Setable<O, V> setable(DProperty property) {
         return (Setable<O, V>) getable(property);
     }
 
