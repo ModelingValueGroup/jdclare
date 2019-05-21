@@ -32,26 +32,32 @@ import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.meta.DStructClass;
 import org.modelingvalue.transactions.EmptyMandatoryException;
 import org.modelingvalue.transactions.Mutable;
+import org.modelingvalue.transactions.MutableTransaction;
 import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Setable;
+import org.modelingvalue.transactions.State;
+import org.modelingvalue.transactions.Transaction;
+import org.modelingvalue.transactions.UniverseTransaction;
 
 @Extend(DClass.class)
 public interface DObject extends DStruct, Mutable {
 
     @Override
-    @Property({optional, hidden})
+    default State run(State state, MutableTransaction parent) {
+        return Mutable.super.run(state, parent);
+    }
+
+    @Override
     default DObject dParent() {
         return (DObject) Mutable.super.dParent();
     }
 
-    @Property({optional, hidden})
     default DProperty<?, ?> dContainmentProperty() {
         return (DProperty<?, ?>) Mutable.super.dContaining().id();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    @Property(hidden)
     default Set<DObject> dChildren() {
         return (Set<DObject>) Mutable.super.dChildren();
     }
@@ -59,12 +65,52 @@ public interface DObject extends DStruct, Mutable {
     @SuppressWarnings("unchecked")
     @Override
     default Collection<? extends Observer<?>> dObservers() {
-        return (Collection<? extends Observer<?>>) Collection.concat(dClass().allRules(), dObjectRules()).map(DRule::observer);
+        return (Collection<? extends Observer<?>>) Collection.concat(dClare().bootsTrap(this), dClass().allRules(), dObjectRules()).map(DRule::observer);
     }
 
     @Override
     default Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
         return dClass().allContainments().map(DClare::setable);
+    }
+
+    @Override
+    default Setable<Mutable, ?> dContaining() {
+        return Mutable.super.dContaining();
+    }
+
+    @Override
+    default <C> C dAncestor(Class<C> cls) {
+        return Mutable.super.dAncestor(cls);
+    }
+
+    @Override
+    default <T> T dParent(Class<T> cls) {
+        return Mutable.super.dParent(cls);
+    }
+
+    @Override
+    default void dActivate() {
+        Mutable.super.dActivate();
+    }
+
+    @Override
+    default void dDeactivate() {
+        Mutable.super.dDeactivate();
+    }
+
+    @Override
+    default MutableTransaction openTransaction(MutableTransaction parent) {
+        return Mutable.super.openTransaction(parent);
+    }
+
+    @Override
+    default void closeTransaction(Transaction tx) {
+        Mutable.super.closeTransaction(tx);
+    }
+
+    @Override
+    default MutableTransaction newTransaction(UniverseTransaction universeTransaction) {
+        return Mutable.super.newTransaction(universeTransaction);
     }
 
     @SuppressWarnings("unchecked")

@@ -266,8 +266,9 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         DClare<U> root = of(universeClass, checkFatals);
         root.start();
         U universe = root.universe();
-        for (Consumer<U> action : steps) {
-            root.put("todo", () -> action.accept(universe));
+        for (int i = 0; i < steps.length; i++) {
+            Consumer<U> action = steps[i];
+            root.put("todo" + i, () -> action.accept(universe));
         }
         return root;
     }
@@ -781,7 +782,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                 }
             }
             Handle nFunction = HANDLE.get(method);
-            if (nFunction != null) {
+            if (nFunction.handle != null) {
                 return nFunction.invoke(proxy, args);
             } else {
                 throw new UnsupportedOperationException(method.toString());
@@ -1217,7 +1218,11 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return waitForEnd();
     }
 
-    private Set<DMethodRule<?, ?>> bootsTrap(DObject dObject) {
+    @Override
+    protected void init() {
+    }
+
+    public Set<DMethodRule<?, ?>> bootsTrap(DObject dObject) {
         return DClass.class.isInstance(dObject) ? jClassRules : Set.of();
     }
 
@@ -1283,9 +1288,8 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     });
 
     public void start() {
-        U universe = universe();
         put(bootstrap);
-        put("start", () -> start(universe, this));
+        super.init();
     }
 
     @Override
@@ -1324,7 +1328,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
 
     @Override
     public boolean isStopped(State state) {
-        return state.get(universe(), stopSetable);
+        return stopSetable != null && state.get(universe(), stopSetable);
     }
 
     @Override

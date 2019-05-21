@@ -184,7 +184,11 @@ public class UniverseTransaction extends MutableTransaction {
             putResult(state);
             stop();
         });
-        put("init", () -> universe.init());
+        init();
+    }
+
+    protected void init() {
+        put("init", () -> universe().init());
     }
 
     public Universe universe() {

@@ -154,6 +154,14 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     <R> Collection<R> indexed(BiFunction<T, Integer, R> function);
 
+    static <E> Collection<E> concat(Collection<? extends E> a, Collection<? extends E> b, Collection<? extends E> c, Collection<? extends E> d) {
+        return Collection.of(Stream.concat(Stream.concat(Stream.concat(a, b), c), d));
+    }
+
+    static <E> Collection<E> concat(Collection<? extends E> a, Collection<? extends E> b, Collection<? extends E> c) {
+        return Collection.of(Stream.concat(Stream.concat(a, b), c));
+    }
+
     static <E> Collection<E> concat(Collection<? extends E> a, Collection<? extends E> b) {
         return Collection.of(Stream.concat(a, b));
     }

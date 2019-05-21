@@ -47,4 +47,9 @@ public interface DUniverse extends DPackageContainer, DStruct0, Universe {
     @Property(hidden)
     boolean stop();
 
+    @Override
+    default void init() {
+        Universe.super.init();
+    }
+
 }
