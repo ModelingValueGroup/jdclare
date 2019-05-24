@@ -52,6 +52,13 @@ public interface DOppositeProperty<O extends DObject, E extends DObject> extends
     @SuppressWarnings("rawtypes")
     @Override
     @Property(constant)
+    default Class type() {
+        return Set.class;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    @Property(constant)
     default Class objectClass() {
         return opposite().elementClass();
     }

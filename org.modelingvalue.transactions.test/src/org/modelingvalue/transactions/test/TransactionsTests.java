@@ -121,11 +121,13 @@ public class TransactionsTests {
         System.err.println("********************************************************************");
     }
 
+    static final Observed<DObject, DObject> next     = Observed.of("next", null, () -> TransactionsTests.previous);
+    static final Observed<DObject, DObject> previous = Observed.of("previous", null, () -> TransactionsTests.next);
+
     @Test
     public void opposites() throws Exception {
         Observed<DUniverse, Set<DObject>> children = Observed.of("children", Set.of(), true);
-        Observed<DObject, DObject> next = Observed.of("next", null);
-        Observed<DObject, DObject> previous = Observed.of("previous", null, next);
+
         int length = 30;
         DUniverse universe = DUniverse.of("universe", DClass.of("Universe", children));
         UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);

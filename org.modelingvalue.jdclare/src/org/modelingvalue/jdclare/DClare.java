@@ -37,6 +37,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
@@ -152,13 +153,14 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
 
     private static final Constant<DProperty, Getable>                            GETABLE            = Constant.of("dGetable", p -> {
                                                                                                         Object d = p.key() ? null : p.defaultValue();
-                                                                                                        Setable oppos = p.opposite() != null ? setable(p.opposite()) : null;
+                                                                                                        DProperty oppos = p.opposite();
+                                                                                                        Supplier<Setable<?, ?>> os = oppos != null ? () -> DClare.setable(oppos) : null;
                                                                                                         return p.key() ? new KeyGetable(p, p.keyNr(), null) : p.constant() ?                                                    //
                                                                                                         (p.containment() ? Constant.of(p, d, true, p.derived() ? p.deriver() : null) :                                          //
-                                                                                                        Constant.of(p, d, oppos, p.derived() ? p.deriver() : null)) :                                                           //
+                                                                                                        Constant.of(p, d, os, p.derived() ? p.deriver() : null)) :                                                              //
                                                                                                         (p.mandatory() && (d == null || d instanceof ContainingCollection)) ?                                                   //
-                                                                                                        (p.containment() ? MandatoryObserved.of(p, d, true) : MandatoryObserved.of(p, d, oppos)) :                              //
-                                                                                                        (p.containment() ? Observed.of(p, d, true) : Observed.of(p, d, oppos));
+                                                                                                        (p.containment() ? MandatoryObserved.of(p, d, true) : MandatoryObserved.of(p, d, os)) :                                 //
+                                                                                                        (p.containment() ? Observed.of(p, d, true) : Observed.of(p, d, os));
                                                                                                     });
 
     public static final Getable<Method, DMethodRule>                             RULE               = Constant.of("dRule", (Method m) -> {
@@ -1283,7 +1285,6 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         cyclicConstant(DClare.<DMethodProperty, Function> method(DMethodProperty::deriver));
         cyclicContainment(DClare.<DPackageContainer, Set> method(DPackageContainer::packages));
         cyclicContainment(DClare.<DClassContainer, Set> method(DClassContainer::classes));
-        cyclicObserved(DClare.<DObject, DObject> method(DObject::dParent));
         stopSetable = cyclicObserved(DClare.<DUniverse, Boolean> method(DUniverse::stop));
     });
 

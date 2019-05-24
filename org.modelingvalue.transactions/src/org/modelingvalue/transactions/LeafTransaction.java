@@ -81,10 +81,8 @@ public abstract class LeafTransaction extends Transaction {
 
     protected <O extends Mutable> void trigger(O mutable, Action<O> action, Direction direction) {
         Mutable object = mutable;
+        set(object, direction.priorities[action.priority().nr], Set::add, action);
         Mutable container = dParent(object);
-        if (container != null) {
-            set(object, direction.priorities[action.priority().nr], Set::add, action);
-        }
         while (container != null && (Direction.backward == direction || !parent().ancestorId(object))) {
             set(container, direction.depth, Set::add, object);
             object = container;

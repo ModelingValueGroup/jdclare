@@ -58,8 +58,8 @@ public interface DObject extends DStruct, Mutable {
 
     @SuppressWarnings("unchecked")
     @Override
-    default Set<DObject> dChildren() {
-        return (Set<DObject>) Mutable.super.dChildren();
+    default Collection<DObject> dChildren() {
+        return (Collection<DObject>) Mutable.super.dChildren();
     }
 
     @SuppressWarnings("unchecked")
@@ -168,9 +168,9 @@ public interface DObject extends DStruct, Mutable {
 
     @SuppressWarnings("unchecked")
     default void dDump(PrintWriter writer, String prefix) {
-        writer.println(prefix + this + " (" + dClass().name() + ") {");
         DClass<DObject> cls = dClass();
         if (cls != null) {
+            writer.println(prefix + this + " (" + cls.name() + ") {");
             for (DProperty<DObject, ?> p : cls.allNonContainments().sorted()) {
                 if (p.visible()) {
                     writer.println(prefix + "  " + p.name() + " = " + StringUtil.toString(p.get(this)));
@@ -191,7 +191,7 @@ public interface DObject extends DStruct, Mutable {
                 }
             }
         } else {
-            writer.println(prefix + "   ???");
+            writer.println(prefix + this + " (???) {");
         }
         writer.println(prefix + "}");
     }

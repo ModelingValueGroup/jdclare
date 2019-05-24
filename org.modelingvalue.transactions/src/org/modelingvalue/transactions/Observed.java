@@ -13,6 +13,8 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.function.Supplier;
+
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
@@ -31,7 +33,7 @@ public class Observed<O, T> extends Setable<O, T> {
         return new Observed<C, V>(id, def, containment, null, null);
     }
 
-    public static <C, V> Observed<C, V> of(Object id, V def, Setable<?, ?> opposite) {
+    public static <C, V> Observed<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite) {
         return new Observed<C, V>(id, def, false, opposite, null);
     }
 
@@ -39,7 +41,7 @@ public class Observed<O, T> extends Setable<O, T> {
         return new Observed<C, V>(id, def, containment, null, changed);
     }
 
-    public static <C, V> Observed<C, V> of(Object id, V def, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
+    public static <C, V> Observed<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
         return new Observed<C, V>(id, def, false, opposite, changed);
     }
 
@@ -48,7 +50,7 @@ public class Observed<O, T> extends Setable<O, T> {
     private final Observers<O, T>[]                   observers;
 
     @SuppressWarnings("unchecked")
-    protected Observed(Object id, T def, boolean containment, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
+    protected Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
         this(id, def, containment, opposite, observers(id), changed);
     }
 
@@ -62,7 +64,7 @@ public class Observed<O, T> extends Setable<O, T> {
     }
 
     @SuppressWarnings("unchecked")
-    private Observed(Object id, T def, boolean containment, Setable<?, ?> opposite, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed) {
+    private Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def, containment, opposite, null);
         this.changed = (l, o, p, n) -> {
             if (changed != null) {

@@ -56,12 +56,12 @@ public class JDclareTests {
             System.err.println("***************************** End DUniverse *************************************");
         }
         result.run(() -> {
-            check(result);
             if (DUMP) {
                 System.err.println("******************************Begin Universe*******************************");
                 result.getObjects(DUniverse.class).findAny().ifPresent(u -> u.dDump(System.err));
                 System.err.println("******************************End Universe*********************************");
             }
+            check(result);
         });
     }
 

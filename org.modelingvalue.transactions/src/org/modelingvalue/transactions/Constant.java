@@ -15,6 +15,7 @@ package org.modelingvalue.transactions;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.QuadConsumer;
@@ -55,25 +56,25 @@ public class Constant<O, T> extends Setable<O, T> {
         return new Constant<C, V>(id, null, containment, null, deriver, changed);
     }
 
-    public static <C, V> Constant<C, V> of(Object id, Setable<?, ?> opposite, Function<C, V> deriver) {
+    public static <C, V> Constant<C, V> of(Object id, Supplier<Setable<?, ?>> opposite, Function<C, V> deriver) {
         return new Constant<C, V>(id, null, false, opposite, deriver, null);
     }
 
-    public static <C, V> Constant<C, V> of(Object id, V def, Setable<?, ?> opposite, Function<C, V> deriver) {
+    public static <C, V> Constant<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, Function<C, V> deriver) {
         return new Constant<C, V>(id, def, false, opposite, deriver, null);
     }
 
-    public static <C, V> Constant<C, V> of(Object id, V def, Setable<?, ?> opposite, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+    public static <C, V> Constant<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
         return new Constant<C, V>(id, def, false, opposite, deriver, changed);
     }
 
-    public static <C, V> Constant<C, V> of(Object id, Setable<?, ?> opposite, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
+    public static <C, V> Constant<C, V> of(Object id, Supplier<Setable<?, ?>> opposite, Function<C, V> deriver, QuadConsumer<LeafTransaction, C, V, V> changed) {
         return new Constant<C, V>(id, null, false, opposite, deriver, changed);
     }
 
     private final Function<O, T> deriver;
 
-    protected Constant(Object id, T def, boolean containment, Setable<?, ?> opposite, Function<O, T> deriver, QuadConsumer<LeafTransaction, O, T, T> changed) {
+    protected Constant(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Function<O, T> deriver, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def, containment, opposite, changed);
         this.deriver = deriver;
     }

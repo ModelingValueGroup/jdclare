@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.util.Context;
@@ -40,7 +41,7 @@ public class Setable<O, T> extends Getable<O, T> {
         return new Setable<C, V>(id, def, containment, null, null);
     }
 
-    public static <C, V> Setable<C, V> of(Object id, V def, Setable<?, ?> opposite) {
+    public static <C, V> Setable<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite) {
         return new Setable<C, V>(id, def, false, opposite, null);
     }
 
@@ -48,26 +49,19 @@ public class Setable<O, T> extends Getable<O, T> {
         return new Setable<C, V>(id, def, containment, null, changed);
     }
 
-    public static <C, V> Setable<C, V> of(Object id, V def, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
+    public static <C, V> Setable<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
         return new Setable<C, V>(id, def, false, opposite, changed);
     }
 
     protected QuadConsumer<LeafTransaction, O, T, T> changed;
     protected final boolean                          containment;
-    private Setable<Object, ?>                       opposite;
+    private final Supplier<Setable<?, ?>>            opposite;
 
-    @SuppressWarnings("unchecked")
-    protected Setable(Object id, T def, boolean containment, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
+    protected Setable(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def);
         this.containment = containment;
         this.changed = changed;
-        if (this.opposite != null && opposite != null && !this.opposite.equals(opposite)) {
-            throw new Error("Opposite inconsistency " + this.opposite + " != " + opposite);
-        }
-        this.opposite = (Setable<Object, ?>) opposite;
-        if (opposite != null) {
-            opposite.opposite = (Setable<Object, ?>) this;
-        }
+        this.opposite = opposite;
     }
 
     public boolean containment() {
@@ -98,10 +92,11 @@ public class Setable<O, T> extends Getable<O, T> {
                 }
             });
         } else if (opposite != null) {
+            Setable<Object, ?> opp = (Setable<Object, ?>) opposite.get();
             Setable.<T, Object> diff(preValue, postValue, added -> {
-                opposite.add(added, object);
+                opp.add(added, object);
             }, removed -> {
-                opposite.remove(removed, object);
+                opp.remove(removed, object);
             });
         }
     }

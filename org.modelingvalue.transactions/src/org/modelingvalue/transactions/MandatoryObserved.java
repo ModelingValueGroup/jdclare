@@ -13,6 +13,8 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.function.Supplier;
+
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.util.QuadConsumer;
 
@@ -30,7 +32,7 @@ public class MandatoryObserved<O, T> extends Observed<O, T> {
         return new MandatoryObserved<C, V>(id, def, containment, null, null);
     }
 
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Setable<?, ?> opposite) {
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite) {
         return new MandatoryObserved<C, V>(id, def, false, opposite, null);
     }
 
@@ -38,11 +40,11 @@ public class MandatoryObserved<O, T> extends Observed<O, T> {
         return new MandatoryObserved<C, V>(id, def, containment, null, changed);
     }
 
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
         return new MandatoryObserved<C, V>(id, def, false, opposite, changed);
     }
 
-    protected MandatoryObserved(Object id, T def, boolean containment, Setable<?, ?> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
+    protected MandatoryObserved(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def, containment, opposite, changed);
     }
 
