@@ -1,7 +1,7 @@
 package org.modelingvalue.jdclare.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.modelingvalue.jdclare.DClare.of;
+import static org.junit.Assert.*;
+import static org.modelingvalue.jdclare.DClare.*;
 
 import java.util.ConcurrentModificationException;
 import java.util.function.Function;
@@ -110,7 +110,7 @@ public class BirdTest {
         }
     }
 
-    @Test
+    //@Test
     public void tooManyChangesException6() {
         try {
             DClare<YellowCondorUniverse> yellowCondorUniverse = of(YellowCondorUniverse.class);
@@ -148,7 +148,7 @@ public class BirdTest {
         }
     }
 
-    @Test
+    //@Test
     public void tooManyChangesException7() {
         try {
             DClare<BluePigeonUniverse> bluePigeonUniverse = of(BluePigeonUniverse.class);
