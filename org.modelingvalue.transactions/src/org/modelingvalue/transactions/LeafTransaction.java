@@ -55,9 +55,6 @@ public abstract class LeafTransaction extends Transaction {
     public abstract <O, T> T set(O object, Setable<O, T> property, T post);
 
     public <O, T> T get(O object, Getable<O, T> property) {
-        if (property instanceof Observed && Constant.DEPTH.get() > 0) {
-            throw new NonDeterministicException("Reading observed '" + property + "' while initializing constant");
-        }
         return state().get(object, property);
     }
 

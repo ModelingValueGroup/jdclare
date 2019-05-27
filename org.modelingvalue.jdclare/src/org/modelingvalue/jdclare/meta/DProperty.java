@@ -119,7 +119,4 @@ public interface DProperty<O extends DStruct, V> extends DNamed {
         return key() ? this : (DProperty<O, V>) dClass.allProperties().get(name());
     }
 
-    @Property({containment, optional})
-    DOppositeProperty<?, ?> containedOpposite();
-
 }

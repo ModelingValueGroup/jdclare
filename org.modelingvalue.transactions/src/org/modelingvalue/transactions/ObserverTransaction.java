@@ -24,7 +24,7 @@ import org.modelingvalue.transactions.Observer.Observerds;
 
 public class ObserverTransaction extends ActionTransaction {
 
-    private static final Context<Boolean>           OBSERVE = Context.of(true);
+    public static final Context<Boolean>            OBSERVE = Context.of(true);
 
     private final Concurrent<Set<ObservedInstance>> getted  = Concurrent.of();
     private final Concurrent<Set<ObservedInstance>> setted  = Concurrent.of();
@@ -148,6 +148,9 @@ public class ObserverTransaction extends ActionTransaction {
 
     @Override
     public <O, T> T get(O object, Getable<O, T> property) {
+        if (property instanceof Observed && Constant.DERIVED.get() != null && ObserverTransaction.OBSERVE.get()) {
+            throw new NonDeterministicException("Reading observed '" + property + "' while initializing constant '" + Constant.DERIVED.get() + "'");
+        }
         observe(object, property, false);
         return super.get(object, property);
     }

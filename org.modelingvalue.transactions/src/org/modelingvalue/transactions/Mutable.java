@@ -23,8 +23,8 @@ public interface Mutable extends TransactionClass {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     Setable<Mutable, Set<? extends Observer<?>>>                   D_OBSERVERS                = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
-                                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                           //
-                                                                                                          added -> added.trigger(obj),                                                                     //
+                                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                        //
+                                                                                                          added -> added.trigger(obj),                                                  //
                                                                                                           removed -> removed.deObserve(obj));
                                                                                               });
 
@@ -33,7 +33,7 @@ public interface Mutable extends TransactionClass {
                                                                                               }, Priority.preDepth);
 
     @SuppressWarnings("rawtypes")
-    Constant<Set<? extends Setable<?, ?>>, Set<? extends Setable>> D_CONSTANT_CONTAINERS      = Constant.of("D_CONSTANT_CONTAINERS", s -> s.filter(c -> c instanceof Constant && c.containment()).toSet());
+    Constant<Set<? extends Setable<?, ?>>, Set<? extends Setable>> D_CONSTANT_CONTAINERS      = Constant.of("D_CONSTANT_CONTAINERS", s -> s.filter(c -> c instanceof Constant).toSet());
 
     @SuppressWarnings("unchecked")
     Observer<Mutable>                                              D_CONSTANT_CONTAINERS_RULE = Observer.of(D_CONSTANT_CONTAINERS, m -> {
@@ -55,6 +55,9 @@ public interface Mutable extends TransactionClass {
         Mutable parent = dParent();
         while (parent != null && !cls.isInstance(parent)) {
             parent = parent.dParent();
+        }
+        if (parent == null) {
+            throw new EmptyMandatoryException();
         }
         return (C) parent;
     }

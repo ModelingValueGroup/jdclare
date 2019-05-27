@@ -139,4 +139,5 @@ public interface DOppositeProperty<O extends DObject, E extends DObject> extends
     default ChangeHandler<DObject, Set<E>> nativeChangeHandler() {
         return null;
     }
+
 }

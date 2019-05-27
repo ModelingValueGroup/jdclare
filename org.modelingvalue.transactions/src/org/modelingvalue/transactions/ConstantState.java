@@ -151,7 +151,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        private <V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
+        private <V> V set(LeafTransaction tx, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
             V ist;
             Map<Constant<O, ?>, Object> next = prev.put(constant, soll);
             while (!UPDATOR.compareAndSet(this, prev, next)) {
@@ -162,13 +162,14 @@ public class ConstantState {
                 }
                 next = prev.put(constant, soll);
             }
-            constant.changed(leafTransaction, object, constant.getDefault(), soll == NULL ? null : soll);
+            if (!Objects.equals(constant.getDefault(), soll == NULL ? null : soll)) {
+                tx.changed(object, constant, constant.getDefault(), soll == NULL ? null : soll);
+            }
             return soll;
         }
 
         @SuppressWarnings({"unchecked", "resource"})
         private <V> V derive(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
-            int depth = Constant.DEPTH.get();
             List<Pair<Object, Constant>> list = List.of();
             while (true) {
                 try {
@@ -187,11 +188,11 @@ public class ConstantState {
                             WEAK.set(weak);
                         }
                     }
-                    return Constant.DEPTH.get(depth + 1, () -> constant.deriver().apply(object));
+                    return Constant.DERIVED.get(constant, () -> constant.deriver().apply(object));
                 } catch (StackOverflowError soe) {
                     throw new ConstantDepthOverflowException(object, constant);
                 } catch (ConstantDepthOverflowException lce) {
-                    if (depth > 0) {
+                    if (Constant.DERIVED.get() != null) {
                         lce.addLazy(object, constant);
                         throw lce;
                     } else {

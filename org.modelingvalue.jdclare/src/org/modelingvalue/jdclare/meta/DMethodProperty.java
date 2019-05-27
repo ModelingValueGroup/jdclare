@@ -21,7 +21,6 @@ import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
-import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
@@ -30,8 +29,6 @@ import org.modelingvalue.jdclare.DStruct;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.transactions.Action;
-import org.modelingvalue.transactions.LeafTransaction;
 import org.modelingvalue.transactions.State;
 
 public interface DMethodProperty<O extends DStruct, T> extends DProperty<O, T>, DStruct1<Method> {
@@ -96,7 +93,6 @@ public interface DMethodProperty<O extends DStruct, T> extends DProperty<O, T>, 
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     @Property(constant)
     default DProperty<?, ?> opposite() {
@@ -108,11 +104,23 @@ public interface DMethodProperty<O extends DStruct, T> extends DProperty<O, T>, 
         }) : null;
         if (opposite != null) {
             return dProperty(opposite);
-        } else if (!D_OBJECT_CLASS.equals(method) && !containment() && !constant() && //
+        } else {
+            return implicitOpposite();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Property({constant, containment, optional})
+    default DOppositeProperty<?, ?> implicitOpposite() {
+        Method method = method();
+        State constraints = getConstraints(method);
+        Method opposite = constraints != null ? overridden(null, method, (o, m) -> {
+            Method oppos = constraints.get(m, OPPOSITE);
+            return oppos != null ? oppos : o;
+        }) : null;
+        if (opposite == null && !D_OBJECT_CLASS.equals(method) && !containment() && !constant() && //
                 DObject.class.isAssignableFrom(objectClass()) && DObject.class.isAssignableFrom(elementClass())) {
-            DOppositeProperty<?, ?> oppos = dclare(DOppositeProperty.class, this);
-            Action.of(Pair.of(this, "setOpposite"), o -> DClare.set(this, DProperty::containedOpposite, oppos)).trigger(LeafTransaction.getCurrent().parent().mutable());
-            return oppos;
+            return dclare(DOppositeProperty.class, this);
         } else {
             return null;
         }

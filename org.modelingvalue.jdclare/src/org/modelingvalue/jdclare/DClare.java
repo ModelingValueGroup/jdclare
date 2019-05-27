@@ -119,7 +119,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
 
     private static final Method                                                  PASSED_SECONDS     = method(DClock::passSeconds);
 
-    public static final Setable<DClare<?>, Integer>                              ROOT_RUN_NR        = Setable.of("dRootRunNr", 0);
+    public static final Setable<DUniverse, Integer>                              ROOT_RUN_NR        = Setable.of("dRootRunNr", 0);
 
     public static final Context<State>                                           CLASS_INIT_STATE   = Context.of();
 
@@ -1119,7 +1119,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     }
 
     public static int runNr() {
-        return ROOT_RUN_NR.get(dClare());
+        return ROOT_RUN_NR.get(dUniverse());
     }
 
     // Instance part
@@ -1180,7 +1180,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     }
 
     private void printOutput() {
-        int runNr = ROOT_RUN_NR.set(this, Integer::sum, 1);
+        int runNr = ROOT_RUN_NR.set(universe(), Integer::sum, 1);
         IOString out = universe().output();
         if (out.nr() == runNr && !out.string().isEmpty()) {
             System.out.print(out.string());
@@ -1249,6 +1249,14 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return setable;
     }
 
+    private static Constant cyclicContainmentConstant(Method method) {
+        DProperty property = dclare(extend(method, DMethodProperty.class), method);
+        PROPERTY.force(method, property);
+        Constant setable = Constant.of(property, defaultValue(method, false), true, deriver(method));
+        GETABLE.force(property, setable);
+        return setable;
+    }
+
     private static Observed cyclicObserved(Method method) {
         DProperty property = dclare(extend(method, DMethodProperty.class), method);
         PROPERTY.force(method, property);
@@ -1278,6 +1286,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         cyclicConstant(DClare.<DMethodProperty, Object> method(DMethodProperty::many));
         cyclicConstant(DClare.<DMethodProperty, Object> method(DMethodProperty::mandatory));
         cyclicConstant(DClare.<DMethodProperty, Object> method(DMethodProperty::defaultValue));
+        cyclicContainmentConstant(DClare.<DMethodProperty, DProperty> method(DMethodProperty::implicitOpposite));
         cyclicConstant(DClare.<DMethodProperty, Boolean> method(DMethodProperty::containment));
         cyclicConstant(DClare.<DMethodProperty, DProperty> method(DMethodProperty::opposite));
         cyclicConstant(DClare.<DMethodProperty, Boolean> method(DMethodProperty::constant));
