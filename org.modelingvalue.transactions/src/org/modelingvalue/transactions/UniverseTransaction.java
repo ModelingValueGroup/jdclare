@@ -95,6 +95,7 @@ public class UniverseTransaction extends MutableTransaction {
     private final int                                                             maxNrOfChanges;
     private final int                                                             maxNrOfObserved;
     private final int                                                             maxNrOfObservers;
+    protected final ReadOnly                                                      runOnState    = ReadOnly.of(Pair.of(this, "runOnState"));
 
     private List<State>                                                           history       = List.of();
     private List<State>                                                           future        = List.of();

@@ -220,22 +220,20 @@ public class State implements Serializable {
     }
 
     public <R> R get(Supplier<R> supplier) {
-        ReadOnly cls = ReadOnly.of(Pair.of(this, "getOnState"));
-        ReadOnlyTransaction tx = cls.openTransaction(universeTransaction);
+        ReadOnlyTransaction tx = universeTransaction.runOnState.openTransaction(universeTransaction);
         try {
             return tx.get(supplier, this);
         } finally {
-            cls.closeTransaction(tx);
+            universeTransaction.runOnState.closeTransaction(tx);
         }
     }
 
     public void run(Runnable action) {
-        ReadOnly cls = ReadOnly.of(Pair.of(this, "runOnState"));
-        ReadOnlyTransaction tx = cls.openTransaction(universeTransaction);
+        ReadOnlyTransaction tx = universeTransaction.runOnState.openTransaction(universeTransaction);
         try {
             tx.run(action, this);
         } finally {
-            cls.closeTransaction(tx);
+            universeTransaction.runOnState.closeTransaction(tx);
         }
     }
 

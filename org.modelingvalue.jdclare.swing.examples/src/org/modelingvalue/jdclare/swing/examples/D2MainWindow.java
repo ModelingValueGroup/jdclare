@@ -164,8 +164,8 @@ public interface D2MainWindow extends SplitPane, DStruct1<D2Universe> {
                             rule(DShape::position, l -> one.centre()), //
                             rule(DLine::endPoint, l -> two.centre()), //
                             rule("delete", l -> {
-                                if ((pre(one, DObject::dParent) != null && one.dParent() == null) || //
-                                (pre(two, DObject::dParent) != null && two.dParent() == null)) {
+                                if ((pre(() -> one.dParent()) != null && one.dParent() == null) || //
+                                (pre(() -> two.dParent()) != null && two.dParent() == null)) {
                                     clear(l);
                                 }
                             }) //

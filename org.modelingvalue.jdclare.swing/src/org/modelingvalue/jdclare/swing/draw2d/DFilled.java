@@ -19,7 +19,6 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 
-import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.swing.DComponent.DComponentNative;
@@ -52,7 +51,7 @@ public interface DFilled extends DShape {
     default boolean dragging() {
         DCanvas canvas = canvas();
         InputDeviceData di = canvas.deviceInput();
-        if (!pre(di, InputDeviceData::isLeftMouseDown) && di.isLeftMouseDown() && pre(this, DObject::dParent) != null && hit(di.mousePosition())) {
+        if (!pre(di, InputDeviceData::isLeftMouseDown) && di.isLeftMouseDown() && pre(() -> dParent()) != null && hit(di.mousePosition())) {
             set(this, DFilled::dragStartPosition, position());
             set(this, DFilled::dragStartMousePosition, di.mousePosition());
             return true;

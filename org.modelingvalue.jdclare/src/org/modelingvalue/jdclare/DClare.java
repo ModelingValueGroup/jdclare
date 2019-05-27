@@ -455,6 +455,10 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return (V) getable(method(dObject, property)).pre(dObject);
     }
 
+    public static <T> T pre(Supplier<T> supplier) {
+        return dClare().preState().get(supplier);
+    }
+
     public static <O extends DObject, D extends DObject, V> Set<D> opposite(O dObject, Class<D> cls, SerializableFunction<D, V> property) {
         return (Set<D>) getable(dProperty(method(cls, property)).opposite()).getCollection(dObject).toSet();
     }
