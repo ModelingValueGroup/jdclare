@@ -197,7 +197,7 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void handleTooManyChanges(State state) {
+    protected void handleTooManyChanges(State state) {
         ObserverTrace trace = state.filter(o -> o instanceof Mutable, s -> s.id instanceof Pair && ((Pair) s.id).a() instanceof Observer && ((Pair) s.id).b().equals("TRACES")).//
                 flatMap(e1 -> e1.getValue().map(e2 -> ((Set<ObserverTrace>) e2.getValue()).sorted().findFirst().orElse(null))).//
                 sorted((a, b) -> Integer.compare(b.nrOfChanges(), a.nrOfChanges())).findFirst().orElse(null);
