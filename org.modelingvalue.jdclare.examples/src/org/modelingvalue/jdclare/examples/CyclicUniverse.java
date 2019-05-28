@@ -32,13 +32,11 @@ public interface CyclicUniverse extends DUniverse {
     interface A extends DStruct0, DObject {
         @Property
         default int x() {
-            System.err.println("a.x=" + x());
             return dAncestor(CyclicUniverse.class).c().y();
         }
 
         @Property
         default int y() {
-            System.err.println("a.y=" + y());
             return x();
         }
     }
@@ -46,13 +44,11 @@ public interface CyclicUniverse extends DUniverse {
     interface B extends DStruct0, DObject {
         @Property
         default int x() {
-            System.err.println("b.x=" + x());
             return dAncestor(CyclicUniverse.class).a().y();
         }
 
         @Property
         default int y() {
-            System.err.println("b.y=" + y());
             return x();
         }
     }
@@ -60,13 +56,11 @@ public interface CyclicUniverse extends DUniverse {
     interface C extends DStruct0, DObject {
         @Property
         default int x() {
-            System.err.println("c.x=" + x());
             return dAncestor(CyclicUniverse.class).b().y();
         }
 
         @Property
         default int y() {
-            System.err.println("c.y=" + y());
             return x();
         }
     }
@@ -88,7 +82,7 @@ public interface CyclicUniverse extends DUniverse {
 
     @Override
     default IOString output() {
-        return IOString.of("a.y=" + a().y() + " b.y=" + b().y() + "c.y=" + c().y() + System.lineSeparator() + "> ");
+        return IOString.of("a.y=" + a().y() + " b.y=" + b().y() + " c.y=" + c().y() + System.lineSeparator() + "> ");
     }
 
     @Rule

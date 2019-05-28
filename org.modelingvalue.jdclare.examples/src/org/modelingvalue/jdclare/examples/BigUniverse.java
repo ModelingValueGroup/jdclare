@@ -35,7 +35,7 @@ public interface BigUniverse extends DUniverse {
     @Default
     @Property
     default int size() {
-        return 1000;
+        return 100;
     }
 
     @Property(containment)

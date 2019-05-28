@@ -112,6 +112,7 @@ public interface SalesUniverse extends DUniverse {
 
     @Override
     default void init() {
+        DUniverse.super.init();
         set(this, SalesUniverse::customers, Set.of(//
                 dclare(Customer.class, "John"), //
                 dclare(Customer.class, "Bill"))); //
