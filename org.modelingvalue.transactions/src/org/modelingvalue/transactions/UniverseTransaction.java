@@ -129,8 +129,8 @@ public class UniverseTransaction extends MutableTransaction {
         });
         this.pre = cycle != null ? Action.of("cycle", o -> cycle.accept(this)) : null;
         this.clearOrphans = Action.of("clearOrphans", o -> clearOrphans(o));
+        start(universe, null);
         pool.execute(() -> {
-            start(universe, null);
             State state = start != null ? start.clone(this) : emptyState;
             while (!killed) {
                 TraceTimer.traceBegin("root");
