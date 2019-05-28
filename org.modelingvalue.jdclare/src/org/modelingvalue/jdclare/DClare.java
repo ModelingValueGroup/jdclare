@@ -460,11 +460,11 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     }
 
     public static <O extends DObject, D extends DObject, V> Set<D> opposite(O dObject, Class<D> cls, SerializableFunction<D, V> property) {
-        return (Set<D>) getable(dProperty(method(cls, property)).opposite()).getCollection(dObject).toSet();
+        return (Set) getable(dProperty(method(cls, property)).opposite()).getCollection(dObject).toSet();
     }
 
     public static <O extends DStruct, V> Collection<V> getCollection(O dObject, SerializableFunction<O, V> property) {
-        return (Collection<V>) getable(method(dObject, property)).getCollection(dObject);
+        return (Collection) getable(method(dObject, property)).getCollection(dObject);
     }
 
     public static <O extends DStruct, V> DProperty<O, V> dProperty(O dObject, SerializableFunction<O, V> property) {

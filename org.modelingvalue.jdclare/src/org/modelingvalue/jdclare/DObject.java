@@ -62,10 +62,10 @@ public interface DObject extends DStruct, Mutable {
         return (Collection<DObject>) Mutable.super.dChildren();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     default Collection<? extends Observer<?>> dObservers() {
-        return (Collection<? extends Observer<?>>) Collection.concat(dClare().bootsTrap(this), dClass().allRules(), dObjectRules()).map(DRule::observer);
+        return (Collection) Collection.concat(dClare().bootsTrap(this), dClass().allRules(), dObjectRules()).map(DRule::observer);
     }
 
     @Override
