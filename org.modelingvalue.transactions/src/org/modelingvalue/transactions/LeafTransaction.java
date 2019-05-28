@@ -34,8 +34,8 @@ public abstract class LeafTransaction extends Transaction {
     }
 
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyObservers(LeafTransaction leafTransaction, Object object, Observed observed, Set<ActionInstance> observers) {
-        if (leafTransaction.universeTransaction().maxNrOfObservers() < observers.size()) {
+    protected void checkTooManyObservers(Object object, Observed observed, Set<ActionInstance> observers) {
+        if (universeTransaction().maxNrOfObservers() < observers.size()) {
             throw new TooManyObserversException(object, observed, observers, universeTransaction());
         }
     }

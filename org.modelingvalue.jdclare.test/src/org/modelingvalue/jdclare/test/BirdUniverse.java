@@ -1,10 +1,7 @@
 package org.modelingvalue.jdclare.test;
 
-import static org.modelingvalue.jdclare.DClare.dclare;
-import static org.modelingvalue.jdclare.DClare.set;
-import static org.modelingvalue.jdclare.PropertyQualifier.constant;
-import static org.modelingvalue.jdclare.PropertyQualifier.containment;
-import static org.modelingvalue.jdclare.PropertyQualifier.optional;
+import static org.modelingvalue.jdclare.DClare.*;
+import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
@@ -172,10 +169,11 @@ public interface BirdUniverse extends DUniverse {
         default void addOrphans() {
             if ("green".equals(color())) {
                 for (int i = 0; i < 100; i++) {
-                    Bird child = dclare(Pigeon.class, this, name() + i);
-                    set(this, Bird::orphans, Set::add, child);
-                    set(child, Bird::color, "green");
+                    Bird orphan = dclare(Pigeon.class, this, name() + i);
+                    set(this, Bird::orphans, Set::add, orphan);
+                    set(orphan, Bird::color, "green");
                 }
+                set(this, Bird::color, "notGreen");
             }
         }
     }

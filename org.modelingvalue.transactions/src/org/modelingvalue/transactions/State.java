@@ -197,7 +197,7 @@ public class State implements Serializable {
 
     @Override
     public String toString() {
-        return "State" + "[" + universeTransaction.getClass().getSimpleName() + properties(universeTransaction).toString().substring(3) + "]";
+        return "State" + "[" + universeTransaction.getClass().getSimpleName() + properties(universeTransaction.universe()).toString().substring(3) + "]";
     }
 
     public String asString() {

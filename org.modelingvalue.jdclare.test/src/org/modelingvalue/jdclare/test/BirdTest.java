@@ -26,40 +26,40 @@ import org.modelingvalue.transactions.TooManyObserversException;
 
 public class BirdTest {
 
-    private void addBird(DClare<BirdUniverse> root, Class<? extends Bird> clazz, Pair<String, String> props) {
-        root.put(root.universe(), () -> {
-            Bird bird = dclare(clazz, root.universe(), props.a());
+    private void addBird(DClare<BirdUniverse> dclare, Class<? extends Bird> clazz, Pair<String, String> props) {
+        dclare.put(dclare.universe(), () -> {
+            Bird bird = dclare(clazz, dclare.universe(), props.a());
             set(bird, Bird::color, props.b());
-            set(root.universe(), BirdUniverse::birds, Set::add, bird);
+            set(dclare.universe(), BirdUniverse::birds, Set::add, bird);
         });
     }
 
-    private void addBirds(DClare<BirdUniverse> root, Class<? extends Bird> clazz, java.util.Set<Pair<String, String>> props) {
-        root.put(root.universe(), () -> {
+    private void addBirds(DClare<BirdUniverse> dclare, Class<? extends Bird> clazz, java.util.Set<Pair<String, String>> props) {
+        dclare.put(dclare.universe(), () -> {
             for (Pair<String, String> p : props) {
-                Bird bird = dclare(clazz, root.universe(), p.a());
+                Bird bird = dclare(clazz, dclare.universe(), p.a());
                 set(bird, Bird::color, p.b());
-                set(root.universe(), BirdUniverse::birds, Set::add, bird);
+                set(dclare.universe(), BirdUniverse::birds, Set::add, bird);
             }
         });
     }
 
-    private State stop(DClare<BirdUniverse> root) {
-        root.stop();
-        return root.waitForEnd();
+    private State stop(DClare<BirdUniverse> dclare) {
+        dclare.stop();
+        return dclare.waitForEnd();
     }
 
-    private void start(DClare<BirdUniverse> root) {
-        root.start();
+    private void start(DClare<BirdUniverse> dclare) {
+        dclare.start();
     }
 
     @Test
     public void tooManyChangesException1() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Condor.class, Pair.of("0", "red"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "red"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -70,10 +70,10 @@ public class BirdTest {
     @Test
     public void tooManyChangesException2() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Condor.class, Pair.of("0", "white"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "white"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -84,10 +84,10 @@ public class BirdTest {
     @Test
     public void tooManyChangesException3() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Condor.class, Pair.of("0", "green"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "green"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -98,10 +98,10 @@ public class BirdTest {
     @Test
     public void tooManyChangesException4() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Condor.class, Pair.of("0", "black"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "black"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -112,10 +112,10 @@ public class BirdTest {
     @Test
     public void tooManyChangesException5() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Condor.class, Pair.of("0", "blue"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "blue"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -123,29 +123,27 @@ public class BirdTest {
         }
     }
 
-    // @Test
-    // TODO throws TooManyObservers
+    @Test
+    public void TooManyObserversException() {
+        try {
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "yellow"));
+            stop(dclare);
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertThrowable(cause, TooManyObserversException.class);
+        }
+    }
+
+    @Test
     public void tooManyChangesException6() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Condor.class, Pair.of("0", "yellow"));
-            stop(root);
-            Assert.fail();
-        } catch (Throwable t) {
-            Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyChangesException.class);
-        }
-    }
-
-    // @Test
-    // TODO Hangs
-    public void tooManyChangesException7() {
-        try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Condor.class, Pair.of("0", "brown"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "brown"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -156,10 +154,10 @@ public class BirdTest {
     @Test
     public void tooManyObservedException() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Pigeon.class, Pair.of("0", "grey"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Pigeon.class, Pair.of("0", "grey"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -167,40 +165,37 @@ public class BirdTest {
         }
     }
 
-    // @Test
-    // TODO this test fails
-    // orphans below "0" are not deleted, one level lower "orphans" are deleted ???
+    @Test
     public void noOrphans() {
-        DClare<BirdUniverse> root = of(BirdUniverse.class);
-        start(root);
-        addBird(root, Pigeon.class, Pair.of("0", "green"));
-        State result = stop(root);
+        DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+        start(dclare);
+        addBird(dclare, Pigeon.class, Pair.of("0", "green"));
+        State result = stop(dclare);
         Set<Bird> birds = result.getObjects(Bird.class).toSet();
         assertEquals("Unexpected Birds: " + birds, 1, birds.size());
     }
 
-    // @Test
-    // TODO this exception is not thrown when the rules are only reading a property
+    @Test
     public void tooManyObserversException() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Sparrow.class, Pair.of("0", "black"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Sparrow.class, Pair.of("0", "black"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class, "Too many observers (4003) of color", x -> ((TooManyObserversException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObserversException.class, "Too many observers (4003) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
         }
     }
 
     @Test
     public void missingMandatory1() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, HummingBird.class, Pair.of("0", "green"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, HummingBird.class, Pair.of("0", "green"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -213,10 +208,10 @@ public class BirdTest {
     // The EmptyMandatory Exception is caught in DEqualize.java and in Observer.java
     public void missingMandatory2() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, HummingBird.class, Pair.of("0", "blue"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, HummingBird.class, Pair.of("0", "blue"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -227,10 +222,10 @@ public class BirdTest {
     @Test
     public void nullPointerException() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, HummingBird.class, Pair.of("0", "yellow"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, HummingBird.class, Pair.of("0", "yellow"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -241,10 +236,10 @@ public class BirdTest {
     @Test
     public void arithmeticException() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, HummingBird.class, Pair.of("0", "red"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, HummingBird.class, Pair.of("0", "red"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -255,10 +250,10 @@ public class BirdTest {
     @Test
     public void nonDeterministicException1() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Pheasant.class, Pair.of("0", "blue"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Pheasant.class, Pair.of("0", "blue"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -269,10 +264,10 @@ public class BirdTest {
     @Test
     public void nonDeterministicException2() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Pheasant.class, Pair.of("0", "yellow"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Pheasant.class, Pair.of("0", "yellow"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -283,13 +278,13 @@ public class BirdTest {
     @Test
     public void nonDeterministicException3() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
             java.util.Set<Pair<String, String>> props = new HashSet<>();
             props.add(Pair.of("0", "green"));
             props.add(Pair.of("1", "yellow"));
-            addBirds(root, Pheasant.class, props);
-            stop(root);
+            addBirds(dclare, Pheasant.class, props);
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -300,13 +295,13 @@ public class BirdTest {
     @Test
     public void concurrentModificationException() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
             java.util.Set<Pair<String, String>> props = new HashSet<>();
             props.add(Pair.of("0", "green"));
             props.add(Pair.of("0", "yellow"));
-            addBirds(root, Pheasant.class, props);
-            stop(root);
+            addBirds(dclare, Pheasant.class, props);
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -317,10 +312,10 @@ public class BirdTest {
     @Test
     public void constantNotSetAndNotDerivedError() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Pheasant.class, Pair.of("0", "red"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Pheasant.class, Pair.of("0", "red"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -331,10 +326,10 @@ public class BirdTest {
     @Test
     public void constantIsDerivedError() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Pheasant.class, Pair.of("0", "black"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Pheasant.class, Pair.of("0", "black"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
@@ -345,10 +340,10 @@ public class BirdTest {
     @Test
     public void circularConstantError() {
         try {
-            DClare<BirdUniverse> root = of(BirdUniverse.class);
-            start(root);
-            addBird(root, Pheasant.class, Pair.of("0", "white"));
-            stop(root);
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Pheasant.class, Pair.of("0", "white"));
+            stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);

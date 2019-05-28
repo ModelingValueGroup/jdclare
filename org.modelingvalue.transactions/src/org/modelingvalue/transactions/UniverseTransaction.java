@@ -28,7 +28,7 @@ import org.modelingvalue.collections.util.TriConsumer;
 public class UniverseTransaction extends MutableTransaction {
 
     public static final int MAX_IN_IN_QUEUE         = Integer.getInteger("MAX_IN_IN_QUEUE", 100);
-    public static final int MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 40000);
+    public static final int MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 20000);
     public static final int MAX_NR_OF_CHANGES       = Integer.getInteger("MAX_NR_OF_CHANGES", 32);
     public static final int MAX_NR_OF_OBSERVED      = Integer.getInteger("MAX_NR_OF_OBSERVED", 1000);
     public static final int MAX_NR_OF_OBSERVERS     = Integer.getInteger("MAX_NR_OF_OBSERVERS", 4000);
@@ -219,8 +219,8 @@ public class UniverseTransaction extends MutableTransaction {
 
     protected void clearOrphans(Universe universe) {
         LeafTransaction tx = LeafTransaction.getCurrent();
-        preState().diff(tx.state(), o -> o instanceof Mutable, s -> s.equals(Mutable.D_PARENT_CONTAINING)).forEach(e0 -> {
-            if (e0.getValue().get(Mutable.D_PARENT_CONTAINING).b() == null) {
+        preState().diff(tx.state(), o -> o instanceof Mutable, s -> true).forEach(e0 -> {
+            if (!(e0.getKey() instanceof Universe) && tx.state().get((Mutable) e0.getKey(), Mutable.D_PARENT_CONTAINING) == null) {
                 clear(tx, (Mutable) e0.getKey());
             }
         });

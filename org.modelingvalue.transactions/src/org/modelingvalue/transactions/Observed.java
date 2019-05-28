@@ -71,7 +71,9 @@ public class Observed<O, T> extends Setable<O, T> {
                 changed.accept(l, o, p, n);
             }
             for (int ia = 0; ia < 2; ia++) {
-                for (ActionInstance obs : l.get(o, observers[ia])) {
+                Set<ActionInstance> obsSet = l.get(o, observers[ia]);
+                l.checkTooManyObservers(o, observers[ia].observed, obsSet);
+                for (ActionInstance obs : obsSet) {
                     if (!l.cls().equals(obs.action()) || !l.parent().mutable().equals(obs.mutable())) {
                         l.trigger(obs.mutable(), obs.action(), Direction.values()[ia]);
                     }
@@ -120,7 +122,7 @@ public class Observed<O, T> extends Setable<O, T> {
 
         private Observers(Object id, Direction direction) {
             super(Pair.of(id, direction), Set.of(), false, null, null);
-            changed = (tx, o, b, a) -> tx.checkTooManyObservers(tx, o, observed, a);
+            changed = (tx, o, b, a) -> tx.checkTooManyObservers(o, observed, a);
             this.direction = direction;
         }
 
