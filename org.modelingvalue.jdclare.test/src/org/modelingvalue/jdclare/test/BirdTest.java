@@ -26,6 +26,8 @@ import org.modelingvalue.transactions.TooManyObserversException;
 
 public class BirdTest {
 
+    private static final boolean PRINT_STACK_TRACE = Boolean.getBoolean("PRINT_STACK_TRACE");
+
     private void addBird(DClare<BirdUniverse> dclare, Class<? extends Bird> clazz, Pair<String, String> props) {
         dclare.put(dclare.universe(), () -> {
             Bird bird = dclare(clazz, dclare.universe(), props.a());
@@ -360,18 +362,24 @@ public class BirdTest {
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable) {
-        cause.printStackTrace();
+        if (PRINT_STACK_TRACE) {
+            cause.printStackTrace();
+        }
         assertEquals(throwable, cause.getClass());
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String regex) {
-        cause.printStackTrace();
+        if (PRINT_STACK_TRACE) {
+            cause.printStackTrace();
+        }
         assertEquals(throwable, cause.getClass());
         assertTrue(cause.getMessage() + " != " + regex, cause.getMessage().matches(regex));
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String message, Function<Throwable, String> f) {
-        cause.printStackTrace();
+        if (PRINT_STACK_TRACE) {
+            cause.printStackTrace();
+        }
         assertEquals(throwable, cause.getClass());
         assertEquals(message, f.apply(cause));
     }
