@@ -35,7 +35,7 @@ import org.modelingvalue.jdclare.swing.GuiUniverse;
 import org.modelingvalue.jdclare.swing.Panel;
 import org.modelingvalue.jdclare.swing.draw2d.DDimension;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
-import org.modelingvalue.jdclare.syntax.ObjectNode;
+import org.modelingvalue.jdclare.syntax.Grammar.ObjectNode;
 import org.modelingvalue.jdclare.syntax.Token;
 import org.modelingvalue.jdclare.syntax.test.TextUniverse;
 

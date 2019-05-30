@@ -125,7 +125,7 @@ public class ConstantState {
         public <V, E> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, BiFunction<V, E, V> function, E element) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
-            V soll = function.apply(constant.getDefault(), element);
+            V soll = function.apply(ist, element);
             if (ist == null) {
                 ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
             }

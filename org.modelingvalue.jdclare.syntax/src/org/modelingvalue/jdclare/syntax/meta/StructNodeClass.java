@@ -19,7 +19,7 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.meta.DProperty;
-import org.modelingvalue.jdclare.syntax.StructNode;
+import org.modelingvalue.jdclare.syntax.Grammar.StructNode;
 import org.modelingvalue.jdclare.syntax.parser.ElementParser;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 import org.modelingvalue.jdclare.syntax.parser.SequenceElementParser;

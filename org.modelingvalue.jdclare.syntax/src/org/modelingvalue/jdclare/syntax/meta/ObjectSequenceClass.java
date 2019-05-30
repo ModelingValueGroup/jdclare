@@ -13,7 +13,7 @@
 
 package org.modelingvalue.jdclare.syntax.meta;
 
-import org.modelingvalue.jdclare.syntax.ObjectNode;
+import org.modelingvalue.jdclare.syntax.Grammar.ObjectNode;
 
 public interface ObjectSequenceClass<T extends ObjectNode> extends ObjectNodeClass<T>, SequenceClass<T> {
 

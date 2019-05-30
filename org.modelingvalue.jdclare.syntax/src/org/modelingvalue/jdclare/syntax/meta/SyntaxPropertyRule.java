@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.meta.DRule;
-import org.modelingvalue.jdclare.syntax.ObjectNode;
+import org.modelingvalue.jdclare.syntax.Grammar.ObjectNode;
 import org.modelingvalue.transactions.Direction;
 
 public interface SyntaxPropertyRule<O extends ObjectNode> extends DRule<O>, DStruct1<SyntaxProperty<O, ?>> {

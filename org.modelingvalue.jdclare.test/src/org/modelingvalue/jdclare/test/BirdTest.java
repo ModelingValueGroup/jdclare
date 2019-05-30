@@ -259,7 +259,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 0.Constants:0=blue!=cobalt"));
+            assertThrowable(cause, NonDeterministicException.class);
         }
     }
 
@@ -362,14 +362,14 @@ public class BirdTest {
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable) {
-        if (PRINT_STACK_TRACE) {
+        if (PRINT_STACK_TRACE || !throwable.equals(cause.getClass())) {
             cause.printStackTrace();
         }
         assertEquals(throwable, cause.getClass());
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String regex) {
-        if (PRINT_STACK_TRACE) {
+        if (PRINT_STACK_TRACE || !throwable.equals(cause.getClass())) {
             cause.printStackTrace();
         }
         assertEquals(throwable, cause.getClass());
@@ -377,7 +377,7 @@ public class BirdTest {
     }
 
     private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String message, Function<Throwable, String> f) {
-        if (PRINT_STACK_TRACE) {
+        if (PRINT_STACK_TRACE || !throwable.equals(cause.getClass())) {
             cause.printStackTrace();
         }
         assertEquals(throwable, cause.getClass());

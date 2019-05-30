@@ -2,6 +2,7 @@ package org.modelingvalue.transactions.test;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.transactions.Constant;
 import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Setable;
@@ -34,6 +35,12 @@ public class DObject implements Mutable {
         return (Collection) dClass.dContainers();
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
+        return (Collection) dClass.dConstants();
+    }
+
     public Object id() {
         return id;
     }
@@ -61,4 +68,5 @@ public class DObject implements Mutable {
             return id.equals(c.id) && dClass.equals(c.dClass);
         }
     }
+
 }

@@ -30,6 +30,7 @@ import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.meta.DStructClass;
+import org.modelingvalue.transactions.Constant;
 import org.modelingvalue.transactions.EmptyMandatoryException;
 import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.MutableTransaction;
@@ -71,6 +72,12 @@ public interface DObject extends DStruct, Mutable {
     @Override
     default Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
         return dClass().allContainments().map(DClare::setable);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    default Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
+        return dClass().allConstants().map(DClare::getable).filter(Constant.class).filter(c -> ((Constant) c).deriver() != null);
     }
 
     @Override

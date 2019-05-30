@@ -23,8 +23,8 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.Constraints;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.Property;
+import org.modelingvalue.jdclare.syntax.Grammar.Node;
 import org.modelingvalue.jdclare.syntax.Literal;
-import org.modelingvalue.jdclare.syntax.Node;
 import org.modelingvalue.jdclare.syntax.Regex;
 
 public interface TerminalClass<T extends Node> extends NodeClass<T> {

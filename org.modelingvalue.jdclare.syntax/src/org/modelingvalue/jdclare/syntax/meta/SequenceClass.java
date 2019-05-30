@@ -18,7 +18,7 @@ import static org.modelingvalue.jdclare.DClare.*;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
-import org.modelingvalue.jdclare.syntax.Node;
+import org.modelingvalue.jdclare.syntax.Grammar.Node;
 import org.modelingvalue.jdclare.syntax.Sequence;
 
 public interface SequenceClass<T extends Node> extends NodeClass<T>, SequenceType {

@@ -19,6 +19,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.modelingvalue.jdclare.Extend;
+import org.modelingvalue.jdclare.syntax.Grammar.Node;
 import org.modelingvalue.jdclare.syntax.meta.ObjectSequenceClass;
 import org.modelingvalue.jdclare.syntax.meta.StructSequenceClass;
 

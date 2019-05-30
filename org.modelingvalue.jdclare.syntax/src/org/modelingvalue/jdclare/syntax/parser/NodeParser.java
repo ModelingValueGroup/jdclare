@@ -21,7 +21,7 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.DSeverity;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.syntax.Node;
+import org.modelingvalue.jdclare.syntax.Grammar.Node;
 import org.modelingvalue.jdclare.syntax.Text;
 import org.modelingvalue.jdclare.syntax.meta.NodeClass;
 import org.modelingvalue.jdclare.syntax.meta.NodeType;

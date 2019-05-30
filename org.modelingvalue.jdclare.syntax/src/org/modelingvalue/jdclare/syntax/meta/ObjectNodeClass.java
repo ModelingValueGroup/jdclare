@@ -24,7 +24,7 @@ import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DRule;
-import org.modelingvalue.jdclare.syntax.ObjectNode;
+import org.modelingvalue.jdclare.syntax.Grammar.ObjectNode;
 import org.modelingvalue.jdclare.syntax.parser.ElementParser;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 import org.modelingvalue.jdclare.syntax.parser.SequenceParser;

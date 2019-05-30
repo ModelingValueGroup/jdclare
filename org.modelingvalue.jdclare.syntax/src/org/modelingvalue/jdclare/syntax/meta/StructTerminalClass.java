@@ -13,7 +13,7 @@
 
 package org.modelingvalue.jdclare.syntax.meta;
 
-import org.modelingvalue.jdclare.syntax.StructNode;
+import org.modelingvalue.jdclare.syntax.Grammar.StructNode;
 
 public interface StructTerminalClass<T extends StructNode> extends TerminalClass<T>, StructNodeClass<T> {
 

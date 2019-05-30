@@ -29,32 +29,32 @@ import org.modelingvalue.jdclare.Property;
 public interface DClass<T extends DObject> extends DStructClass<T> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    @Property
+    @Property(constant)
     default Set<DRule> allRules() {
         return allSupers().filter(DClass.class).<DRule> flatMap(s -> s.rules()).toSet();
     }
 
-    @Property
+    @Property(constant)
     default Set<DProperty<T, ?>> allContainments() {
         return allProperties().filter(DProperty::containment).toSet();
     }
 
-    @Property
-    default Set<DProperty<T, ?>> allConstantContainments() {
-        return allContainments().filter(DProperty::constant).toSet();
+    @Property(constant)
+    default Set<DProperty<T, ?>> allConstants() {
+        return allProperties().filter(DProperty::constant).toSet();
     }
 
-    @Property
+    @Property(constant)
     default Set<DProperty<T, ?>> allValidations() {
         return allProperties().filter(DProperty::validation).toSet();
     }
 
-    @Property
+    @Property(constant)
     default Set<DProperty<T, ?>> allNonContainments() {
         return allProperties().filter(p -> !p.containment()).toSet();
     }
 
-    @Property
+    @Property(constant)
     default Map<DProperty<T, ?>, DProperty<T, Collection<?>>> scopedProperties() {
         return allProperties().map(p -> {
             DProperty<T, Collection<?>> scope = p.scopeProperty();
@@ -62,7 +62,7 @@ public interface DClass<T extends DObject> extends DStructClass<T> {
         }).notNull().toMap(e -> e);
     }
 
-    @Property
+    @Property(constant)
     default Set<DProperty<T, ?>> mandatoryProperties() {
         return allProperties().filter(p -> !p.constant() && p.mandatory() && //
                 (p.defaultValue() == null || p.defaultValue() instanceof ContainingCollection)).toSet();

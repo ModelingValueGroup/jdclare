@@ -49,7 +49,7 @@ public class ObserverTransaction extends ActionTransaction {
         Observer<?> observer = observer();
         try {
             long rootCount = universeTransaction.runCount();
-            if (observer.runCount < rootCount) {
+            if (observer.runCount != rootCount) {
                 observer.runCount = rootCount;
                 observer.changes = 0;
                 observer.stopped = false;

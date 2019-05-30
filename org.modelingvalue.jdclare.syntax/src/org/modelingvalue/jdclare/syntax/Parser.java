@@ -21,6 +21,7 @@ import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.Property;
+import org.modelingvalue.jdclare.syntax.Grammar.Node;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 
 public interface Parser<S extends Grammar, R extends Node> extends DStruct1<Text<S, R>>, DObject {

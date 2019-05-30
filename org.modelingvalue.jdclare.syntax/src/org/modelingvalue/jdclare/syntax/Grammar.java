@@ -17,9 +17,14 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct;
+import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Extend;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.syntax.meta.GrammarClass;
+import org.modelingvalue.jdclare.syntax.meta.NodeClass;
+import org.modelingvalue.jdclare.syntax.meta.ObjectNodeClass;
+import org.modelingvalue.jdclare.syntax.meta.StructNodeClass;
+import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 
 @Extend(GrammarClass.class)
 public interface Grammar extends DObject {
@@ -28,6 +33,25 @@ public interface Grammar extends DObject {
     @Property({constant, hidden})
     default <T extends Grammar> GrammarClass<T> sSyntaxClass() {
         return (GrammarClass<T>) (DStruct) dClass();
+    }
+
+    @Extend(NodeClass.class)
+    public interface Node extends DStruct {
+    }
+
+    @Extend(ObjectNodeClass.class)
+    public interface ObjectNode extends DObject, Node, DStruct1<NodeParser> {
+        @Property(key = 0)
+        NodeParser sParserNode();
+
+        default boolean fromEqualText(DObject object) {
+            return object instanceof ObjectNode && ((ObjectNode) object).sParserNode().text().equals(sParserNode().text());
+        }
+
+    }
+
+    @Extend(StructNodeClass.class)
+    public interface StructNode extends Node {
     }
 
 }

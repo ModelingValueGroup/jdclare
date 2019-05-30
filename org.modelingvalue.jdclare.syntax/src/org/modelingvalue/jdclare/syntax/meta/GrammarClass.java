@@ -22,7 +22,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.syntax.Grammar;
-import org.modelingvalue.jdclare.syntax.Node;
+import org.modelingvalue.jdclare.syntax.Grammar.Node;
 import org.modelingvalue.jdclare.syntax.Skipped;
 import org.modelingvalue.jdclare.syntax.regex.DPattern;
 

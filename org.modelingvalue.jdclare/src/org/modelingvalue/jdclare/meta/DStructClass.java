@@ -38,15 +38,15 @@ public interface DStructClass<T extends DStruct> extends DClassContainer, DStruc
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    @Property
+    @Property(constant)
     default Set<DStructClass> allSupers() {
         return Collection.concat(this, supers().flatMap(DStructClass::allSupers)).toSet();
     }
 
     @SuppressWarnings("rawtypes")
-    @Property
+    @Property(constant)
     default List<DStructClass> sortedSupers() {
-        return allSupers().sorted((a, b) -> a.equals(b) ? 0 : a.isSubOf(b) ? -1 : a.isSuperOf(b) ? 1 : 0).toList();
+        return allSupers().sorted((a, b) -> a.equals(b) ? 0 : b.isSubOf(a) ? 1 : a.isSubOf(b) ? -1 : 0).toList();
     }
 
     @SuppressWarnings("rawtypes")
@@ -90,7 +90,7 @@ public interface DStructClass<T extends DStruct> extends DClassContainer, DStruc
     }
 
     @SuppressWarnings("unchecked")
-    @Property
+    @Property(constant)
     default QualifiedSet<String, DProperty<T, ?>> allProperties() {
         QualifiedSet<String, DProperty<T, ?>> result = QualifiedSet.of(DNamed::name);
         for (DStructClass<T> cls : sortedSupers()) {
@@ -101,7 +101,7 @@ public interface DStructClass<T extends DStruct> extends DClassContainer, DStruc
         return result;
     }
 
-    @Property
+    @Property(constant)
     default List<DProperty<T, ?>> keys() {
         return allProperties().filter(p -> p.key()).sorted((a, b) -> ((Integer) a.keyNr()).compareTo(b.keyNr())).toList();
     }

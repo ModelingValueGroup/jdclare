@@ -21,7 +21,7 @@ import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.meta.DStructClass;
-import org.modelingvalue.jdclare.syntax.Node;
+import org.modelingvalue.jdclare.syntax.Grammar.Node;
 import org.modelingvalue.jdclare.syntax.parser.NodeParser;
 
 public interface NodeClass<T extends Node> extends DStructClass<T>, NodeType {
