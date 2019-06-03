@@ -59,8 +59,12 @@ public class MutableTransaction extends Transaction {
         super.stop();
     }
 
-    public boolean ancestorId(Mutable mutable) {
-        return mutable().equals(mutable) || (parent() != null && parent().ancestorId(mutable));
+    public boolean ancestorEqualsMutable(Mutable mutable) {
+        MutableTransaction mt = this;
+        while (mt != null && !mt.mutable().equals(mutable)) {
+            mt = mt.parent();
+        }
+        return mt != null;
     }
 
     @Override

@@ -51,8 +51,7 @@ public class Action<O extends Mutable> extends Leaf {
     }
 
     public void trigger(O mutable) {
-        LeafTransaction leafTransaction = LeafTransaction.getCurrent();
-        leafTransaction.trigger(mutable, this, initDirection());
+        LeafTransaction.getCurrent().trigger(mutable, this, initDirection());
     }
 
     @Override

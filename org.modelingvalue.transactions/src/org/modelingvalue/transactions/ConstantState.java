@@ -116,7 +116,7 @@ public class ConstantState {
                 ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
-                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
+                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
             }
             return constant.getDefault();
         }
@@ -130,7 +130,7 @@ public class ConstantState {
                 ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
-                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + this + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
+                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
             }
             return ist == NULL ? null : ist;
         }

@@ -288,18 +288,11 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     }
 
     private static void initFormalType(Class c, DStructClass d) {
-        for (Class s : c.getInterfaces()) {
-            dClass(s);
-        }
-        Class declaringClass = c.getDeclaringClass();
-        if (declaringClass != null) {
-            DStructClass DStructClass = dClass(declaringClass);
-            initFormalType(DStructClass.jClass(), DStructClass);
-        } else {
+        if (c.getDeclaringClass() == null) {
             Package pack = c.getPackage();
-            DPackage dPackage = PACKAGE.get(pack != null ? pack.getName() : "<default>");
+            DClassContainer constainer = PACKAGE.get(pack != null ? pack.getName() : "<default>");
             Action.of(Pair.of(d, "addToParent"), o -> {
-                DClare.<DClassContainer, Set<DStructClass>> setable(CLASSES).set(dPackage, Set::add, d);
+                DClare.<DClassContainer, Set<DStructClass>> setable(CLASSES).set(constainer, Set::add, d);
             }).trigger(LeafTransaction.getCurrent().parent().mutable());
         }
     }

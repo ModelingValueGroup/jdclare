@@ -119,21 +119,21 @@ public class ObserverTransaction extends ActionTransaction {
         if (changesPerInstance > universeTransaction.maxNrOfChanges()) {
             universeTransaction.setDebugging();
             if (changesPerInstance > universeTransaction.maxNrOfChanges() * 2) {
-                hadleTooManyChanges(mutable, observer, changesPerInstance);
+                hadleTooManyChanges(universeTransaction, mutable, observer, changesPerInstance);
             }
         } else if (totalChanges > universeTransaction.maxTotalNrOfChanges()) {
             universeTransaction.setDebugging();
             if (totalChanges > universeTransaction.maxTotalNrOfChanges() + universeTransaction.maxNrOfChanges()) {
-                hadleTooManyChanges(mutable, observer, totalChanges);
+                hadleTooManyChanges(universeTransaction, mutable, observer, totalChanges);
             }
         }
     }
 
-    private void hadleTooManyChanges(Mutable mutable, Observer<?> observer, int changes) {
+    private void hadleTooManyChanges(UniverseTransaction universeTransaction, Mutable mutable, Observer<?> observer, int changes) {
         State result = result();
         init(result);
         ObserverTrace last = result.get(mutable, observer.traces).sorted().findFirst().orElse(null);
-        if (last != null && last.done().size() >= universeTransaction().maxNrOfChanges()) {
+        if (last != null && last.done().size() >= (changes > universeTransaction.maxTotalNrOfChanges() ? 1 : universeTransaction.maxNrOfChanges())) {
             getted.init(Set.of());
             setted.init(Set.of());
             observer.stopped = true;

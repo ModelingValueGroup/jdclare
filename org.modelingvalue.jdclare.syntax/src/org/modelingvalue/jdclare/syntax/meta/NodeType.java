@@ -13,8 +13,6 @@
 
 package org.modelingvalue.jdclare.syntax.meta;
 
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
-
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
@@ -24,7 +22,7 @@ public interface NodeType extends DObject {
     @Property
     GrammarClass<?> grammar();
 
-    @Property(constant)
+    @Property()
     default Set<SequenceType> possibleParents() {
         return grammar().sequences().filter(c -> equals(c.startClass())).toSet();
     }

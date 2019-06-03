@@ -74,6 +74,11 @@ public interface BirdUniverse extends DUniverse {
 
     interface Condor extends Bird {
 
+        default Condor firstCondor() {
+            DObject p = dParent();
+            return p instanceof Condor ? ((Condor) p).firstCondor() : this;
+        }
+
         @Rule
         default void setWingColor() {
             if ("white".equals(color())) {
@@ -114,7 +119,7 @@ public interface BirdUniverse extends DUniverse {
 
         @Rule
         default void addAndRemoveLeftWing() {
-            if ("blue".equals(this.color())) {
+            if ("blue".equals(color())) {
                 Wing wing = dclare(Wing.class, this, "Left");
                 set(this, Bird::wings, Set::remove, wing);
                 set(this, Bird::wings, Set::add, wing);
@@ -123,7 +128,7 @@ public interface BirdUniverse extends DUniverse {
 
         @Rule
         default void increaseLeftWingSpan() {
-            if ("black".equals(this.color())) {
+            if ("black".equals(color())) {
                 Wing wing = dclare(Wing.class, this, "Left");
                 int span = wing.span();
                 set(wing, Wing::span, span + 1);
@@ -134,7 +139,7 @@ public interface BirdUniverse extends DUniverse {
         default void multiply() {
             if ("yellow".equals(color()) && children().isEmpty() && name().length() < 7) {
                 for (int i = 0; i < 7; i++) {
-                    Bird child = dclare(Condor.class, this, name() + i);
+                    Bird child = dclare(Condor.class, this, name() + i, rule("rule", c -> c.firstCondor().name()));
                     set(this, Bird::children, Set::add, child);
                     set(child, Bird::color, "yellow");
                 }
@@ -143,10 +148,12 @@ public interface BirdUniverse extends DUniverse {
 
         @Rule
         default void addGenerations() {
-            if ("brown".equals(this.color()) && name().length() < 10000) {
-                Bird child = dclare(Condor.class, this, name() + "+");
-                set(this, Bird::children, Set::add, child);
-                set(child, Bird::color, "brown");
+            if ("brown".equals(color()) && name().length() < 50) {
+                for (int i = 0; i < 2; i++) {
+                    Bird child = dclare(Condor.class, dUniverse(), name() + i);
+                    set(this, Bird::children, Set::add, child);
+                    set(child, Bird::color, "brown");
+                }
             }
         }
 
@@ -183,7 +190,7 @@ public interface BirdUniverse extends DUniverse {
         @Rule
         default void addChildren() {
             if ("black".equals(color())) {
-                for (int i = 0; i < 800; i++) {
+                for (int i = 0; i < 400; i++) {
                     Sparrow child = dclare(Sparrow.class, this, name() + i);
                     set(child, Bird::color, "grey");
                     set(this, Bird::children, Set::add, child);

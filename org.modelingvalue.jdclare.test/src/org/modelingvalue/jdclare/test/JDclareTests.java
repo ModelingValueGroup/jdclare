@@ -22,13 +22,16 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 import org.junit.Test;
+import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct;
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.test.PrioUniverse.Prio;
+import org.modelingvalue.transactions.Direction;
 import org.modelingvalue.transactions.State;
 
 public class JDclareTests {
@@ -87,7 +90,6 @@ public class JDclareTests {
     public void orchestra() {
         DClare<Orchestra> dClare = of(Orchestra.class);
         State result = dClare.run();
-
         result.run(() -> {
             check(result);
             checkOrchestra(result);
@@ -122,7 +124,12 @@ public class JDclareTests {
         assertEquals("No dStructType:", Set.of(), result.getObjects(DStruct.class).filter(o -> o.dStructClass() == null).toSet());
         assertEquals("No dClass:", Set.of(), result.getObjects(DObject.class).filter(o -> o.dClass() == null).toSet());
         assertEquals("No name:", Set.of(), result.getObjects(DNamed.class).filter(o -> o.name() == null).toSet());
-        assertEquals("Problems", Set.of(), result.getObjects(DUniverse.class).flatMap(t -> t.dAllProblems()).toSet());
+        assertEquals("Problems:", Set.of(), result.getObjects(DUniverse.class).flatMap(t -> t.dAllProblems()).toSet());
+        assertEquals("ToDo:", Set.of(), result.getObjects(DObject.class).map(o -> Pair.of(o, Collection.concat( //
+                Collection.concat(Direction.forward.depth.get(o), Direction.backward.depth.get(o), Direction.scheduled.depth.get(o)), //
+                Collection.concat(Direction.forward.preDepth.get(o), Direction.backward.preDepth.get(o), Direction.scheduled.preDepth.get(o)), //
+                Collection.concat(Direction.forward.postDepth.get(o), Direction.backward.postDepth.get(o), Direction.scheduled.postDepth.get(o))).//
+                toSet())).filter(p -> !p.b().isEmpty()).toSet());
     }
 
     @Test

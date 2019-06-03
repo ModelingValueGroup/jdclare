@@ -80,7 +80,7 @@ public abstract class LeafTransaction extends Transaction {
         Mutable object = mutable;
         set(object, direction.priorities[action.priority().nr], Set::add, action);
         Mutable container = dParent(object);
-        while (container != null && (Direction.backward == direction || !parent().ancestorId(object))) {
+        while (container != null && (Direction.backward == direction || !parent().ancestorEqualsMutable(object))) {
             set(container, direction.depth, Set::add, object);
             object = container;
             container = dParent(object);

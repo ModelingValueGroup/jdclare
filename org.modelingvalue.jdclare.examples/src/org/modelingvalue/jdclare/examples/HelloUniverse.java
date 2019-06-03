@@ -26,7 +26,7 @@ public interface HelloUniverse extends DUniverse {
 
     @Override
     default IOString output() {
-        return IOString.of("Hello Universe (counting " + dSize() + " objects) ");
+        return IOString.of("Hello Universe");
     }
 
 }

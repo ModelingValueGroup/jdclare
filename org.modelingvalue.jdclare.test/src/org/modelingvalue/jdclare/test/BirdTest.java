@@ -125,8 +125,8 @@ public class BirdTest {
         }
     }
 
-    @Test
-    public void TooManyObserversException() {
+    // @Test
+    public void tooManyObserversException1() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
@@ -178,7 +178,7 @@ public class BirdTest {
     }
 
     @Test
-    public void tooManyObserversException() {
+    public void tooManyObserversException2() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
@@ -187,7 +187,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class, "Too many observers (4003) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2003) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
         }
     }
 
@@ -273,7 +273,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 0.Constants:0=yellow!=gold"));
+            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 0.tailColor=yellow!=gold"));
         }
     }
 
@@ -290,7 +290,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 1.Constants:1=yellow!=gold"));
+            assertThrowable(cause, NonDeterministicException.class, java.util.regex.Pattern.quote("Constant is not consistent 1.tailColor=yellow!=gold"));
         }
     }
 

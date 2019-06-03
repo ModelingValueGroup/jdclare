@@ -146,11 +146,6 @@ public interface DObject extends DStruct, Mutable {
     @Property({containment, hidden})
     Set<DRule> dObjectRules();
 
-    @Property(hidden)
-    default int dSize() {
-        return 1 + dChildren().map(DObject::dSize).reduce(0, Integer::sum);
-    }
-
     default String dString() {
         return dString("");
     }
