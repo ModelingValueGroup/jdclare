@@ -137,7 +137,12 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
 
     private static final Getable<Class<? extends DStruct>, DStructClass>         CLASS              = Constant.of("DStructClass", c -> {
                                                                                                         DStructClass d = dclare(extend(c, DStructClass.class), c);
-                                                                                                        initFormalType(c, d);
+                                                                                                        Class declaringClass = c.getDeclaringClass();
+                                                                                                        if (declaringClass == null) {
+                                                                                                            Package pack = c.getPackage();
+                                                                                                            DClassContainer constainer = DClare.PACKAGE.get(pack != null ? pack.getName() : "<default>");
+                                                                                                            DClare.<DClassContainer, Set<DStructClass>> setable(CLASSES).set(constainer, Set::add, d);
+                                                                                                        }
                                                                                                         return d;
                                                                                                     });
 
@@ -179,16 +184,12 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                                                                                                         if (i > 0) {
                                                                                                             DPackage pp = DClare.PACKAGE.get(n.substring(0, i));
                                                                                                             DPackage d = dclare(DPackage.class, pp, n.substring(i + 1));
-                                                                                                            Action.of(Pair.of(d, "addToParent"),                                                                                //
-                                                                                                                    o -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d)).                     //
-                                                                                                            trigger(LeafTransaction.getCurrent().parent().mutable());
+                                                                                                            DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d);
                                                                                                             return d;
                                                                                                         } else {
                                                                                                             DUniverse universe = dUniverse();
                                                                                                             DPackage d = dclare(DPackage.class, universe, n);
-                                                                                                            Action.of(Pair.of(d, "addToParent"),                                                                                //
-                                                                                                                    o -> DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d)).               //
-                                                                                                            trigger(LeafTransaction.getCurrent().parent().mutable());
+                                                                                                            DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d);
                                                                                                             return d;
                                                                                                         }
                                                                                                     });
@@ -284,16 +285,6 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
             }
         } else {
             System.err.println("Please provide one argument with the class name of the universe.");
-        }
-    }
-
-    private static void initFormalType(Class c, DStructClass d) {
-        if (c.getDeclaringClass() == null) {
-            Package pack = c.getPackage();
-            DClassContainer constainer = PACKAGE.get(pack != null ? pack.getName() : "<default>");
-            Action.of(Pair.of(d, "addToParent"), o -> {
-                DClare.<DClassContainer, Set<DStructClass>> setable(CLASSES).set(constainer, Set::add, d);
-            }).trigger(LeafTransaction.getCurrent().parent().mutable());
         }
     }
 
