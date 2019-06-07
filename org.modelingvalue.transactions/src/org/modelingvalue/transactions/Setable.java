@@ -161,7 +161,7 @@ public class Setable<O, T> extends Getable<O, T> {
     public <E> void add(O obj, E e) {
         set(obj, (v, r) -> {
             if (v instanceof ContainingCollection) {
-                return (T) ((ContainingCollection<E>) v).add(r);
+                return (T) ((ContainingCollection<E>) v).addUnique(r);
             } else if (v instanceof java.util.List) {
                 if (!((java.util.List<E>) v).contains(r)) {
                     java.util.List<E> l = new ArrayList<E>((java.util.List<E>) v);

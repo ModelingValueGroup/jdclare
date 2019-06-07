@@ -36,16 +36,12 @@ public interface LineMode extends CanvasMode {
     @Rule
     default void mode() {
         DCanvas c = dAncestor(DCanvas.class);
-
-        if (shapes().isEmpty()) {
-            DShape s = findClickedShape();
-            DClare.set(this, LineMode::shapes, List::add, s);
-            if (s != null) {
+        DShape s = findClickedShape();
+        if (s != null) {
+            if (shapes().isEmpty()) {
+                DClare.set(this, LineMode::shapes, List::add, s);
                 DClare.set(s, DShape::highlighted, true);
-            }
-        } else {
-            DShape s = findClickedShape();
-            if (s != null && !shapes().contains(s)) {
+            } else if (!shapes().contains(s)) {
                 action().accept(c, shapes().add(s));
                 DClare.set(shapes().get(0), DShape::highlighted, false);
             }
