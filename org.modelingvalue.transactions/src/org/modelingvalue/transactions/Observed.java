@@ -45,9 +45,10 @@ public class Observed<O, T> extends Setable<O, T> {
         return new Observed<C, V>(id, def, false, opposite, changed);
     }
 
-    private final Setable<Object, Set<ObserverTrace>> readers = Setable.of(Pair.of(this, "readers"), Set.of());
-    private final Setable<Object, Set<ObserverTrace>> writers = Setable.of(Pair.of(this, "writers"), Set.of());
+    private final Setable<Object, Set<ObserverTrace>> readers      = Setable.of(Pair.of(this, "readers"), Set.of());
+    private final Setable<Object, Set<ObserverTrace>> writers      = Setable.of(Pair.of(this, "writers"), Set.of());
     private final Observers<O, T>[]                   observers;
+    protected final ObservedInstance                  thisInstance = ObservedInstance.of(This.THIS, this);
 
     @SuppressWarnings("unchecked")
     protected Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
@@ -74,8 +75,9 @@ public class Observed<O, T> extends Setable<O, T> {
                 Set<ActionInstance> obsSet = l.get(o, observers[ia]);
                 l.checkTooManyObservers(o, observers[ia].observed, obsSet);
                 for (ActionInstance obs : obsSet) {
-                    if (!l.cls().equals(obs.action()) || !l.parent().mutable().equals(obs.mutable())) {
-                        l.trigger(obs.mutable(), obs.action(), Direction.values()[ia]);
+                    Mutable mutable = obs.mutable((Mutable) o);
+                    if (!l.cls().equals(obs.action()) || !l.parent().mutable().equals(mutable)) {
+                        l.trigger(mutable, obs.action(), Direction.values()[ia]);
                     }
                 }
             }
@@ -132,6 +134,11 @@ public class Observed<O, T> extends Setable<O, T> {
 
         public Direction direction() {
             return direction;
+        }
+
+        @Override
+        public boolean isInternable(Set<ActionInstance> value) {
+            return value.allMatch(ActionInstance::isInternable);
         }
 
     }

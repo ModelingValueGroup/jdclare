@@ -57,10 +57,10 @@ public class TransactionsTests {
         universeTransaction.put("step2", () -> source.set(object, 10));
         universeTransaction.stop();
         State result = universeTransaction.waitForEnd();
-        Assert.assertEquals(10, (int) result.get(object, target));
         System.err.println("********************************************************************");
         System.err.println(result.asString());
         System.err.println("********************************************************************");
+        Assert.assertEquals(10, (int) result.get(object, target));
     }
 
     @Test

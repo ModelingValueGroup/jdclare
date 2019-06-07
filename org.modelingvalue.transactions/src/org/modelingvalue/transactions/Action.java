@@ -29,7 +29,8 @@ public class Action<O extends Mutable> extends Leaf {
         return new Action<M>(id, action, initDirection, priority);
     }
 
-    private final Consumer<O> action;
+    private final Consumer<O>      action;
+    protected final ActionInstance thisInstance = ActionInstance.of(This.THIS, this);
 
     protected Action(Object id, Consumer<O> action, Direction initDirection, Priority priority) {
         super(id, initDirection, priority);

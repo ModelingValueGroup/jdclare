@@ -110,8 +110,8 @@ public class ObserverTransaction extends ActionTransaction {
             init(post);
             Set<ObserverTrace> traces = observer.traces.get(mutable);
             ObserverTrace trace = new ObserverTrace(mutable, observer, traces.sorted().findFirst().orElse(null), observer.changesPerInstance(), //
-                    gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.object(), s.property()))), //
-                    sets.toMap(s -> Entry.of(s, post.get(s.object(), s.property()))));
+                    gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.mutable(), s.property()))), //
+                    sets.toMap(s -> Entry.of(s, post.get(s.mutable(), s.property()))));
             observer.traces.set(mutable, traces.add(trace));
         }
         int totalChanges = universeTransaction.countTotalChanges();
@@ -175,8 +175,8 @@ public class ObserverTransaction extends ActionTransaction {
 
     @SuppressWarnings("rawtypes")
     private <O, T> void observe(O object, Getable<O, T> property, boolean set) {
-        if (property instanceof Observed && getted.isInitialized() && setted.isInitialized() && OBSERVE.get()) {
-            ObservedInstance observedInstance = ObservedInstance.of(object, (Observed) property);
+        if (object instanceof Mutable && property instanceof Observed && getted.isInitialized() && setted.isInitialized() && OBSERVE.get()) {
+            ObservedInstance observedInstance = object.equals(parent().mutable()) ? ((Observed) property).thisInstance : ObservedInstance.of((Mutable) object, (Observed) property);
             if (set) {
                 setted.change(o -> o.add(observedInstance));
             } else {

@@ -16,20 +16,28 @@ package org.modelingvalue.transactions;
 import org.modelingvalue.collections.struct.impl.Struct2Impl;
 
 @SuppressWarnings("rawtypes")
-public class ObservedInstance extends Struct2Impl<Object, Observed> {
+public class ObservedInstance extends Struct2Impl<Mutable, Observed> {
 
     private static final long serialVersionUID = 5217882450935295451L;
 
-    public static ObservedInstance of(Object object, Observed property) {
-        return new ObservedInstance(object, property);
+    public static ObservedInstance of(Mutable mutable, Observed property) {
+        return new ObservedInstance(mutable, property);
     }
 
     private ObservedInstance(Object object, Observed property) {
         super(object, property);
     }
 
-    public Object object() {
+    public Mutable mutable() {
         return get0();
+    }
+
+    public Mutable mutable(Mutable mutable) {
+        return mutable() == This.THIS ? mutable : mutable();
+    }
+
+    public ActionInstance observerInstance(Mutable mutable, Observer observer) {
+        return mutable() == This.THIS ? observer.thisInstance : ActionInstance.of(mutable, observer);
     }
 
     public Observed property() {
@@ -38,6 +46,10 @@ public class ObservedInstance extends Struct2Impl<Object, Observed> {
 
     public Observed<?, ?> observed() {
         return get1();
+    }
+
+    public boolean isInternable() {
+        return mutable() == This.THIS;
     }
 
 }

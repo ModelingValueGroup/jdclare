@@ -106,16 +106,20 @@ public class Observer<O extends Mutable> extends Action<O> {
         @SuppressWarnings("unchecked")
         private Observerds(Observer observer, Direction direction) {
             super(Pair.of(observer, direction), Set.of(), false, null, (tx, mutable, pre, post) -> {
-                ActionInstance ai = ActionInstance.of(mutable, observer);
                 pre.compare(post).forEach(d -> {
                     if (d[0] == null) {
-                        d[1].forEach(n -> tx.set(n.object(), n.property().observers(direction), Set<ActionInstance>::add, ai));
+                        d[1].forEach(n -> tx.set(n.mutable(mutable), n.property().observers(direction), Set<ActionInstance>::add, n.observerInstance(mutable, observer)));
                     }
                     if (d[1] == null) {
-                        d[0].forEach(o -> tx.set(o.object(), o.property().observers(direction), Set<ActionInstance>::remove, ai));
+                        d[0].forEach(o -> tx.set(o.mutable(mutable), o.property().observers(direction), Set<ActionInstance>::remove, o.observerInstance(mutable, observer)));
                     }
                 });
             });
+        }
+
+        @Override
+        public boolean isInternable(Set<ObservedInstance> value) {
+            return value.allMatch(ObservedInstance::isInternable);
         }
 
     }

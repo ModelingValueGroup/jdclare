@@ -19,6 +19,8 @@ import org.modelingvalue.collections.util.Pair;
 
 public interface Mutable extends TransactionClass {
 
+    public static final This                              THIS                = new This();
+
     Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>> D_PARENT_CONTAINING = Observed.of("D_PARENT_CONTAINING", null);
 
     @SuppressWarnings({"rawtypes", "unchecked"})

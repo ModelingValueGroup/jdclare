@@ -202,8 +202,8 @@ public class MutableTransaction extends Transaction {
                                     Object branchValue = State.get(psb, observedProp);
                                     if (!Objects.equals(branchValue, baseValue)) {
                                         Set<ActionInstance> addedObservers = observers.removeAll(State.get(psb, os));
-                                        if (!addedObservers.isEmpty()) {
-                                            triggeredActions[os.direction().nr].change(ts -> ts.addAll(addedObservers));
+                                        for (ActionInstance ai : addedObservers) {
+                                            triggeredActions[os.direction().nr].change(ts -> ts.add(ai.actionInstance((Mutable) o)));
                                         }
                                     }
                                 }

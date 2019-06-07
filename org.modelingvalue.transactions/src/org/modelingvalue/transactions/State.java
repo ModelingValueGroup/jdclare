@@ -38,6 +38,9 @@ public class State implements Serializable {
     private static final long                       serialVersionUID = -3468784705870374732L;
 
     @SuppressWarnings("rawtypes")
+    private static Constant<Entry, Entry>           INTERNAL         = Constant.of("INTERNAL", e -> e);
+
+    @SuppressWarnings("rawtypes")
     private static final Comparator<Entry>          COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
 
     @SuppressWarnings("rawtypes")
@@ -113,7 +116,7 @@ public class State implements Serializable {
             post = pre == null ? null : pre.removeKey(property);
             post = post == null || post.isEmpty() ? null : post;
         } else {
-            post = pre == null ? Map.of(Entry.of(property, newValue)) : pre.put(property, newValue);
+            post = pre == null ? Map.of(intern(property, newValue)) : pre.put(intern(property, newValue));
         }
         if (pre == post) {
             return this;
@@ -123,6 +126,11 @@ public class State implements Serializable {
         } else {
             return new State(universeTransaction, map == null ? Map.of(Entry.of(object, post)) : map.put(object, post));
         }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <O, T> Entry<Setable, Object> intern(Setable<O, T> setable, T value) {
+        return setable.isInternable(value) ? INTERNAL.get(Entry.of(setable, value)) : Entry.of(setable, value);
     }
 
     private static <X, Y> Map<X, Y> map(Map<X, Y> in) {
@@ -170,7 +178,7 @@ public class State implements Serializable {
                 if (v instanceof Mergeable) {
                     vs = val(v, p, evs);
                     Object result = ((Mergeable) v).merge(vs);
-                    return Objects.equals(result, p.getDefault()) ? null : Entry.of(p, result);
+                    return Objects.equals(result, p.getDefault()) ? null : intern(p, result);
                 } else {
                     vs = val(null, p, evs);
                     Object result = null;
@@ -183,7 +191,7 @@ public class State implements Serializable {
                             }
                         }
                     }
-                    return Entry.of(p, result);
+                    return intern(p, result);
                 }
             }, pss);
             if (changeHandler != null) {

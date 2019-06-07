@@ -40,15 +40,15 @@ public class ObserverTrace implements Comparable<ObserverTrace> {
         this.read = read;
         this.written = written;
         for (Entry<ObservedInstance, Object> e : read) {
-            e.getKey().observed().readers().set(e.getKey().object(), Set::add, this);
+            e.getKey().observed().readers().set(e.getKey().mutable(), Set::add, this);
         }
         for (Entry<ObservedInstance, Object> e : written) {
-            e.getKey().observed().writers().set(e.getKey().object(), Set::add, this);
+            e.getKey().observed().writers().set(e.getKey().mutable(), Set::add, this);
         }
         Set<ObserverTrace> done = previous != null ? previous.done : Set.of();
         Map<ObservedInstance, Set<ObserverTrace>> backTrace = read.toMap(e -> {
             ObservedInstance observedInstance = e.getKey();
-            Set<ObserverTrace> writers = observedInstance.observed().writers().get(observedInstance.object());
+            Set<ObserverTrace> writers = observedInstance.observed().writers().get(observedInstance.mutable());
             return Entry.of(observedInstance, writers.removeAll(done).remove(this));
         });
         Set<ObserverTrace> back = backTrace.flatMap(Entry::getValue).toSet();
@@ -109,9 +109,9 @@ public class ObserverTrace implements Comparable<ObserverTrace> {
         trace(prefix, (c, r) -> {
             result[0] += c + "run: " + r.mutable() + "." + r.observer() + " nr: " + r.nrOfChanges;
         }, (c, r, s) -> {
-            result[0] += c + "read: " + s.object() + "." + s.observed() + "=" + r.read.get(s);
+            result[0] += c + "read: " + s.mutable() + "." + s.observed() + "=" + r.read.get(s);
         }, (c, w, s) -> {
-            result[0] += c + "  write: " + s.object() + "." + s.observed() + "=" + w.written.get(s);
+            result[0] += c + "  write: " + s.mutable() + "." + s.observed() + "=" + w.written.get(s);
         }, p -> p + "  ", new Set[]{Set.of()}, length);
         return result[0];
     }

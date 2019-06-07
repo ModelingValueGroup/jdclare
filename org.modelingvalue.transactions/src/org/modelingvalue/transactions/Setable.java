@@ -205,4 +205,8 @@ public class Setable<O, T> extends Getable<O, T> {
         }, e);
     }
 
+    public boolean isInternable(T value) {
+        return false;
+    }
+
 }
