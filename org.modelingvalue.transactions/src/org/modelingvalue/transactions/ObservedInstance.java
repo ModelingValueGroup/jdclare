@@ -49,7 +49,7 @@ public class ObservedInstance extends Struct2Impl<Mutable, Observed> {
     }
 
     public boolean isInternable() {
-        return mutable() == This.THIS;
+        return mutable() == This.THIS || mutable() instanceof Universe;
     }
 
 }

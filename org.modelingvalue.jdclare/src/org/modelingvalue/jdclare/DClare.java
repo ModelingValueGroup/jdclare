@@ -1330,6 +1330,14 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     }
 
     @Override
+    protected void end(State state) {
+        if (timer != null) {
+            timer.cancel();
+        }
+        super.end(state);
+    }
+
+    @Override
     public void stop() {
         if (timer != null) {
             timer.cancel();

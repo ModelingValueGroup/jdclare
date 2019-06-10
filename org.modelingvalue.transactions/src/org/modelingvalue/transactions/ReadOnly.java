@@ -15,18 +15,6 @@ package org.modelingvalue.transactions;
 
 public class ReadOnly extends Leaf {
 
-    public static ReadOnly of(Object id) {
-        return new ReadOnly(id, Direction.forward, Priority.postDepth);
-    }
-
-    public static ReadOnly of(Object id, Priority priority) {
-        return new ReadOnly(id, Direction.forward, priority);
-    }
-
-    public static ReadOnly of(Object id, Direction initDirection, Priority priority) {
-        return new ReadOnly(id, initDirection, priority);
-    }
-
     protected ReadOnly(Object id, Direction initDirection, Priority priority) {
         super(id, initDirection, priority);
     }

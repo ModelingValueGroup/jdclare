@@ -28,12 +28,10 @@ import org.modelingvalue.transactions.Observed.Observers;
 
 public class MutableTransaction extends Transaction {
 
-    private static final ReadOnly                   MUTABLE_LEAF    = ReadOnly.of("mutableLeaf");
     private static final int                        MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
     private final Concurrent<Set<ActionInstance>>[] triggeredActions;
     private final Concurrent<Set<Mutable>>[]        triggeredMutables;
-    private ReadOnlyTransaction                     mutableLeaf;
 
     @SuppressWarnings("unchecked")
     protected MutableTransaction(UniverseTransaction universeTransaction) {
@@ -48,19 +46,6 @@ public class MutableTransaction extends Transaction {
 
     public Mutable mutable() {
         return (Mutable) cls();
-    }
-
-    @Override
-    protected void start(TransactionClass cls, MutableTransaction parent) {
-        super.start(cls, parent);
-        mutableLeaf = MUTABLE_LEAF.openTransaction(this);
-    }
-
-    @Override
-    protected void stop() {
-        MUTABLE_LEAF.closeTransaction(mutableLeaf);
-        mutableLeaf = null;
-        super.stop();
     }
 
     public boolean ancestorEqualsMutable(Mutable mutable) {
@@ -105,7 +90,7 @@ public class MutableTransaction extends Transaction {
                         }
                     } else {
                         try {
-                            sa[0] = mutableLeaf.get(() -> merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
+                            sa[0] = sa[0].get(() -> merge(sa[0], ts[0].random().reduce(sa, (s, t) -> {
                                 State[] r = s.clone();
                                 r[0] = t.run(s[0], this);
                                 return r;
@@ -113,7 +98,7 @@ public class MutableTransaction extends Transaction {
                                 State[] r = Arrays.copyOf(a, a.length + b.length);
                                 System.arraycopy(b, 0, r, a.length, b.length);
                                 return r;
-                            })), sa[0]);
+                            })));
                         } catch (NotMergeableException nme) {
                             sequential = true;
                             for (TransactionClass t : ts[0].random()) {

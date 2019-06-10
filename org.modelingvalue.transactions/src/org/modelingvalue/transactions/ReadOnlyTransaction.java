@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 public class ReadOnlyTransaction extends LeafTransaction {
 
-    private State[] states;
+    private State state;
 
     protected ReadOnlyTransaction(UniverseTransaction universeTransaction) {
         super(universeTransaction);
@@ -33,39 +33,32 @@ public class ReadOnlyTransaction extends LeafTransaction {
         throw new UnsupportedOperationException();
     }
 
-    public <R> R get(Supplier<R> action, State... states) {
-        this.states = states;
+    public <R> R get(Supplier<R> action, State state) {
+        this.state = state;
         try {
             return CURRENT.get(this, action);
         } finally {
-            this.states = null;
+            this.state = null;
         }
     }
 
-    public void run(Runnable action, State... states) {
-        this.states = states;
+    public void run(Runnable action, State state) {
+        this.state = state;
         try {
             CURRENT.run(this, action);
         } finally {
-            this.states = null;
+            this.state = null;
         }
     }
 
     @Override
     public State state() {
-        return states[0];
+        return state;
     }
 
     @Override
     public <O, T> T get(O object, Getable<O, T> property) {
-        T def = property.getDefault();
-        for (State state : states) {
-            T val = state.get(object, property);
-            if (val != def) {
-                return val;
-            }
-        }
-        return def;
+        return state.get(object, property);
     }
 
     @Override
@@ -85,13 +78,13 @@ public class ReadOnlyTransaction extends LeafTransaction {
 
     @Override
     protected <O extends Mutable> void trigger(O mutable, Action<O> action, Direction direction) {
-        // Do nothing
+        throw new UnsupportedOperationException();
     }
 
     @Override
     protected void stop() {
         super.stop();
-        states = null;
+        state = null;
     }
 
 }

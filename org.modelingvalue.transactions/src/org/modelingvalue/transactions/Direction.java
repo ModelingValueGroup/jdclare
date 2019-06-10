@@ -33,9 +33,9 @@ public enum Direction {
 
     @SuppressWarnings("unchecked")
     private Direction(int nr) {
-        preDepth = new DirectionSetable<>(Priority.preDepth);
-        depth = new DirectionSetable<>(Priority.depth);
-        postDepth = new DirectionSetable<>(Priority.postDepth);
+        preDepth = new DirectionSetable<>(Priority.preDepth, true);
+        depth = new DirectionSetable<>(Priority.depth, false);
+        postDepth = new DirectionSetable<>(Priority.postDepth, true);
         priorities = new DirectionSetable[]{preDepth, postDepth};
         sequence = new DirectionSetable[]{preDepth, depth, postDepth};
         this.nr = nr;
@@ -43,10 +43,12 @@ public enum Direction {
 
     public final class DirectionSetable<T extends TransactionClass> extends Setable<Mutable, Set<T>> {
         private final Priority priority;
+        private final boolean  internable;
 
-        private DirectionSetable(Priority priority) {
+        private DirectionSetable(Priority priority, boolean internable) {
             super(Pair.of(Direction.this, priority), Set.of(), false, null, null);
             this.priority = priority;
+            this.internable = internable;
         }
 
         public Direction direction() {
@@ -55,6 +57,11 @@ public enum Direction {
 
         public Priority priority() {
             return priority;
+        }
+
+        @Override
+        public boolean isInternable(Set<T> value) {
+            return internable && value.allMatch(a -> a instanceof Observer);
         }
     }
 

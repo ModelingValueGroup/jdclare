@@ -34,7 +34,6 @@ import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 
 public class State implements Serializable {
-
     private static final long                       serialVersionUID = -3468784705870374732L;
 
     @SuppressWarnings("rawtypes")

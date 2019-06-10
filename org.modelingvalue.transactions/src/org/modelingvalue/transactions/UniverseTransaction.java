@@ -95,11 +95,12 @@ public class UniverseTransaction extends MutableTransaction {
     private final int                                                             maxNrOfChanges;
     private final int                                                             maxNrOfObserved;
     private final int                                                             maxNrOfObservers;
-    protected final ReadOnly                                                      runOnState    = ReadOnly.of(Pair.of(this, "runOnState"));
+    protected final ReadOnly                                                      runOnState    = new ReadOnly(this, Direction.forward, Priority.postDepth);
 
     private List<State>                                                           history       = List.of();
     private List<State>                                                           future        = List.of();
     private State                                                                 preState;
+    private State                                                                 state;
     protected ConstantState                                                       constantState = new ConstantState();
     protected Action<Universe>                                                    leaf;
     private long                                                                  runCount;
@@ -131,7 +132,7 @@ public class UniverseTransaction extends MutableTransaction {
         this.clearOrphans = Action.of("clearOrphans", o -> clearOrphans(o));
         start(universe, null);
         pool.execute(() -> {
-            State state = start != null ? start.clone(this) : emptyState;
+            state = start != null ? start.clone(this) : emptyState;
             while (!killed) {
                 TraceTimer.traceBegin("root");
                 try {
@@ -158,13 +159,13 @@ public class UniverseTransaction extends MutableTransaction {
                         if (history.size() > maxNrOfHistory) {
                             history = history.removeFirst();
                         }
-                        state = post(run(trigger(pre(state), universe(), leaf, leaf.initDirection())));
+                        state = state.get(() -> post(run(trigger(pre(state), universe(), leaf, leaf.initDirection()))));
                         if (isDebugging()) {
                             handleTooManyChanges(state);
                         }
                     }
                     if (!killed) {
-                        state = run(trigger(state, state.get(universe(), INTEGRATIONS), Direction.forward));
+                        state = state.get(() -> run(trigger(state, state.get(universe(), INTEGRATIONS), Direction.forward)));
                     }
                     if (!killed && inQueue.isEmpty()) {
                         if (isStopped(state)) {
@@ -182,8 +183,7 @@ public class UniverseTransaction extends MutableTransaction {
             }
             history = history.append(state);
             constantState.stop();
-            putResult(state);
-            stop();
+            end(state);
         });
         init();
     }
@@ -265,7 +265,7 @@ public class UniverseTransaction extends MutableTransaction {
         }
     }
 
-    private void putResult(State state) {
+    protected void end(State state) {
         try {
             resultQueue.put(state);
         } catch (InterruptedException e) {

@@ -45,7 +45,7 @@ public class ActionInstance extends Struct2Impl<Mutable, Action> {
     }
 
     public boolean isInternable() {
-        return mutable() == This.THIS;
+        return mutable() == This.THIS || mutable() instanceof Universe;
     }
 
 }
