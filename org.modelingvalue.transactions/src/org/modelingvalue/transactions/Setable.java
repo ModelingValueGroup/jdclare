@@ -22,12 +22,11 @@ import java.util.function.Supplier;
 
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.util.Context;
-import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 
 public class Setable<O, T> extends Getable<O, T> {
 
-    private static final Context<Pair<Mutable, Setable<Mutable, ?>>> POST = Context.of();
+    private static final Context<Boolean> MOVING = Context.of(false);
 
     public static <C, V> Setable<C, V> of(Object id, V def) {
         return new Setable<C, V>(id, def, false, null, null);
@@ -62,6 +61,9 @@ public class Setable<O, T> extends Getable<O, T> {
         this.containment = containment;
         this.changed = changed;
         this.opposite = opposite;
+        if (containment && opposite != null) {
+            throw new Error("The containment setable " + this + " has an opposite");
+        }
     }
 
     public boolean containment() {
@@ -74,21 +76,22 @@ public class Setable<O, T> extends Getable<O, T> {
             changed.accept(tx, object, preValue, postValue);
         }
         if (containment) {
-            Pair<Mutable, Setable<Mutable, ?>> now = Pair.of((Mutable) object, (Setable<Mutable, ?>) this);
-            Pair<Mutable, Setable<Mutable, ?>> post = POST.get();
             Setable.<T, Mutable> diff(preValue, postValue, added -> {
-                Pair<Mutable, Setable<Mutable, ?>> pre = Mutable.D_PARENT_CONTAINING.get(added);
-                if (pre != null) {
-                    POST.run(now, () -> pre.b().remove(pre.a(), added));
+                Mutable preParent = Mutable.D_PARENT.get(added);
+                Setable<Mutable, ?> preContaining = Mutable.D_CONTAINING.get(added);
+                if (preParent != null) {
+                    MOVING.run(true, () -> preContaining.remove(preParent, added));
                 }
-                Mutable.D_PARENT_CONTAINING.set(added, now);
-                if (pre == null) {
+                Mutable.D_PARENT.set(added, (Mutable) object);
+                Mutable.D_CONTAINING.set(added, (Setable<Mutable, ?>) this);
+                if (preParent == null) {
                     added.dActivate();
                 }
             }, removed -> {
-                if (post == null) {
+                if (!MOVING.get()) {
                     removed.dDeactivate();
-                    Mutable.D_PARENT_CONTAINING.set(removed, null);
+                    Mutable.D_PARENT.set(removed, null);
+                    Mutable.D_CONTAINING.set(removed, null);
                 }
             });
         } else if (opposite != null) {

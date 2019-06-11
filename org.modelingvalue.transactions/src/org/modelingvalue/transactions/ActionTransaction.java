@@ -160,12 +160,12 @@ public class ActionTransaction extends LeafTransaction {
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("rawtypes")
     protected Mutable dParent(Mutable object) {
-        Entry<Pair<Object, Setable>, Object> set = setted.get().getEntry(Pair.of(object, Mutable.D_PARENT_CONTAINING));
+        Entry<Pair<Object, Setable>, Object> set = setted.get().getEntry(Pair.of(object, Mutable.D_PARENT));
         if (set != null) {
             if (set.getValue() != null) {
-                return ((Pair<Mutable, Setable<Mutable, ?>>) set.getValue()).a();
+                return (Mutable) set.getValue();
             } else {
                 return null;
             }

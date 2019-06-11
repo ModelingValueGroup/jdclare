@@ -220,7 +220,7 @@ public class UniverseTransaction extends MutableTransaction {
     protected void clearOrphans(Universe universe) {
         LeafTransaction tx = LeafTransaction.getCurrent();
         preState().diff(tx.state(), o -> o instanceof Mutable, s -> true).forEach(e0 -> {
-            if (!(e0.getKey() instanceof Universe) && tx.state().get((Mutable) e0.getKey(), Mutable.D_PARENT_CONTAINING) == null) {
+            if (!(e0.getKey() instanceof Universe) && tx.state().get((Mutable) e0.getKey(), Mutable.D_PARENT) == null) {
                 clear(tx, (Mutable) e0.getKey());
             }
         });

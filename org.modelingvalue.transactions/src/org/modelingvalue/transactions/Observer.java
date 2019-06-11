@@ -124,4 +124,8 @@ public class Observer<O extends Mutable> extends Action<O> {
 
     }
 
+    public boolean isInternable() {
+        return true;
+    }
+
 }

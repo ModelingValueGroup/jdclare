@@ -70,9 +70,9 @@ public abstract class Getable<O, T> {
     protected LeafTransaction currentLeaf(O object) {
         LeafTransaction current = LeafTransaction.getCurrent();
         if (current == null) {
-            throw new NullPointerException("No current transaction in " + Thread.currentThread() + " , while reading " + toString());
+            throw new NullPointerException("No current transaction in " + Thread.currentThread() + " , while accessing " + toString());
         } else if (object == null) {
-            throw new NullPointerException("Object is null, while reading " + current.state().get((this::toString)));
+            throw new NullPointerException("Object is null, while accessing " + current.state().get((this::toString)));
         }
         return current;
     }

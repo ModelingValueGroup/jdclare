@@ -59,9 +59,10 @@ public enum Direction {
             return priority;
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public boolean isInternable(Set<T> value) {
-            return internable && value.allMatch(a -> a instanceof Observer);
+            return internable && value.allMatch(a -> a instanceof Observer && ((Observer) a).isInternable());
         }
     }
 

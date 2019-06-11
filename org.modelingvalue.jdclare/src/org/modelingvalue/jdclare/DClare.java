@@ -1053,20 +1053,20 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                         o -> filterClass.isInstance(o), p -> true).forEach(e0 -> {
                             DObject dObject = (DObject) e0.getKey();
                             DNative no = NATIVE.get(dObject);
-                            Pair<Object, Object> tpair = e0.getValue().get(Mutable.D_PARENT_CONTAINING);
-                            if (tpair != null) {
-                                if (tpair.a() == null) {
-                                    no.init((DObject) ((Pair) tpair.b()).a());
+                            Pair<Object, Object> diff = e0.getValue().get(Mutable.D_PARENT);
+                            if (diff != null) {
+                                if (diff.a() == null) {
+                                    no.init((DObject) diff.b());
                                     dObject.dClass().allProperties().forEach(p -> {
                                         ChangeHandler nch = p.nativeChangeHandler();
                                         if (nch != null) {
                                             change(no, nch, Pair.of(p.defaultValue(), p.get(dObject)));
                                         }
                                     });
-                                } else if (tpair.b() == null) {
-                                    no.exit((DObject) ((Pair) tpair.a()).a());
+                                } else if (diff.b() == null) {
+                                    no.exit((DObject) diff.a());
                                 }
-                            } else if (Mutable.D_PARENT_CONTAINING.get(dObject) != null) {
+                            } else if (Mutable.D_PARENT.get(dObject) != null) {
                                 e0.getValue().forEach(e1 -> {
                                     if (e1.getKey().id() instanceof DProperty) {
                                         DProperty<DStruct, Object> p = (DProperty) e1.getKey().id();

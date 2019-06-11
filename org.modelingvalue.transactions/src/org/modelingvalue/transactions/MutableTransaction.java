@@ -21,7 +21,6 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.NotMergeableException;
-import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.transactions.Direction.DirectionSetable;
 import org.modelingvalue.transactions.Observed.Observers;
@@ -199,9 +198,9 @@ public class MutableTransaction extends Transaction {
                                 Set<Mutable> depth = (Set<Mutable>) p.getValue();
                                 depth = depth.removeAll(State.get(ps, ds));
                                 if (!depth.isEmpty()) {
-                                    Pair<Mutable, Setable<Mutable, ?>> baseParent = State.get(ps, Mutable.D_PARENT_CONTAINING);
+                                    Mutable baseParent = State.get(ps, Mutable.D_PARENT);
                                     for (Map<Setable, Object> psb : psbs) {
-                                        Pair<Mutable, Setable<Mutable, ?>> branchParent = State.get(psb, Mutable.D_PARENT_CONTAINING);
+                                        Mutable branchParent = State.get(psb, Mutable.D_PARENT);
                                         if (!Objects.equals(branchParent, baseParent)) {
                                             Set<Mutable> addedDepth = depth.removeAll(State.get(psb, ds));
                                             if (!addedDepth.isEmpty()) {
@@ -249,11 +248,11 @@ public class MutableTransaction extends Transaction {
         if (leaf != null) {
             state = state.set(object, direction.priorities[leaf.priority().nr], Set::add, leaf);
         }
-        Pair<Mutable, ?> parent = state.get(object, Mutable.D_PARENT_CONTAINING);
+        Mutable parent = state.get(object, Mutable.D_PARENT);
         while (parent != null && (Direction.backward == direction || !mutable().equals(object))) {
-            state = state.set(parent.a(), direction.depth, Set::add, object);
-            object = parent.a();
-            parent = state.get(object, Mutable.D_PARENT_CONTAINING);
+            state = state.set(parent, direction.depth, Set::add, object);
+            object = parent;
+            parent = state.get(object, Mutable.D_PARENT);
         }
         return state;
     }
