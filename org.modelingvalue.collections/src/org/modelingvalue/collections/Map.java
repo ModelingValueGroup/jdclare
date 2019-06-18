@@ -67,6 +67,9 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     @Override
     Map<K, V> add(Entry<K, V> e);
 
+    @Override
+    Map<K, V> addAll(Collection<? extends Entry<K, V>> es);
+
     Collection<Entry<K, Pair<Entry<K, V>, Entry<K, V>>>> diff(Map<K, V> other);
 
 }

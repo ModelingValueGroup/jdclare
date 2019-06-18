@@ -28,7 +28,7 @@ public abstract class LeafTransaction extends Transaction {
         super(universeTransaction);
     }
 
-    public Leaf leaf() {
+    public final Leaf leaf() {
         return (Leaf) cls();
     }
 

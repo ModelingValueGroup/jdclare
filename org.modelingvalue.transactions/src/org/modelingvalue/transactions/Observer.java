@@ -122,6 +122,11 @@ public class Observer<O extends Mutable> extends Action<O> {
             return value.allMatch(ObservedInstance::isInternable);
         }
 
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + super.toString().substring(4);
+        }
+
     }
 
     public boolean isInternable() {

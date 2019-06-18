@@ -19,7 +19,6 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
@@ -227,13 +226,14 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     }
 
     @Override
-    public Map<K, V> add(Entry<K, V> e) {
-        return put(e);
+    public Map<K, V> add(Entry<K, V> entry) {
+        return put(entry);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public ContainingCollection<Entry<K, V>> addAll(Collection<? extends Entry<K, V>> es) {
-        return putAll(es.toMap(e -> e));
+    public Map<K, V> addAll(Collection<? extends Entry<K, V>> es) {
+        return putAll(es instanceof Map ? (Map) es : es.toMap(e -> e));
     }
 
     private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {

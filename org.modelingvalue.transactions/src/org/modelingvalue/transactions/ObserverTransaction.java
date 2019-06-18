@@ -35,7 +35,7 @@ public class ObserverTransaction extends ActionTransaction {
         super(universeTransaction);
     }
 
-    public Observer<?> observer() {
+    public final Observer<?> observer() {
         return (Observer<?>) action();
     }
 
@@ -151,36 +151,39 @@ public class ObserverTransaction extends ActionTransaction {
         if (property instanceof Observed && Constant.DERIVED.get() != null && ObserverTransaction.OBSERVE.get()) {
             throw new NonDeterministicException("Reading observed '" + property + "' while initializing constant '" + Constant.DERIVED.get() + "'");
         }
-        observe(object, property, false);
-        return super.get(object, property);
+        T value = super.get(object, property);
+        observe(object, property, value, false);
+        return value;
     }
 
     @Override
     public <O, T> T pre(O object, Getable<O, T> property) {
-        observe(object, property, false);
-        return super.pre(object, property);
+        T value = super.pre(object, property);
+        observe(object, property, value, false);
+        return value;
     }
 
     @Override
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        observe(object, property, true);
-        return super.set(object, property, function, element);
+        T value = super.set(object, property, function, element);
+        observe(object, property, value, true);
+        return value;
     }
 
     @Override
     public <O, T> T set(O object, Setable<O, T> property, T value) {
-        observe(object, property, true);
+        observe(object, property, value, true);
         return super.set(object, property, value);
     }
 
     @SuppressWarnings("rawtypes")
-    private <O, T> void observe(O object, Getable<O, T> property, boolean set) {
-        if (object instanceof Mutable && property instanceof Observed && getted.isInitialized() && setted.isInitialized() && OBSERVE.get()) {
-            ObservedInstance observedInstance = object.equals(parent().mutable()) ? ((Observed) property).thisInstance : ObservedInstance.of((Mutable) object, (Observed) property);
+    private <O, T> void observe(O object, Getable<O, T> property, T value, boolean set) {
+        if (object instanceof Mutable && property instanceof Observed && getted.isInitialized() && OBSERVE.get()) {
+            ObservedInstance oi = object.equals(parent().mutable()) ? ((Observed) property).thisInstance : ObservedInstance.of((Mutable) object, (Observed) property);
             if (set) {
-                setted.change(o -> o.add(observedInstance));
+                setted.change(o -> o.add(oi));
             } else {
-                getted.change(o -> o.add(observedInstance));
+                getted.change(o -> o.add(oi));
             }
         }
     }

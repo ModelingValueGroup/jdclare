@@ -38,7 +38,7 @@ public abstract class Transaction {
 
     protected abstract State run(State state);
 
-    final TransactionClass cls() {
+    public final TransactionClass cls() {
         if (cls == null) {
             throw new ConcurrentModificationException();
         }

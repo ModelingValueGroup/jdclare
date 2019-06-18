@@ -62,6 +62,12 @@ public class State implements Serializable {
         return get(props, (Setable<O, T>) property);
     }
 
+    @SuppressWarnings("unchecked")
+    public <O, E, T> Collection<E> getCollection(O object, Getable<O, T> property) {
+        T v = get(object, property);
+        return v instanceof Collection ? (Collection<E>) v : v instanceof Iterable ? Collection.of((Iterable<E>) v) : v == null ? Set.of() : Set.of((E) v);
+    }
+
     @SuppressWarnings("rawtypes")
     public <O, T> State set(O object, Setable<O, T> property, T value) {
         Map<Setable, Object> props = properties(object);

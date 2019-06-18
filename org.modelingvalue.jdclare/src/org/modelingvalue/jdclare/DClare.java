@@ -1217,7 +1217,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     }
 
     @Override
-    public U universe() {
+    public final U universe() {
         return (U) mutable();
     }
 

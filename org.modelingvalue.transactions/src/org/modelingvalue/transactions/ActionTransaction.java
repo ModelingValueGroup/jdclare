@@ -33,7 +33,7 @@ public class ActionTransaction extends LeafTransaction {
         super(universeTransaction);
     }
 
-    public Action<?> action() {
+    public final Action<?> action() {
         return (Action<?>) cls();
     }
 

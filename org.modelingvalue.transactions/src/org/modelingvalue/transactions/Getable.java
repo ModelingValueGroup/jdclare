@@ -13,7 +13,10 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.function.Supplier;
+
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 
@@ -81,6 +84,27 @@ public abstract class Getable<O, T> {
     public <E> Collection<E> getCollection(O object) {
         T v = get(object);
         return v instanceof Collection ? (Collection<E>) v : v instanceof Iterable ? Collection.of((Iterable<E>) v) : v == null ? Set.of() : Set.of((E) v);
+    }
+
+    public boolean containment() {
+        return false;
+    }
+
+    public Supplier<Setable<?, ?>> opposite() {
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T, E> Collection<Mutable> mutables(T value) {
+        if (value instanceof ContainingCollection) {
+            return ((ContainingCollection<Object>) value).filter(Mutable.class);
+        } else if (value instanceof java.util.Collection) {
+            return Collection.of((java.util.Collection<Object>) value).filter(Mutable.class);
+        } else if (value instanceof Mutable) {
+            return Set.of((Mutable) value);
+        } else {
+            return Set.of();
+        }
     }
 
 }

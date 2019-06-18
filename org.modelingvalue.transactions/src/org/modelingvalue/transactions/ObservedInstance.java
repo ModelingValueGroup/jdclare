@@ -52,4 +52,9 @@ public class ObservedInstance extends Struct2Impl<Mutable, Observed> {
         return mutable() == This.THIS || mutable() instanceof Universe;
     }
 
+    @Override
+    public String toString() {
+        return mutable() + "." + observed();
+    }
+
 }

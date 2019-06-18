@@ -70,6 +70,11 @@ public class Setable<O, T> extends Getable<O, T> {
         return containment;
     }
 
+    @Override
+    public Supplier<Setable<?, ?>> opposite() {
+        return opposite;
+    }
+
     @SuppressWarnings("unchecked")
     protected void changed(LeafTransaction tx, O object, T preValue, T postValue) {
         if (changed != null) {
@@ -114,50 +119,6 @@ public class Setable<O, T> extends Getable<O, T> {
 
     public <E> T set(O object, BiFunction<T, E, T> function, E element) {
         return currentLeaf(object).set(object, this, function, element);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T, E> void diff(T pre, T post, Consumer<E> added, Consumer<E> removed) {
-        if (pre instanceof ContainingCollection && post instanceof ContainingCollection) {
-            ((ContainingCollection<Object>) pre).compare((ContainingCollection<Object>) post).forEach(d -> {
-                if (d[0] == null) {
-                    d[1].forEach(a -> added.accept((E) a));
-                }
-                if (d[1] == null) {
-                    d[0].forEach(r -> removed.accept((E) r));
-                }
-            });
-        } else if (pre instanceof java.util.Collection && post instanceof java.util.Collection) {
-            ((java.util.Collection<Object>) post).stream().forEach(a -> {
-                if (!((java.util.Collection<Object>) pre).contains(a)) {
-                    added.accept((E) a);
-                }
-            });
-            ((java.util.Collection<Object>) pre).stream().forEach(r -> {
-                if (!((java.util.Collection<Object>) post).contains(r)) {
-                    removed.accept((E) r);
-                }
-            });
-        } else {
-            if (pre != null) {
-                if (pre instanceof Iterable) {
-                    for (E e : (Iterable<E>) pre) {
-                        removed.accept(e);
-                    }
-                } else {
-                    removed.accept((E) pre);
-                }
-            }
-            if (post != null) {
-                if (post instanceof Iterable) {
-                    for (E e : (Iterable<E>) post) {
-                        added.accept(e);
-                    }
-                } else {
-                    added.accept((E) post);
-                }
-            }
-        }
     }
 
     @SuppressWarnings({"unchecked", "unlikely-arg-type"})
@@ -210,6 +171,50 @@ public class Setable<O, T> extends Getable<O, T> {
 
     public boolean isInternable(T value) {
         return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T, E> void diff(T pre, T post, Consumer<E> added, Consumer<E> removed) {
+        if (pre instanceof ContainingCollection && post instanceof ContainingCollection) {
+            ((ContainingCollection<Object>) pre).compare((ContainingCollection<Object>) post).forEach(d -> {
+                if (d[0] == null) {
+                    d[1].forEach(a -> added.accept((E) a));
+                }
+                if (d[1] == null) {
+                    d[0].forEach(r -> removed.accept((E) r));
+                }
+            });
+        } else if (pre instanceof java.util.Collection && post instanceof java.util.Collection) {
+            ((java.util.Collection<Object>) post).stream().forEach(a -> {
+                if (!((java.util.Collection<Object>) pre).contains(a)) {
+                    added.accept((E) a);
+                }
+            });
+            ((java.util.Collection<Object>) pre).stream().forEach(r -> {
+                if (!((java.util.Collection<Object>) post).contains(r)) {
+                    removed.accept((E) r);
+                }
+            });
+        } else {
+            if (pre != null) {
+                if (pre instanceof Iterable) {
+                    for (E e : (Iterable<E>) pre) {
+                        removed.accept(e);
+                    }
+                } else {
+                    removed.accept((E) pre);
+                }
+            }
+            if (post != null) {
+                if (post instanceof Iterable) {
+                    for (E e : (Iterable<E>) post) {
+                        added.accept(e);
+                    }
+                } else {
+                    added.accept((E) post);
+                }
+            }
+        }
     }
 
 }

@@ -20,12 +20,12 @@ public class ActionInstance extends Struct2Impl<Mutable, Action> {
 
     private static final long serialVersionUID = -6386034125368913879L;
 
-    public static ActionInstance of(Mutable object, Action action) {
-        return new ActionInstance(object, action);
+    public static ActionInstance of(Mutable mutable, Action action) {
+        return new ActionInstance(mutable, action);
     }
 
-    private ActionInstance(Mutable object, Action action) {
-        super(object, action);
+    private ActionInstance(Mutable mutable, Action action) {
+        super(mutable, action);
     }
 
     public Mutable mutable() {
@@ -48,4 +48,8 @@ public class ActionInstance extends Struct2Impl<Mutable, Action> {
         return mutable() == This.THIS || mutable() instanceof Universe;
     }
 
+    @Override
+    public String toString() {
+        return mutable() + "." + action();
+    }
 }

@@ -24,7 +24,7 @@ public class ReadOnlyTransaction extends LeafTransaction {
         super(universeTransaction);
     }
 
-    public ReadOnly readOnlyCls() {
+    public final ReadOnly readOnlyCls() {
         return (ReadOnly) cls();
     }
 

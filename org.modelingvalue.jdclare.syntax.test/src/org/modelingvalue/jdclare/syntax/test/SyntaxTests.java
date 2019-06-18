@@ -88,15 +88,18 @@ public class SyntaxTests {
         State result = doit();
         result.run(() -> {
             if (DUMP) {
+                System.err.println("******************************Begin State*************************************");
+                System.err.println(result.asString());
+                System.err.println("******************************End State***************************************");
                 System.err.println("******************************Begin Syntax************************************");
                 result.getObjects(GrammarClass.class).filter(s -> s.jClass() == MySyntax.class).forEach(u -> u.dDump(System.err));
                 System.err.println("******************************End Syntax**************************************");
                 System.err.println("******************************Begin Text**************************************");
                 result.getObjects(Text.class).forEach(u -> u.dDump(System.err));
                 System.err.println("******************************End Text****************************************");
-                System.err.println("******************************Begin Root**********************************");
+                System.err.println("******************************Begin Root**************************************");
                 result.getObjects(Unit.class).forEach(u -> u.dDump(System.err));
-                System.err.println("******************************End Root************************************");
+                System.err.println("******************************End Root****************************************");
                 System.err.println("******************************Begin Problems**********************************");
                 result.getObjects(DUniverse.class).forEach(u -> u.dAllProblems().forEach(p -> System.err.println(p)));
                 System.err.println("******************************End Problems************************************");

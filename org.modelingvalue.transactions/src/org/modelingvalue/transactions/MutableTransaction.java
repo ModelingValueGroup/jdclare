@@ -43,7 +43,7 @@ public class MutableTransaction extends Transaction {
         }
     }
 
-    public Mutable mutable() {
+    public final Mutable mutable() {
         return (Mutable) cls();
     }
 

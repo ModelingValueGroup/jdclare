@@ -20,9 +20,9 @@ public interface Mutable extends TransactionClass {
 
     public static final This                     THIS             = new This();
 
-    Observed<Mutable, Mutable>                   D_PARENT         = Observed.of("D_PARENT", null);
-
     Observed<Mutable, Setable<Mutable, ?>>       D_CONTAINING     = InternableObserved.of("D_CONTAINING", null);
+
+    Observed<Mutable, Mutable>                   D_PARENT         = Observed.of("D_PARENT", null);
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     Setable<Mutable, Set<? extends Observer<?>>> D_OBSERVERS      = new Setable<Mutable, Set<? extends Observer<?>>>("D_OBSERVERS", Set.of(), false, null, (tx, obj, pre, post) -> {
@@ -94,6 +94,11 @@ public interface Mutable extends TransactionClass {
     @SuppressWarnings({"unchecked", "rawtypes"})
     default Collection<? extends Mutable> dChildren() {
         return dContainers().flatMap(c -> (Collection<? extends Mutable>) ((Setable) c).getCollection(this));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default Collection<? extends Mutable> dChildren(State state) {
+        return dContainers().flatMap(c -> (Collection<? extends Mutable>) state.getCollection(this, (Setable) c));
     }
 
     @Override
