@@ -73,7 +73,7 @@ public class Setable<O, T> extends Getable<O, T> {
 
     @SuppressWarnings("rawtypes")
     public Entry<Setable, Object> intern(T value) {
-        return internal.get(value);
+        return isInternable(value) ? internal.get(value) : Entry.of(this, value);
     }
 
     @Override

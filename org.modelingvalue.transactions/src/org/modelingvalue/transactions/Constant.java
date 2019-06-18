@@ -118,4 +118,9 @@ public class Constant<O, T> extends Setable<O, T> {
         return get(object);
     }
 
+    @Override
+    public final boolean isInternable(T value) {
+        return false;
+    }
+
 }

@@ -118,7 +118,7 @@ public class State implements Serializable {
             post = pre == null ? null : pre.removeKey(property);
             post = post == null || post.isEmpty() ? null : post;
         } else {
-            post = pre == null ? Map.of(intern(property, newValue)) : pre.put(intern(property, newValue));
+            post = pre == null ? Map.of(property.intern(newValue)) : pre.put(property.intern(newValue));
         }
         if (pre == post) {
             return this;
@@ -128,11 +128,6 @@ public class State implements Serializable {
         } else {
             return new State(universeTransaction, map == null ? Map.of(Entry.of(object, post)) : map.put(object, post));
         }
-    }
-
-    @SuppressWarnings("rawtypes")
-    private <O, T> Entry<Setable, Object> intern(Setable<O, T> setable, T value) {
-        return setable.isInternable(value) ? setable.intern(value) : Entry.of(setable, value);
     }
 
     private static <X, Y> Map<X, Y> map(Map<X, Y> in) {
@@ -180,7 +175,7 @@ public class State implements Serializable {
                 if (v instanceof Mergeable) {
                     vs = val(v, p, evs);
                     Object result = ((Mergeable) v).merge(vs);
-                    return Objects.equals(result, p.getDefault()) ? null : intern(p, result);
+                    return Objects.equals(result, p.getDefault()) ? null : p.intern(result);
                 } else {
                     vs = val(null, p, evs);
                     Object result = null;
@@ -193,7 +188,7 @@ public class State implements Serializable {
                             }
                         }
                     }
-                    return intern(p, result);
+                    return p.intern(result);
                 }
             }, pss);
             if (changeHandler != null) {
