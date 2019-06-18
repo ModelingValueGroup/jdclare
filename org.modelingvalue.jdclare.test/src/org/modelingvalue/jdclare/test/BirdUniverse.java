@@ -194,11 +194,11 @@ public interface BirdUniverse extends DUniverse {
 
         @Rule
         default void multiply2() {
-            if ("yellow2".equals(color()) && /* children().isEmpty() && */ name().length() < 7) {
+            if ("gold".equals(color()) && /* children().isEmpty() && */ name().length() < 7) {
                 for (int i = 0; i < 7; i++) {
                     Bird child = dclare(Sparrow.class, this, name() + i, rule("rule", c -> c.firstBird().name()));
                     set(this, Bird::children, Set::add, child);
-                    set(child, Bird::color, "yellow2");
+                    set(child, Bird::color, "gold");
                 }
             }
         }

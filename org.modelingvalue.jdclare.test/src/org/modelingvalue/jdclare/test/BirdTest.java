@@ -185,7 +185,7 @@ public class BirdTest {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
-            addBird(dclare, Sparrow.class, Pair.of("0", "gold"));
+            addBird(dclare, Sparrow.class, Pair.of("1", "gold"));
             stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
