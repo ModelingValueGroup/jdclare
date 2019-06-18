@@ -18,7 +18,7 @@ import org.modelingvalue.collections.Set;
 
 public interface Mutable extends TransactionClass {
 
-    public static final This                     THIS             = new This();
+    This                                         THIS             = new This();
 
     Observed<Mutable, Setable<Mutable, ?>>       D_CONTAINING     = InternableObserved.of("D_CONTAINING", null);
 

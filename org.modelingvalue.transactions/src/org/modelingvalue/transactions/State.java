@@ -37,9 +37,6 @@ public class State implements Serializable {
     private static final long                       serialVersionUID = -3468784705870374732L;
 
     @SuppressWarnings("rawtypes")
-    private static Constant<Entry, Entry>           INTERNAL         = Constant.of("INTERNAL", e -> e);
-
-    @SuppressWarnings("rawtypes")
     private static final Comparator<Entry>          COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
 
     @SuppressWarnings("rawtypes")
@@ -133,9 +130,9 @@ public class State implements Serializable {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("rawtypes")
     private <O, T> Entry<Setable, Object> intern(Setable<O, T> setable, T value) {
-        return setable.isInternable(value) ? INTERNAL.get(Entry.of(setable, value)) : Entry.of(setable, value);
+        return setable.isInternable(value) ? setable.intern(value) : Entry.of(setable, value);
     }
 
     private static <X, Y> Map<X, Y> map(Map<X, Y> in) {

@@ -21,7 +21,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 
 public class Setable<O, T> extends Getable<O, T> {
@@ -52,9 +54,11 @@ public class Setable<O, T> extends Getable<O, T> {
         return new Setable<C, V>(id, def, false, opposite, changed);
     }
 
-    protected QuadConsumer<LeafTransaction, O, T, T> changed;
-    protected final boolean                          containment;
-    private final Supplier<Setable<?, ?>>            opposite;
+    protected QuadConsumer<LeafTransaction, O, T, T>  changed;
+    protected final boolean                           containment;
+    private final Supplier<Setable<?, ?>>             opposite;
+    @SuppressWarnings("rawtypes")
+    private final Constant<T, Entry<Setable, Object>> internal;
 
     protected Setable(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def);
@@ -64,8 +68,15 @@ public class Setable<O, T> extends Getable<O, T> {
         if (containment && opposite != null) {
             throw new Error("The containment setable " + this + " has an opposite");
         }
+        this.internal = this instanceof Constant ? null : Constant.of(Pair.of(this, "internalEntry"), v -> Entry.of(this, v));
     }
 
+    @SuppressWarnings("rawtypes")
+    public Entry<Setable, Object> intern(T value) {
+        return internal.get(value);
+    }
+
+    @Override
     public boolean containment() {
         return containment;
     }
