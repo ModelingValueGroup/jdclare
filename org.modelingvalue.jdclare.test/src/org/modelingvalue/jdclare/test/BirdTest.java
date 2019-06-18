@@ -1,7 +1,10 @@
 package org.modelingvalue.jdclare.test;
 
-import static org.junit.Assert.*;
-import static org.modelingvalue.jdclare.DClare.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.modelingvalue.jdclare.DClare.dclare;
+import static org.modelingvalue.jdclare.DClare.of;
+import static org.modelingvalue.jdclare.DClare.set;
 
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
@@ -125,26 +128,26 @@ public class BirdTest {
         }
     }
 
-    // @Test
-    public void tooManyObserversException1() {
-        try {
-            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
-            start(dclare);
-            addBird(dclare, Condor.class, Pair.of("0", "yellow"));
-            stop(dclare);
-            Assert.fail();
-        } catch (Throwable t) {
-            Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class);
-        }
-    }
-
     @Test
     public void tooManyChangesException6() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
             addBird(dclare, Condor.class, Pair.of("0", "brown"));
+            stop(dclare);
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertThrowable(cause, TooManyChangesException.class);
+        }
+    }
+
+    @Test
+    public void tooManyChangesException7() {
+        try {
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Condor.class, Pair.of("0", "yellow"));
             stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
@@ -178,6 +181,20 @@ public class BirdTest {
     }
 
     @Test
+    public void tooManyObserversException1() {
+        try {
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Sparrow.class, Pair.of("0", "gold"));
+            stop(dclare);
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertThrowable(cause, TooManyObserversException.class);
+        }
+    }
+
+    @Test
     public void tooManyObserversException2() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
@@ -187,7 +204,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2003) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2004) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
         }
     }
 

@@ -1,7 +1,12 @@
 package org.modelingvalue.jdclare.test;
 
-import static org.modelingvalue.jdclare.DClare.*;
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
+import static org.modelingvalue.jdclare.DClare.dUniverse;
+import static org.modelingvalue.jdclare.DClare.dclare;
+import static org.modelingvalue.jdclare.DClare.rule;
+import static org.modelingvalue.jdclare.DClare.set;
+import static org.modelingvalue.jdclare.PropertyQualifier.constant;
+import static org.modelingvalue.jdclare.PropertyQualifier.containment;
+import static org.modelingvalue.jdclare.PropertyQualifier.optional;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
@@ -18,6 +23,11 @@ public interface BirdUniverse extends DUniverse {
     Set<Bird> birds();
 
     interface Bird extends DStruct2<DObject, String>, DNamed {
+
+        default Bird firstBird() {
+            DObject p = dParent();
+            return p instanceof Bird ? ((Bird) p).firstBird() : this;
+        }
 
         @Property(key = 0)
         DObject parent();
@@ -73,11 +83,6 @@ public interface BirdUniverse extends DUniverse {
     }
 
     interface Condor extends Bird {
-
-        default Condor firstCondor() {
-            DObject p = dParent();
-            return p instanceof Condor ? ((Condor) p).firstCondor() : this;
-        }
 
         @Rule
         default void setWingColor() {
@@ -139,7 +144,7 @@ public interface BirdUniverse extends DUniverse {
         default void multiply() {
             if ("yellow".equals(color()) && children().isEmpty() && name().length() < 7) {
                 for (int i = 0; i < 7; i++) {
-                    Bird child = dclare(Condor.class, this, name() + i, rule("rule", c -> c.firstCondor().name()));
+                    Bird child = dclare(Condor.class, this, name() + i);
                     set(this, Bird::children, Set::add, child);
                     set(child, Bird::color, "yellow");
                 }
@@ -186,6 +191,17 @@ public interface BirdUniverse extends DUniverse {
     }
 
     interface Sparrow extends Bird {
+
+        @Rule
+        default void multiply2() {
+            if ("yellow2".equals(color()) && /* children().isEmpty() && */ name().length() < 7) {
+                for (int i = 0; i < 7; i++) {
+                    Bird child = dclare(Sparrow.class, this, name() + i, rule("rule", c -> c.firstBird().name()));
+                    set(this, Bird::children, Set::add, child);
+                    set(child, Bird::color, "yellow2");
+                }
+            }
+        }
 
         @Rule
         default void addChildren() {
