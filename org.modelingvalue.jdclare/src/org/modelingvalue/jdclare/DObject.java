@@ -122,6 +122,11 @@ public interface DObject extends DStruct, Mutable {
     }
 
     @Override
+    default Mutable resolve(Mutable mutable) {
+        return this;
+    }
+
+    @Override
     default MutableTransaction newTransaction(UniverseTransaction universeTransaction) {
         return Mutable.super.newTransaction(universeTransaction);
     }

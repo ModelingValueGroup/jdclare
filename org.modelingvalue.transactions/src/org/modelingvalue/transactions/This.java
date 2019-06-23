@@ -41,4 +41,9 @@ public final class This implements Mutable {
         return Set.of();
     }
 
+    @Override
+    public final Mutable resolve(Mutable mutable) {
+        return mutable;
+    }
+
 }

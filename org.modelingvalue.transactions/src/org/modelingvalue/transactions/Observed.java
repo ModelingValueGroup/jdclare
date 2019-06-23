@@ -15,11 +15,16 @@ package org.modelingvalue.transactions;
 
 import java.util.function.Supplier;
 
+import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 
 public class Observed<O, T> extends Setable<O, T> {
+
+    @SuppressWarnings("rawtypes")
+    protected static final Map<Observed, Set<Mutable>> OBSERVED_MAP = Map.of(k -> Set.of());
 
     public static <C, V> Observed<C, V> of(Object id, V def) {
         return new Observed<C, V>(id, def, false, null, null);
@@ -48,7 +53,8 @@ public class Observed<O, T> extends Setable<O, T> {
     private final Setable<Object, Set<ObserverTrace>> readers      = Setable.of(Pair.of(this, "readers"), Set.of());
     private final Setable<Object, Set<ObserverTrace>> writers      = Setable.of(Pair.of(this, "writers"), Set.of());
     private final Observers<O, T>[]                   observers;
-    protected final ObservedInstance                  thisInstance = ObservedInstance.of(This.THIS, this);
+    @SuppressWarnings("rawtypes")
+    protected final Entry<Observed, Set<Mutable>>     thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
 
     @SuppressWarnings("unchecked")
     protected Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
@@ -64,7 +70,7 @@ public class Observed<O, T> extends Setable<O, T> {
         return observers;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed) {
         super(id, def, containment, opposite, null);
         this.changed = (l, o, p, n) -> {
@@ -72,12 +78,14 @@ public class Observed<O, T> extends Setable<O, T> {
                 changed.accept(l, o, p, n);
             }
             for (int ia = 0; ia < 2; ia++) {
-                Set<ActionInstance> obsSet = l.get(o, observers[ia]);
+                Map<Observer, Set<Mutable>> obsSet = l.get(o, observers[ia]);
                 l.checkTooManyObservers(o, observers[ia].observed, obsSet);
-                for (ActionInstance obs : obsSet) {
-                    Mutable mutable = obs.mutable((Mutable) o);
-                    if (!l.cls().equals(obs.action()) || !l.parent().mutable().equals(mutable)) {
-                        l.trigger(mutable, obs.action(), Direction.values()[ia]);
+                for (Entry<Observer, Set<Mutable>> e : obsSet) {
+                    for (Mutable m : e.getValue()) {
+                        Mutable mutable = m.resolve((Mutable) o);
+                        if (!l.cls().equals(e.getKey()) || !l.parent().mutable().equals(mutable)) {
+                            l.trigger(mutable, e.getKey(), Direction.values()[ia]);
+                        }
                     }
                 }
             }
@@ -113,7 +121,8 @@ public class Observed<O, T> extends Setable<O, T> {
         return nr;
     }
 
-    public static final class Observers<O, T> extends Setable<O, Set<ActionInstance>> {
+    @SuppressWarnings("rawtypes")
+    public static final class Observers<O, T> extends Setable<O, Map<Observer, Set<Mutable>>> {
 
         private Observed<O, T>  observed;
         private final Direction direction;
@@ -123,7 +132,7 @@ public class Observed<O, T> extends Setable<O, T> {
         }
 
         private Observers(Object id, Direction direction) {
-            super(Pair.of(id, direction), Set.of(), false, null, null);
+            super(Pair.of(id, direction), Observer.OBSERVER_MAP, false, null, null);
             changed = (tx, o, b, a) -> tx.checkTooManyObservers(o, observed, a);
             this.direction = direction;
         }
@@ -137,8 +146,8 @@ public class Observed<O, T> extends Setable<O, T> {
         }
 
         @Override
-        public boolean isInternable(Set<ActionInstance> value) {
-            return value.allMatch(ActionInstance::isInternable);
+        public boolean isInternable(Map<Observer, Set<Mutable>> value) {
+            return value.allMatch(e -> e.getValue() == Mutable.THIS_SINGLETON);
         }
 
     }

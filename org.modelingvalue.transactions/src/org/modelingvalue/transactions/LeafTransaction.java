@@ -33,10 +33,14 @@ public abstract class LeafTransaction extends Transaction {
     }
 
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyObservers(Object object, Observed observed, Set<ActionInstance> observers) {
-        if (universeTransaction().maxNrOfObservers() < observers.size()) {
+    protected void checkTooManyObservers(Object object, Observed observed, Map<Observer, Set<Mutable>> observers) {
+        if (universeTransaction().maxNrOfObservers() < size(observers)) {
             throw new TooManyObserversException(object, observed, observers, universeTransaction());
         }
+    }
+
+    protected static int size(Map<?, Set<Mutable>> map) {
+        return map.reduce(0, (a, e) -> a + e.getValue().size(), (a, b) -> a + b);
     }
 
     public static LeafTransaction getCurrent() {

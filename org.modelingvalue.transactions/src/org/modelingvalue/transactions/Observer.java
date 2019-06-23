@@ -15,11 +15,17 @@ package org.modelingvalue.transactions;
 
 import java.util.function.Consumer;
 
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.transactions.Direction.DirectionSetable;
 
 public class Observer<O extends Mutable> extends Action<O> {
+
+    @SuppressWarnings("rawtypes")
+    protected static final Map<Observer, Set<Mutable>> OBSERVER_MAP = Map.of(k -> Set.of());
 
     public static <M extends Mutable> Observer<M> of(Object id, Consumer<M> action) {
         return new Observer<M>(id, action, Direction.forward, Priority.postDepth);
@@ -37,10 +43,12 @@ public class Observer<O extends Mutable> extends Action<O> {
 
     private final Observerds[]                        observeds;
 
-    protected long                                    runCount = -1;
+    protected long                                    runCount     = -1;
     protected int                                     instances;
     protected int                                     changes;
     protected boolean                                 stopped;
+    @SuppressWarnings("rawtypes")
+    protected final Entry<Observer, Set<Mutable>>     thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
 
     protected Observer(Object id, Consumer<O> action, Direction initDirection, Priority priority) {
         super(id, action, initDirection, priority);
@@ -97,7 +105,7 @@ public class Observer<O extends Mutable> extends Action<O> {
     }
 
     @SuppressWarnings("rawtypes")
-    public static final class Observerds extends Setable<Mutable, Set<ObservedInstance>> {
+    public static final class Observerds extends Setable<Mutable, Map<Observed, Set<Mutable>>> {
 
         public static Observerds of(Observer observer, Direction direction) {
             return new Observerds(observer, direction);
@@ -105,21 +113,24 @@ public class Observer<O extends Mutable> extends Action<O> {
 
         @SuppressWarnings("unchecked")
         private Observerds(Observer observer, Direction direction) {
-            super(Pair.of(observer, direction), Set.of(), false, null, (tx, mutable, pre, post) -> {
-                pre.compare(post).forEach(d -> {
-                    if (d[0] == null) {
-                        d[1].forEach(n -> tx.set(n.mutable(mutable), n.property().observers(direction), Set<ActionInstance>::add, n.observerInstance(mutable, observer)));
-                    }
-                    if (d[1] == null) {
-                        d[0].forEach(o -> tx.set(o.mutable(mutable), o.property().observers(direction), Set<ActionInstance>::remove, o.observerInstance(mutable, observer)));
-                    }
-                });
+            super(Pair.of(observer, direction), Observed.OBSERVED_MAP, false, null, (tx, mutable, pre, post) -> {
+                for (Observed observed : Collection.concat(pre.toKeys(), post.toKeys()).distinct()) {
+                    Setable<Mutable, Map<Observer, Set<Mutable>>> obs = observed.observers(direction);
+                    pre.get(observed).compare(post.get(observed)).forEach(d -> {
+                        if (d[0] == null) {
+                            d[1].forEach(n -> tx.set(n.resolve(mutable), obs, (m, e) -> m.add(e, Set::addAll), n == Mutable.THIS ? observer.thisInstance : Entry.of(observer, Set.of(mutable))));
+                        }
+                        if (d[1] == null) {
+                            d[0].forEach(o -> tx.set(o.resolve(mutable), obs, (m, e) -> m.remove(e, Set::removeAll), o == Mutable.THIS ? observer.thisInstance : Entry.of(observer, Set.of(mutable))));
+                        }
+                    });
+                }
             });
         }
 
         @Override
-        public boolean isInternable(Set<ObservedInstance> value) {
-            return value.allMatch(ObservedInstance::isInternable);
+        public boolean isInternable(Map<Observed, Set<Mutable>> value) {
+            return value.allMatch(e -> e.getValue() == Mutable.THIS_SINGLETON);
         }
 
         @Override

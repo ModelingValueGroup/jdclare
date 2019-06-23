@@ -27,10 +27,11 @@ import org.modelingvalue.transactions.Observed.Observers;
 
 public class MutableTransaction extends Transaction {
 
-    private static final int                        MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
+    private static final int                                MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
-    private final Concurrent<Set<ActionInstance>>[] triggeredActions;
-    private final Concurrent<Set<Mutable>>[]        triggeredMutables;
+    @SuppressWarnings("rawtypes")
+    private final Concurrent<Map<Observer, Set<Mutable>>>[] triggeredActions;
+    private final Concurrent<Set<Mutable>>[]                triggeredMutables;
 
     @SuppressWarnings("unchecked")
     protected MutableTransaction(UniverseTransaction universeTransaction) {
@@ -169,7 +170,7 @@ public class MutableTransaction extends Transaction {
         } else {
             TraceTimer.traceBegin("merge");
             for (int ia = 0; ia < 2; ia++) {
-                triggeredActions[ia].init(Set.of());
+                triggeredActions[ia].init(Map.of());
                 triggeredMutables[ia].init(Set.of());
             }
             try {
@@ -177,18 +178,17 @@ public class MutableTransaction extends Transaction {
                     for (Entry<Setable, Object> p : psm) {
                         if (p.getKey() instanceof Observers) {
                             Observers<?, ?> os = (Observers) p.getKey();
-                            Set<ActionInstance> observers = (Set) p.getValue();
-                            observers = observers.removeAll(State.get(ps, os));
+                            Map<Observer, Set<Mutable>> observers = (Map) p.getValue();
+                            observers = observers.removeAll(State.get(ps, os), Set::removeAll);
                             if (!observers.isEmpty()) {
                                 Observed<?, ?> observedProp = os.observed();
                                 Object baseValue = State.get(ps, observedProp);
                                 for (Map<Setable, Object> psb : psbs) {
                                     Object branchValue = State.get(psb, observedProp);
                                     if (!Objects.equals(branchValue, baseValue)) {
-                                        Set<ActionInstance> addedObservers = observers.removeAll(State.get(psb, os));
-                                        for (ActionInstance ai : addedObservers) {
-                                            triggeredActions[os.direction().nr].change(ts -> ts.add(ai.actionInstance((Mutable) o)));
-                                        }
+                                        Map<Observer, Set<Mutable>> addedObservers = observers.removeAll(State.get(psb, os), Set::removeAll).//
+                                        toMap(e -> Entry.of(e.getKey(), e.getValue().map(m -> m.resolve((Mutable) o)).toSet()));
+                                        triggeredActions[os.direction().nr].change(ts -> ts.addAll(addedObservers, Set::addAll));
                                     }
                                 }
                             }
@@ -226,6 +226,16 @@ public class MutableTransaction extends Transaction {
                 TraceTimer.traceEnd("merge");
             }
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private State trigger(State state, Map<Observer, Set<Mutable>> leafs, Direction direction) {
+        for (Entry<Observer, Set<Mutable>> e : leafs) {
+            for (Mutable m : e.getValue()) {
+                state = trigger(state, m, e.getKey(), direction);
+            }
+        }
+        return state;
     }
 
     @SuppressWarnings("unchecked")

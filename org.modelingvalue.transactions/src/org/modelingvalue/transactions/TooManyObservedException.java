@@ -15,19 +15,22 @@ package org.modelingvalue.transactions;
 
 import java.util.stream.Collectors;
 
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 
 public final class TooManyObservedException extends Error {
 
-    private static final long           serialVersionUID = 2091236807252565002L;
+    private static final long                 serialVersionUID = 2091236807252565002L;
 
-    private final Mutable               mutable;
-    private final Observer<?>           observer;
-    private final Set<ObservedInstance> observed;
-    private final UniverseTransaction   universeTransaction;
+    private final Mutable                     mutable;
+    private final Observer<?>                 observer;
+    @SuppressWarnings("rawtypes")
+    private final Map<Observed, Set<Mutable>> observed;
+    private final UniverseTransaction         universeTransaction;
 
-    public TooManyObservedException(Mutable mutable, Observer<?> observer, Set<ObservedInstance> observed, UniverseTransaction universeTransaction) {
+    @SuppressWarnings("rawtypes")
+    public TooManyObservedException(Mutable mutable, Observer<?> observer, Map<Observed, Set<Mutable>> observed, UniverseTransaction universeTransaction) {
         this.mutable = mutable;
         this.observer = observer;
         this.observed = observed;
@@ -44,12 +47,12 @@ public final class TooManyObservedException extends Error {
 
     public String getSimpleMessage() {
         return universeTransaction.preState().get(() -> {
-            return "Too many observed (" + observed.size() + ") by " + StringUtil.toString(mutable) + "." + StringUtil.toString(observer);
+            return "Too many observed (" + LeafTransaction.size(observed) + ") by " + StringUtil.toString(mutable) + "." + StringUtil.toString(observer);
         });
     }
 
     public int getNrOfObserved() {
-        return observed.size();
+        return LeafTransaction.size(observed);
     }
 
     public Mutable getMutable() {
@@ -60,7 +63,8 @@ public final class TooManyObservedException extends Error {
         return observer;
     }
 
-    public Set<ObservedInstance> getObserved() {
+    @SuppressWarnings("rawtypes")
+    public Map<Observed, Set<Mutable>> getObserved() {
         return observed;
     }
 }

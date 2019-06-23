@@ -18,7 +18,9 @@ import org.modelingvalue.collections.Set;
 
 public interface Mutable extends TransactionClass {
 
-    This                                         THIS             = new This();
+    Mutable                                      THIS             = new This();
+
+    Set<Mutable>                                 THIS_SINGLETON   = Set.of(THIS);
 
     Observed<Mutable, Setable<Mutable, ?>>       D_CONTAINING     = InternableObserved.of("D_CONTAINING", null);
 
@@ -114,6 +116,10 @@ public interface Mutable extends TransactionClass {
     @Override
     default MutableTransaction newTransaction(UniverseTransaction universeTransaction) {
         return new MutableTransaction(universeTransaction);
+    }
+
+    default Mutable resolve(Mutable mutable) {
+        return this;
     }
 
 }

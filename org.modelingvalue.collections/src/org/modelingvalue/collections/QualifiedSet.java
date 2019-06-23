@@ -59,4 +59,6 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
 
     @Override
     QualifiedSet<K, V> remove(Object e);
+
+    void prune(QualifiedSet<K, V> other);
 }

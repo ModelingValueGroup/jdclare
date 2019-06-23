@@ -32,14 +32,6 @@ public class ActionInstance extends Struct2Impl<Mutable, Action> {
         return get0();
     }
 
-    public Mutable mutable(Mutable mutable) {
-        return mutable() == This.THIS ? mutable : mutable();
-    }
-
-    public ActionInstance actionInstance(Mutable mutable) {
-        return mutable() == This.THIS ? ActionInstance.of(mutable, action()) : this;
-    }
-
     public Action action() {
         return get1();
     }

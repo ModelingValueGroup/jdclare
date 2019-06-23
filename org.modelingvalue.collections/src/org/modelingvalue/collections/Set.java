@@ -53,9 +53,12 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     Set<T> exclusiveAll(Collection<? extends T> c);
 
+    @Override
     Set<T> removeAll(Collection<?> c);
 
     Set<T> retainAll(Collection<?> c);
+
+    void prune(Set<T> other);
 
     @Override
     default Set<T> toSet() {

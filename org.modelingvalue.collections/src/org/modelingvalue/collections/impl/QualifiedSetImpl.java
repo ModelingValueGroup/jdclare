@@ -104,6 +104,12 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         return create(add(value, key(), ((QualifiedSetImpl) c).value, key()));
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public void prune(QualifiedSet<K, V> other) {
+        prune(value, key(), ((QualifiedSetImpl) other).value, key());
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public QualifiedSet<K, V> addAll(Collection<? extends V> e) {

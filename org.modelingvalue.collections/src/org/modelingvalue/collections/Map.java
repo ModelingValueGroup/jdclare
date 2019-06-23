@@ -13,11 +13,13 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.UnaryOperator;
+import java.util.function.BinaryOperator;
 
 import org.modelingvalue.collections.impl.MapImpl;
+import org.modelingvalue.collections.impl.MapWDVI;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.TriFunction;
 
 public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
@@ -32,6 +34,11 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
         }
     }
 
+    @SafeVarargs
+    static <K, V> Map<K, V> of(SerializableFunction<K, V> defaultFunction, Entry<K, V>... e) {
+        return new MapWDVI<K, V>(e, defaultFunction);
+    }
+
     V get(K key);
 
     Entry<K, V> getEntry(K key);
@@ -42,9 +49,19 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     Map<K, V> put(K key, V value);
 
-    Map<K, V> merge(K key, V value, UnaryOperator<Entry<K, V>> merger);
+    Map<K, V> putAll(Map<? extends K, ? extends V> c);
 
-    Map<K, V> mergeAll(Map<? extends K, ? extends V> c, TriFunction<K, Entry<K, V>, Entry<K, V>, Entry<K, V>> merger);
+    Map<K, V> add(Entry<K, V> entry, BinaryOperator<V> merger);
+
+    Map<K, V> add(K key, V value, BinaryOperator<V> merger);
+
+    Map<K, V> addAll(Map<? extends K, ? extends V> c, BinaryOperator<V> merger);
+
+    Map<K, V> remove(Entry<K, V> entry, BinaryOperator<V> merger);
+
+    Map<K, V> remove(K key, V value, BinaryOperator<V> merger);
+
+    Map<K, V> removeAll(Map<? extends K, ? extends V> c, BinaryOperator<V> merger);
 
     Map<K, V> removeKey(K key);
 
@@ -52,7 +69,7 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     <V2> Map<K, V> removeAllKey(Map<K, V2> m);
 
-    Map<K, V> putAll(Map<? extends K, ? extends V> c);
+    void prune(Map<K, V> other);
 
     Collection<K> toKeys();
 

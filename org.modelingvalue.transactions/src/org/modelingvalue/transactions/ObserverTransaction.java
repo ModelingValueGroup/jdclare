@@ -16,6 +16,7 @@ package org.modelingvalue.transactions;
 import java.util.function.BiFunction;
 
 import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Context;
@@ -24,12 +25,16 @@ import org.modelingvalue.transactions.Observer.Observerds;
 
 public class ObserverTransaction extends ActionTransaction {
 
-    public static final Context<Boolean>            OBSERVE = Context.of(true);
+    public static final Context<Boolean>                  OBSERVE   = Context.of(true);
 
-    private final Concurrent<Set<ObservedInstance>> getted  = Concurrent.of();
-    private final Concurrent<Set<ObservedInstance>> setted  = Concurrent.of();
+    @SuppressWarnings("rawtypes")
+    private final Concurrent<Map<Observed, Set<Mutable>>> getted    = Concurrent.of();
+    @SuppressWarnings("rawtypes")
+    private final Concurrent<Map<Observed, Set<Mutable>>> setted    = Concurrent.of();
 
-    private boolean                                 changed;
+    private final Concurrent<Set<Set<Mutable>>>           setValues = Concurrent.of();
+
+    private boolean                                       changed;
 
     protected ObserverTransaction(UniverseTransaction universeTransaction) {
         super(universeTransaction);
@@ -44,6 +49,7 @@ public class ObserverTransaction extends ActionTransaction {
         return "observer";
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     protected void run(State pre, UniverseTransaction universeTransaction) {
         Observer<?> observer = observer();
@@ -57,35 +63,40 @@ public class ObserverTransaction extends ActionTransaction {
             if (observer.stopped || universeTransaction.isKilled()) {
                 return;
             }
-            getted.init(Set.of());
-            setted.init(Set.of());
+            getted.init(Observed.OBSERVED_MAP);
+            setted.init(Observed.OBSERVED_MAP);
+            setValues.init(Set.of());
             super.run(pre, universeTransaction);
-            Set<ObservedInstance> gets = getted.result();
-            Set<ObservedInstance> sets = setted.result();
+            Map<Observed, Set<Mutable>> gets = getted.result();
+            Map<Observed, Set<Mutable>> sets = setted.result();
             if (changed) {
                 checkTooManyChanges(pre, sets, gets);
             }
-            observe(observer, sets, gets);
+            observe(observer, sets, gets, setValues.result());
         } catch (EmptyMandatoryException soe) {
             clear();
             init(pre);
-            observe(observer, setted.result(), getted.result());
+            observe(observer, setted.result(), getted.result(), setValues.result());
         } catch (StopObserverException soe) {
-            observe(observer, Set.of(), Set.of());
+            observe(observer, Observed.OBSERVED_MAP, Observed.OBSERVED_MAP, Set.of());
         } finally {
             changed = false;
             getted.clear();
             setted.clear();
+            setValues.clear();
             TraceTimer.traceEnd("observer");
         }
     }
 
-    private void observe(Observer<?> observer, Set<ObservedInstance> sets, Set<ObservedInstance> gets) {
-        gets = gets.removeAll(sets);
+    @SuppressWarnings("rawtypes")
+    private void observe(Observer<?> observer, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets, Set<Set<Mutable>> setValues) {
+        gets = gets.removeAll(sets, Set::removeAll);
         Observerds[] observeds = observer.observeds();
         Mutable mutable = parent().mutable();
-        Set<ObservedInstance> oldGets = observeds[Direction.forward.nr].set(mutable, gets);
-        Set<ObservedInstance> oldSets = observeds[Direction.backward.nr].set(mutable, sets);
+        sets.forEach(e -> setValues.forEach(s -> e.getValue().prune(s)));
+        gets.forEach(e -> setValues.forEach(s -> e.getValue().prune(s)));
+        Map<Observed, Set<Mutable>> oldGets = observeds[Direction.forward.nr].set(mutable, gets);
+        Map<Observed, Set<Mutable>> oldSets = observeds[Direction.backward.nr].set(mutable, sets);
         if (oldGets.isEmpty() && oldSets.isEmpty() && !(sets.isEmpty() && gets.isEmpty())) {
             observer.instances++;
         } else if (!(oldGets.isEmpty() && oldSets.isEmpty()) && sets.isEmpty() && gets.isEmpty()) {
@@ -94,14 +105,15 @@ public class ObserverTransaction extends ActionTransaction {
         checkTooManyObserved(sets, gets);
     }
 
-    protected void checkTooManyObserved(Set<ObservedInstance> sets, Set<ObservedInstance> gets) {
-        if (universeTransaction().maxNrOfObserved() < gets.size() + sets.size()) {
-            throw new TooManyObservedException(parent().mutable(), observer(), gets.addAll(sets), universeTransaction());
+    @SuppressWarnings("rawtypes")
+    protected void checkTooManyObserved(Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
+        if (universeTransaction().maxNrOfObserved() < size(gets) + size(sets)) {
+            throw new TooManyObservedException(parent().mutable(), observer(), gets.addAll(sets, Set::addAll), universeTransaction());
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected void checkTooManyChanges(State pre, Set<ObservedInstance> sets, Set<ObservedInstance> gets) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected void checkTooManyChanges(State pre, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
         UniverseTransaction universeTransaction = universeTransaction();
         Observer<?> observer = observer();
         Mutable mutable = parent().mutable();
@@ -110,8 +122,8 @@ public class ObserverTransaction extends ActionTransaction {
             init(post);
             Set<ObserverTrace> traces = observer.traces.get(mutable);
             ObserverTrace trace = new ObserverTrace(mutable, observer, traces.sorted().findFirst().orElse(null), observer.changesPerInstance(), //
-                    gets.addAll(sets).toMap(s -> Entry.of(s, pre.get(s.mutable(), s.property()))), //
-                    sets.toMap(s -> Entry.of(s, post.get(s.mutable(), s.property()))));
+                    gets.addAll(sets, Set::addAll).flatMap(e -> e.getValue().map(m -> Entry.of(ObservedInstance.of(m, e.getKey()), pre.get(m, e.getKey())))).toMap(e -> e), //
+                    sets.flatMap(e -> e.getValue().map(m -> Entry.of(ObservedInstance.of(m, e.getKey()), post.get(m, e.getKey())))).toMap(e -> e));
             observer.traces.set(mutable, traces.add(trace));
         }
         int totalChanges = universeTransaction.countTotalChanges();
@@ -134,8 +146,8 @@ public class ObserverTransaction extends ActionTransaction {
         init(result);
         ObserverTrace last = result.get(mutable, observer.traces).sorted().findFirst().orElse(null);
         if (last != null && last.done().size() >= (changes > universeTransaction.maxTotalNrOfChanges() ? 1 : universeTransaction.maxNrOfChanges())) {
-            getted.init(Set.of());
-            setted.init(Set.of());
+            getted.init(Observed.OBSERVED_MAP);
+            setted.init(Observed.OBSERVED_MAP);
             observer.stopped = true;
             throw new TooManyChangesException(result, last, changes);
         }
@@ -176,21 +188,20 @@ public class ObserverTransaction extends ActionTransaction {
         return super.set(object, property, value);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private <O, T> void observe(O object, Getable<O, T> property, T value, boolean set) {
+        if (value instanceof Set && ((Set) value).anyMatch(e -> e instanceof Mutable)) {
+            setValues.change(s -> s.add((Set<Mutable>) value));
+        }
         if (object instanceof Mutable && property instanceof Observed && getted.isInitialized() && OBSERVE.get()) {
-            ObservedInstance oi = object.equals(parent().mutable()) ? ((Observed) property).thisInstance : ObservedInstance.of((Mutable) object, (Observed) property);
-            if (set) {
-                setted.change(o -> o.add(oi));
-            } else {
-                getted.change(o -> o.add(oi));
-            }
+            Entry<Observed, Set<Mutable>> entry = object.equals(parent().mutable()) ? ((Observed) property).thisInstance : Entry.of((Observed) property, Set.of((Mutable) object));
+            (set ? setted : getted).change(o -> o.add(entry, Set::addAll));
         }
     }
 
     @Override
     public void runNonObserving(Runnable action) {
-        if (getted.isInitialized() && setted.isInitialized()) {
+        if (getted.isInitialized()) {
             OBSERVE.run(false, action);
         } else {
             super.runNonObserving(action);

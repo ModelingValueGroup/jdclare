@@ -39,6 +39,12 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     @SuppressWarnings("rawtypes")
     private static final BiFunction     RETURN_NULL                  = (v1, v2) -> null;
 
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction     PRUNE                        = (v1, v2) -> {
+                                                                         v1.equals(v2);
+                                                                         return null;
+                                                                     };
+
     private static final int            PART_SIZE                    = Integer.getInteger("HASH_PARTITION_SIZE", 6);
     private static final int            PART_REST                    = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
     private static final int            NR_OF_PARTS                  = Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1);
@@ -630,11 +636,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return set(value, key1, identity(), added, key2, identity(), RETURN_2);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    protected static <T1, T2> Object merge(Object value, Function<T1, Object> key1, Object merged, Function<T2, Object> key2, BinaryOperator merger) {
-        return set(value, key1, identity(), merged, key2, identity(), merger::apply);
-    }
-
     protected static <T1, T2> Object remove(Object value, Function<T1, Object> key1, Object removed, Function<T2, Object> key2) {
         return set(value, key1, identity(), removed, key2, nullFunction(), RETURN_NULL);
     }
@@ -643,8 +644,22 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return set(value, key1, nullFunction(), retained, key2, nullFunction(), RETURN_1);
     }
 
+    protected static <T1, T2> void prune(Object value, Function<T1, Object> key1, Object retained, Function<T2, Object> key2) {
+        set(value, key1, nullFunction(), retained, key2, nullFunction(), PRUNE);
+    }
+
     protected static <T1, T2> Object exclusive(Object value, Function<T1, Object> key1, Object excl, Function<T2, Object> key2) {
         return set(value, key1, identity(), excl, key2, identity(), RETURN_NULL);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static <T1, T2> Object add(Object value, Function<T1, Object> key1, Object merged, Function<T2, Object> key2, BinaryOperator merger) {
+        return set(value, key1, identity(), merged, key2, identity(), merger::apply);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static <T1, T2> Object remove(Object value, Function<T1, Object> key1, Object merged, Function<T2, Object> key2, BinaryOperator merger) {
+        return set(value, key1, identity(), merged, key2, nullFunction(), merger::apply);
     }
 
     @SuppressWarnings("unchecked")

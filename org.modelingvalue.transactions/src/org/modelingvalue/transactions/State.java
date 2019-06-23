@@ -220,7 +220,7 @@ public class State implements Serializable {
             Integer cnt = m.get(e.getKey());
             return m.put(e.getKey(), cnt == null ? 1 : cnt + 1);
         }, (a, b) -> {
-            return a.mergeAll(b, (k, x, y) -> Entry.of(k, x.getValue() + y.getValue()));
+            return a.addAll(b, (x, y) -> x + y);
         }));
     }
 

@@ -15,8 +15,8 @@ package org.modelingvalue.collections.impl;
 
 import java.util.Objects;
 import java.util.Spliterator;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
@@ -61,13 +61,25 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     }
 
     @Override
+    public Map<K, V> put(K key, V val) {
+        return put(Entry.of(key, val));
+    }
+
+    @Override
     public Map<K, V> put(Entry<K, V> entry) {
         return create(put(value, key(), entry, key()));
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
-    public Map<K, V> put(K key, V val) {
-        return put(Entry.of(key, val));
+    public Map<K, V> putAll(Map<? extends K, ? extends V> c) {
+        return create(put(value, key(), ((MapImpl) c).value, key()));
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public void prune(Map<K, V> other) {
+        prune(value, key(), ((MapImpl) other).value, key());
     }
 
     @Override
@@ -91,32 +103,44 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return create(remove(value, key(), ((MapImpl) m).value, key()));
     }
 
+    @Override
+    public Map<K, V> add(K key, V val, BinaryOperator<V> merger) {
+        return add(Entry.of(key, val), merger);
+    }
+
+    @Override
+    public Map<K, V> add(Entry<K, V> entry, BinaryOperator<V> merger) {
+        return create(add(value, key(), entry, key(), (e1, e2) -> mergeEntry(create(e1), create(e2), merger)));
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
-    public Map<K, V> putAll(Map<? extends K, ? extends V> c) {
-        return create(put(value, key(), ((MapImpl) c).value, key()));
+    public Map<K, V> addAll(Map<? extends K, ? extends V> c, BinaryOperator<V> merger) {
+        return create(add(value, key(), ((MapImpl) c).value, key(), (e1, e2) -> mergeEntry(create(e1), create(e2), merger)));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Map<K, V> merge(K key, V val, UnaryOperator<Entry<K, V>> merger) {
-        return create(merge(value, key(), Entry.of(key, val), key(), (e1, e2) -> mergeEntry((Entry) e1, (Entry) e2, key, merger)));
+    public Map<K, V> remove(K key, V val, BinaryOperator<V> merger) {
+        return remove(Entry.of(key, val), merger);
     }
 
-    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e1, Entry<K, V> e2, K key, UnaryOperator<Entry<K, V>> merger) {
-        Entry<K, V> result = merger.apply(e2);
-        return result == null ? null : Objects.equals(result, e1) ? e1 : Objects.equals(result, e2) ? e2 : result;
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Map<K, V> mergeAll(Map<? extends K, ? extends V> c, TriFunction<K, Entry<K, V>, Entry<K, V>, Entry<K, V>> merger) {
-        return create(merge(value, key(), ((MapImpl) c).value, key(), (e1, e2) -> mergeEntry((Entry) e1, (Entry) e2, merger)));
+    public Map<K, V> remove(Entry<K, V> entry, BinaryOperator<V> merger) {
+        return create(remove(value, key(), entry, key(), (e1, e2) -> mergeEntry(create(e1), create(e2), merger)));
     }
 
-    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e1, Entry<K, V> e2, TriFunction<K, Entry<K, V>, Entry<K, V>, Entry<K, V>> merger) {
-        Entry<K, V> result = merger.apply(e1 != null ? e1.getKey() : e2.getKey(), e1, e2);
-        return result == null ? null : Objects.equals(result, e1) ? e1 : Objects.equals(result, e2) ? e2 : result;
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Map<K, V> removeAll(Map<? extends K, ? extends V> c, BinaryOperator<V> merger) {
+        return create(remove(value, key(), ((MapImpl) c).value, key(), (e1, e2) -> mergeEntry(create(e1), create(e2), merger)));
+    }
+
+    protected Object mergeEntry(Map<K, V> map1, Map<K, V> map2, BinaryOperator<V> merger) {
+        return ((MapImpl<K, V>) map1.toMap(e1 -> {
+            Entry<K, V> e2 = map2.getEntry(e1.getKey());
+            V val = merger.apply(e1.getValue(), e2.getValue());
+            return Objects.equals(val, e1.getValue()) ? e1 : Objects.equals(val, e2.getValue()) ? e2 : Entry.of(e1.getKey(), val);
+        })).value;
     }
 
     @Override
@@ -145,7 +169,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     }
 
     @SuppressWarnings("unchecked")
-    private static <K, V> Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Object[] es) {
+    protected Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Object[] es) {
         Entry<K, V>[] vs = new Entry[es.length];
         System.arraycopy(es, 0, vs, 0, es.length);
         K key = e != null ? e.getKey() : null;

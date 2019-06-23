@@ -32,14 +32,6 @@ public class ObservedInstance extends Struct2Impl<Mutable, Observed> {
         return get0();
     }
 
-    public Mutable mutable(Mutable mutable) {
-        return mutable() == This.THIS ? mutable : mutable();
-    }
-
-    public ActionInstance observerInstance(Mutable mutable, Observer observer) {
-        return mutable() == This.THIS ? observer.thisInstance : ActionInstance.of(mutable, observer);
-    }
-
     public Observed property() {
         return get1();
     }

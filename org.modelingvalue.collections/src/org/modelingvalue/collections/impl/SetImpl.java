@@ -64,6 +64,12 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @SuppressWarnings("rawtypes")
     @Override
+    public void prune(Set<T> other) {
+        prune(value, key(), ((SetImpl) other).value, key());
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
     public Set<T> retainAll(Collection<?> c) {
         if (c instanceof SetImpl) {
             return create(retain(value, key(), ((SetImpl) c).value, key()));
