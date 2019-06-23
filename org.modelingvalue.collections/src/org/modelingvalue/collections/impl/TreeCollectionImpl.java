@@ -114,7 +114,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof TreeCollectionImpl)) {
+        if (!getClass().equals(obj.getClass())) {
             return false;
         }
         @SuppressWarnings("rawtypes")
