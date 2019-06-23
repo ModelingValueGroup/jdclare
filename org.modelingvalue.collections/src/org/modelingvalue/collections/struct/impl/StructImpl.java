@@ -65,6 +65,10 @@ public abstract class StructImpl implements Struct {
         return data[i];
     }
 
+    protected Object set(int i, Object val) {
+        return data[i] = val;
+    }
+
     @Override
     public int length() {
         return data.length;

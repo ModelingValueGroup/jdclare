@@ -179,6 +179,7 @@ public class MutableTransaction extends Transaction {
                         if (p.getKey() instanceof Observers) {
                             Observers<?, ?> os = (Observers) p.getKey();
                             Map<Observer, Set<Mutable>> observers = (Map) p.getValue();
+                            ObserverTransaction.prune(observers, psm);
                             observers = observers.removeAll(State.get(ps, os), Set::removeAll);
                             if (!observers.isEmpty()) {
                                 Observed<?, ?> observedProp = os.observed();

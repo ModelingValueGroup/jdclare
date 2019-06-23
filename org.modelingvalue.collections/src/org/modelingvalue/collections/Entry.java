@@ -26,4 +26,6 @@ public interface Entry<K, V> extends Struct, Mergeable<Entry<K, V>> {
     static <K, V> Entry<K, V> of(K key, V value) {
         return new EntryImpl<K, V>(key, value);
     }
+
+    void prune(V value);
 }

@@ -85,4 +85,11 @@ public final class EntryImpl<K, V> extends Struct2Impl<K, V> implements Entry<K,
         return NULL;
     }
 
+    @Override
+    public void prune(V value) {
+        if (getValue().equals(value)) {
+            set(1, value);
+        }
+    }
+
 }

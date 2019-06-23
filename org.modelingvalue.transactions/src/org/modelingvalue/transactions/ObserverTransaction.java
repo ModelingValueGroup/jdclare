@@ -25,14 +25,12 @@ import org.modelingvalue.transactions.Observer.Observerds;
 
 public class ObserverTransaction extends ActionTransaction {
 
-    public static final Context<Boolean>                  OBSERVE   = Context.of(true);
+    public static final Context<Boolean>                  OBSERVE = Context.of(true);
 
     @SuppressWarnings("rawtypes")
-    private final Concurrent<Map<Observed, Set<Mutable>>> getted    = Concurrent.of();
+    private final Concurrent<Map<Observed, Set<Mutable>>> getted  = Concurrent.of();
     @SuppressWarnings("rawtypes")
-    private final Concurrent<Map<Observed, Set<Mutable>>> setted    = Concurrent.of();
-
-    private final Concurrent<Set<Set<Mutable>>>           setValues = Concurrent.of();
+    private final Concurrent<Map<Observed, Set<Mutable>>> setted  = Concurrent.of();
 
     private boolean                                       changed;
 
@@ -65,36 +63,36 @@ public class ObserverTransaction extends ActionTransaction {
             }
             getted.init(Observed.OBSERVED_MAP);
             setted.init(Observed.OBSERVED_MAP);
-            setValues.init(Set.of());
             super.run(pre, universeTransaction);
             Map<Observed, Set<Mutable>> gets = getted.result();
             Map<Observed, Set<Mutable>> sets = setted.result();
             if (changed) {
                 checkTooManyChanges(pre, sets, gets);
             }
-            observe(observer, sets, gets, setValues.result());
+            observe(pre, observer, sets, gets);
         } catch (EmptyMandatoryException soe) {
             clear();
             init(pre);
-            observe(observer, setted.result(), getted.result(), setValues.result());
+            observe(pre, observer, setted.result(), getted.result());
         } catch (StopObserverException soe) {
-            observe(observer, Observed.OBSERVED_MAP, Observed.OBSERVED_MAP, Set.of());
+            observe(pre, observer, Observed.OBSERVED_MAP, Observed.OBSERVED_MAP);
         } finally {
             changed = false;
             getted.clear();
             setted.clear();
-            setValues.clear();
             TraceTimer.traceEnd("observer");
         }
     }
 
     @SuppressWarnings("rawtypes")
-    private void observe(Observer<?> observer, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets, Set<Set<Mutable>> setValues) {
+    private void observe(State state, Observer<?> observer, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
         gets = gets.removeAll(sets, Set::removeAll);
-        Observerds[] observeds = observer.observeds();
         Mutable mutable = parent().mutable();
-        sets.forEach(e -> setValues.forEach(s -> e.getValue().prune(s)));
-        gets.forEach(e -> setValues.forEach(s -> e.getValue().prune(s)));
+        Map<Setable, Object> properties = state.properties(mutable);
+        if (properties != null) {
+            prune(gets, properties);
+        }
+        Observerds[] observeds = observer.observeds();
         Map<Observed, Set<Mutable>> oldGets = observeds[Direction.forward.nr].set(mutable, gets);
         Map<Observed, Set<Mutable>> oldSets = observeds[Direction.backward.nr].set(mutable, sets);
         if (oldGets.isEmpty() && oldSets.isEmpty() && !(sets.isEmpty() && gets.isEmpty())) {
@@ -103,6 +101,21 @@ public class ObserverTransaction extends ActionTransaction {
             observer.instances--;
         }
         checkTooManyObserved(sets, gets);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    static void prune(Map<?, ?> map1, Map<?, ?> map2) {
+        for (Entry e1 : map1) {
+            for (Entry e2 : map2) {
+                if (e1.getValue().equals(e2.getValue())) {
+                    if (System.identityHashCode(e1.getValue()) > System.identityHashCode(e2.getValue())) {
+                        e1.prune(e2.getValue());
+                    } else {
+                        e2.prune(e1.getValue());
+                    }
+                }
+            }
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -190,9 +203,6 @@ public class ObserverTransaction extends ActionTransaction {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <O, T> void observe(O object, Getable<O, T> property, T value, boolean set) {
-        if (value instanceof Set && ((Set) value).anyMatch(e -> e instanceof Mutable)) {
-            setValues.change(s -> s.add((Set<Mutable>) value));
-        }
         if (object instanceof Mutable && property instanceof Observed && getted.isInitialized() && OBSERVE.get()) {
             Entry<Observed, Set<Mutable>> entry = object.equals(parent().mutable()) ? ((Observed) property).thisInstance : Entry.of((Observed) property, Set.of((Mutable) object));
             (set ? setted : getted).change(o -> o.add(entry, Set::addAll));
