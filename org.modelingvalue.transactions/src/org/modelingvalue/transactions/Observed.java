@@ -133,13 +133,7 @@ public class Observed<O, T> extends Setable<O, T> {
 
         private Observers(Object id, Direction direction) {
             super(Pair.of(id, direction), Observer.OBSERVER_MAP, false, null, null);
-            changed = (tx, o, b, a) -> {
-                Map<Setable, Object> properties = tx.state().properties(o);
-                if (properties != null) {
-                    ObserverTransaction.prune(a, properties);
-                }
-                tx.checkTooManyObservers(o, observed, a);
-            };
+            changed = (tx, o, b, a) -> tx.checkTooManyObservers(o, observed, a);
             this.direction = direction;
         }
 

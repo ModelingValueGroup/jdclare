@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
@@ -72,8 +73,35 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings("rawtypes")
-    public Entry<Setable, Object> intern(T value) {
-        return isInternable(value) ? internal.get(value) : Entry.of(this, value);
+    final Entry<Setable, Object> entry(T value, Map<Setable, Object> properties) {
+        if (isInternable(value)) {
+            return internal.get(value);
+        } else {
+            Entry<Setable, Object> entry = Entry.of(this, value);
+            if (properties != null) {
+                prune(entry, properties);
+            }
+            return entry;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    static void prune(Entry e1, Map<?, ?> map2) {
+        Object v1 = e1.getValue();
+        for (Entry e2 : map2) {
+            Object v2 = e2.getValue();
+            if (v1 != v2) {
+                if (v1.equals(v2)) {
+                    if (System.identityHashCode(v1) > System.identityHashCode(v2)) {
+                        e1.prune(v2);
+                    } else {
+                        e2.prune(v1);
+                    }
+                } else if (v2 instanceof Map) {
+                    prune(e1, (Map) v2);
+                }
+            }
+        }
     }
 
     @Override

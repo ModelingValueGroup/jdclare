@@ -88,10 +88,6 @@ public class ObserverTransaction extends ActionTransaction {
     private void observe(State state, Observer<?> observer, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
         gets = gets.removeAll(sets, Set::removeAll);
         Mutable mutable = parent().mutable();
-        Map<Setable, Object> properties = state.properties(mutable);
-        if (properties != null) {
-            prune(gets, properties);
-        }
         Observerds[] observeds = observer.observeds();
         Map<Observed, Set<Mutable>> oldGets = observeds[Direction.forward.nr].set(mutable, gets);
         Map<Observed, Set<Mutable>> oldSets = observeds[Direction.backward.nr].set(mutable, sets);
@@ -101,21 +97,6 @@ public class ObserverTransaction extends ActionTransaction {
             observer.instances--;
         }
         checkTooManyObserved(sets, gets);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    static void prune(Map<?, ?> map1, Map<?, ?> map2) {
-        for (Entry e1 : map1) {
-            for (Entry e2 : map2) {
-                if (e1.getValue().equals(e2.getValue())) {
-                    if (System.identityHashCode(e1.getValue()) > System.identityHashCode(e2.getValue())) {
-                        e1.prune(e2.getValue());
-                    } else {
-                        e2.prune(e1.getValue());
-                    }
-                }
-            }
-        }
     }
 
     @SuppressWarnings("rawtypes")

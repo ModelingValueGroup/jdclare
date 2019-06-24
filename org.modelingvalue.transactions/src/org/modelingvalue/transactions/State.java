@@ -118,7 +118,7 @@ public class State implements Serializable {
             post = pre == null ? null : pre.removeKey(property);
             post = post == null || post.isEmpty() ? null : post;
         } else {
-            post = pre == null ? Map.of(property.intern(newValue)) : pre.put(property.intern(newValue));
+            post = pre == null ? Map.of(property.entry(newValue, pre)) : pre.put(property.entry(newValue, pre));
         }
         if (pre == post) {
             return this;
@@ -161,7 +161,7 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public State merge(QuadConsumer<Object, Map<Setable, Object>, Map<Setable, Object>, Map<Setable, Object>[]> changeHandler, State... branches) {
+    public State merge(QuadConsumer<Object, Map<Setable, Object>, Entry<Setable, Object>, Map<Setable, Object>[]> changeHandler, State... branches) {
         Map<Object, Map<Setable, Object>>[] maps = new Map[branches.length];
         for (int i = 0; i < maps.length; i++) {
             maps[i] = map(branches[i].map);
@@ -175,7 +175,7 @@ public class State implements Serializable {
                 if (v instanceof Mergeable) {
                     vs = val(v, p, evs);
                     Object result = ((Mergeable) v).merge(vs);
-                    return Objects.equals(result, p.getDefault()) ? null : p.intern(result);
+                    return Objects.equals(result, p.getDefault()) ? null : p.entry(result, null);
                 } else {
                     vs = val(null, p, evs);
                     Object result = null;
@@ -188,11 +188,16 @@ public class State implements Serializable {
                             }
                         }
                     }
-                    return p.intern(result);
+                    return p.entry(result, null);
                 }
             }, pss);
-            if (changeHandler != null) {
-                changeHandler.accept(o, ps, map(props), pss);
+            if (changeHandler != null && props != null) {
+                for (Entry<Setable, Object> p : props) {
+                    if (p != ps.getEntry(p.getKey())) {
+                        Setable.prune(p, props);
+                        changeHandler.accept(o, ps, p, pss);
+                    }
+                }
             }
             return props == null || props.isEmpty() ? null : Entry.of(o, props);
         }, maps);
