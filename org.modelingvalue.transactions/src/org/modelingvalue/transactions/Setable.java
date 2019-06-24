@@ -88,17 +88,17 @@ public class Setable<O, T> extends Getable<O, T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     static void prune(Entry e1, Map<?, ?> map2) {
         Object v1 = e1.getValue();
-        for (Entry e2 : map2) {
-            Object v2 = e2.getValue();
-            if (v1 != v2) {
-                if (v1.equals(v2)) {
-                    if (System.identityHashCode(v1) > System.identityHashCode(v2)) {
-                        e1.prune(v2);
-                    } else {
-                        e2.prune(v1);
-                    }
-                } else if (v2 instanceof Map) {
+        if (v1 instanceof Map) {
+            for (Entry e3 : (Map<?, ?>) v1) {
+                e3.prune(map2);
+            }
+        } else {
+            for (Entry e2 : map2) {
+                Object v2 = e2.getValue();
+                if (v2 instanceof Map) {
                     prune(e1, (Map) v2);
+                } else if (v1 != v2 && v1.equals(v2)) {
+                    e1.prune(v2);
                 }
             }
         }
