@@ -13,9 +13,6 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -165,18 +162,6 @@ public class Setable<O, T> extends Getable<O, T> {
         set(obj, (v, r) -> {
             if (v instanceof ContainingCollection) {
                 return (T) ((ContainingCollection<E>) v).addUnique(r);
-            } else if (v instanceof java.util.List) {
-                if (!((java.util.List<E>) v).contains(r)) {
-                    java.util.List<E> l = new ArrayList<E>((java.util.List<E>) v);
-                    l.add(r);
-                    return (T) Collections.unmodifiableList(l);
-                }
-            } else if (v instanceof java.util.Set) {
-                if (!((java.util.Set<E>) v).contains(r)) {
-                    java.util.Set<E> s = new HashSet<E>((java.util.Set<E>) v);
-                    s.add(r);
-                    return (T) Collections.unmodifiableSet(s);
-                }
             } else if (!r.equals(v)) {
                 return (T) r;
             }
@@ -189,18 +174,6 @@ public class Setable<O, T> extends Getable<O, T> {
         set(obj, (v, r) -> {
             if (v instanceof ContainingCollection) {
                 return (T) ((ContainingCollection<E>) v).remove(r);
-            } else if (v instanceof java.util.List) {
-                if (((java.util.List<E>) v).contains(r)) {
-                    java.util.List<E> l = new ArrayList<E>((java.util.List<E>) v);
-                    l.remove(r);
-                    return (T) Collections.unmodifiableList(l);
-                }
-            } else if (v instanceof java.util.Set) {
-                if (((java.util.Set<E>) v).contains(r)) {
-                    java.util.Set<E> s = new HashSet<E>((java.util.Set<E>) v);
-                    s.remove(r);
-                    return (T) Collections.unmodifiableSet(s);
-                }
             } else if (r.equals(v)) {
                 return null;
             }
@@ -223,35 +196,20 @@ public class Setable<O, T> extends Getable<O, T> {
                     d[0].forEach(r -> removed.accept((E) r));
                 }
             });
-        } else if (pre instanceof java.util.Collection && post instanceof java.util.Collection) {
-            ((java.util.Collection<Object>) post).stream().forEach(a -> {
-                if (!((java.util.Collection<Object>) pre).contains(a)) {
-                    added.accept((E) a);
-                }
-            });
-            ((java.util.Collection<Object>) pre).stream().forEach(r -> {
-                if (!((java.util.Collection<Object>) post).contains(r)) {
-                    removed.accept((E) r);
-                }
-            });
         } else {
-            if (pre != null) {
-                if (pre instanceof Iterable) {
-                    for (E e : (Iterable<E>) pre) {
-                        removed.accept(e);
-                    }
-                } else {
-                    removed.accept((E) pre);
+            if (pre instanceof ContainingCollection) {
+                for (E e : (ContainingCollection<E>) pre) {
+                    removed.accept(e);
                 }
+            } else if (pre != null) {
+                removed.accept((E) pre);
             }
-            if (post != null) {
-                if (post instanceof Iterable) {
-                    for (E e : (Iterable<E>) post) {
-                        added.accept(e);
-                    }
-                } else {
-                    added.accept((E) post);
+            if (post instanceof ContainingCollection) {
+                for (E e : (ContainingCollection<E>) post) {
+                    added.accept(e);
                 }
+            } else if (post != null) {
+                added.accept((E) post);
             }
         }
     }

@@ -13,10 +13,8 @@
 
 package org.modelingvalue.jdclare.test;
 
-import static org.modelingvalue.jdclare.DClare.dclareUU;
-import static org.modelingvalue.jdclare.DClare.set;
-import static org.modelingvalue.jdclare.PropertyQualifier.containment;
-import static org.modelingvalue.jdclare.PropertyQualifier.optional;
+import static org.modelingvalue.jdclare.DClare.*;
+import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
@@ -30,7 +28,7 @@ public interface Scrum extends DUniverse {
     Set<Team> teams();
 
     @Property({containment, optional})
-    Company company();
+    Set<Company> company();
 
     default void initTest(DClare<Scrum> dClare) {
         Company mvg = dclareUU(Company.class, set(DNamed::name, "Modeling Value Group B.V."));
