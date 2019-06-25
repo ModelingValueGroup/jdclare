@@ -116,8 +116,14 @@ public class ObserverTransaction extends ActionTransaction {
             init(post);
             Set<ObserverTrace> traces = observer.traces.get(mutable);
             ObserverTrace trace = new ObserverTrace(mutable, observer, traces.sorted().findFirst().orElse(null), observer.changesPerInstance(), //
-                    gets.addAll(sets, Set::addAll).flatMap(e -> e.getValue().map(m -> Entry.of(ObservedInstance.of(m, e.getKey()), pre.get(m, e.getKey())))).toMap(e -> e), //
-                    sets.flatMap(e -> e.getValue().map(m -> Entry.of(ObservedInstance.of(m, e.getKey()), post.get(m, e.getKey())))).toMap(e -> e));
+                    gets.addAll(sets, Set::addAll).flatMap(e -> e.getValue().map(m -> {
+                        m = m.resolve(mutable);
+                        return Entry.of(ObservedInstance.of(m, e.getKey()), pre.get(m, e.getKey()));
+                    })).toMap(e -> e), //
+                    sets.flatMap(e -> e.getValue().map(m -> {
+                        m = m.resolve(mutable);
+                        return Entry.of(ObservedInstance.of(m, e.getKey()), post.get(m, e.getKey()));
+                    })).toMap(e -> e));
             observer.traces.set(mutable, traces.add(trace));
         }
         int totalChanges = universeTransaction.countTotalChanges();
