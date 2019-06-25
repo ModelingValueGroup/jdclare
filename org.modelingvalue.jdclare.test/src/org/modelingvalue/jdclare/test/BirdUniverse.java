@@ -235,11 +235,12 @@ public interface BirdUniverse extends DUniverse {
         @Rule
         default void setWingColor1() {
             // TODO
-            //Bird parent = dclare(Bird.class, dclare(BirdUniverse.class), "0");// throws an EmptyMandatoryException.
-            // This exception is not propagated to the user - why not?
+            // Bird parent = dclare(Bird.class, dclare(BirdUniverse.class), "0");// throws an EmptyMandatoryException.
+            // The rest of the rule is ignored, and this exception is not propagated to the user - why not?
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
                 set(this, Bird::wingColor, parent.color());
+                // TODO the set above should not be necessary
                 set(parent, Bird::color, "notblack");
             }
         }
