@@ -13,8 +13,10 @@
 
 package org.modelingvalue.jdclare.test;
 
-import static org.modelingvalue.jdclare.DClare.*;
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
+import static org.modelingvalue.jdclare.DClare.dclareUU;
+import static org.modelingvalue.jdclare.DClare.set;
+import static org.modelingvalue.jdclare.PropertyQualifier.containment;
+import static org.modelingvalue.jdclare.PropertyQualifier.optional;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
@@ -35,12 +37,31 @@ public interface Scrum extends DUniverse {
         Team dclare = dclareUU(Team.class, set(DNamed::name, "DClare"));
         Person arjan = dclareUU(Person.class, set(DNamed::name, "Arjan Kok"));
         Person wim = dclareUU(Person.class, set(DNamed::name, "Wim Bast"));
-        set(dClare.universe(), Scrum::company, mvg);
+
+        set(dClare.universe(), Scrum::company, Set.of(mvg));
         set(dClare.universe(), Scrum::teams, Set.of(dclare));
         set(mvg, Company::employees, Set.of(arjan, wim));
         set(dclare, Team::company, mvg);
         set(dclare, Team::scrumMaster, wim);
         set(dclare, Team::productOwner, wim);
         set(dclare, Team::developers, Set.of(wim));
+    }
+
+    default void initScopeProblem(DClare<Scrum> dClare) {
+        Company mvg = dclareUU(Company.class, set(DNamed::name, "Modeling Value Group B.V."));
+        Company abc = dclareUU(Company.class, set(DNamed::name, "ABC"));
+        Team dclare = dclareUU(Team.class, set(DNamed::name, "DClare"));
+        Person pieterpuk = dclareUU(Person.class, set(DNamed::name, "Pieter Puk"));
+
+        //Person arjan = dclareUU(Person.class, set(DNamed::name, "Arjan Kok"));
+        //Person wim = dclareUU(Person.class, set(DNamed::name, "Wim Bast"));
+        //set(mvg, Company::employees, Set.of(arjan, wim));
+
+        set(dClare.universe(), Scrum::company, Set.of(mvg, abc));
+        set(dClare.universe(), Scrum::teams, Set.of(dclare));
+        set(abc, Company::employees, Set.of(pieterpuk));
+
+        //set(dclare, Team::company, mvg);
+        set(dclare, Team::developers, Set.of(pieterpuk));
     }
 }

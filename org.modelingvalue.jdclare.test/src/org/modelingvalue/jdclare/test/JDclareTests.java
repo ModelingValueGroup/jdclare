@@ -13,14 +13,18 @@
 
 package org.modelingvalue.jdclare.test;
 
-import static org.junit.Assert.*;
-import static org.modelingvalue.jdclare.DClare.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.modelingvalue.jdclare.DClare.dNative;
+import static org.modelingvalue.jdclare.DClare.of;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Optional;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
@@ -213,6 +217,35 @@ public class JDclareTests {
                 result.getObjects(Team.class).forEach(v -> v.dDump(System.err));
             }
         });
+    }
+
+    @Test
+    public void testScopeProblem() {
+        try {
+            DClare<Scrum> dClare = of(Scrum.class);
+            dClare.start();
+            dClare.put("company", () -> {
+                dClare.universe().initScopeProblem(dClare);
+            });
+            dClare.stop();
+            dClare.waitForEnd();
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal SCOPE Problem 'the developers Pieter Puk is not in scope.' on 'DClare']"));
+        }
+    }
+
+    private Throwable getCause(Throwable t) {
+        while (t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t;
+    }
+
+    private void assertThrowable(Throwable cause, Class<? extends Throwable> throwable, String regex) {
+        assertEquals(throwable, cause.getClass());
+        assertTrue(cause.getMessage() + " != " + regex, cause.getMessage().matches(regex));
     }
 
 }
