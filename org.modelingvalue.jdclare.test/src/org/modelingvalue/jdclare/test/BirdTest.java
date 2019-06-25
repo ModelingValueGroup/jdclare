@@ -239,7 +239,7 @@ public class BirdTest {
 
     //@Test
     // TODO this test fails
-    public void nullPointerException1() {
+    public void missingMandatory2() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
@@ -248,7 +248,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, NullPointerException.class);
+            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']"));
         }
     }
 

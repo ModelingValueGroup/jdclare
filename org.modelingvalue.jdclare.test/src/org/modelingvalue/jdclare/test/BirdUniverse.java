@@ -234,13 +234,8 @@ public interface BirdUniverse extends DUniverse {
 
         @Rule
         default void setWingColor1() {
-            // TODO
-            // Bird parent = dclare(Bird.class, dclare(BirdUniverse.class), "0");// throws an EmptyMandatoryException.
-            // The rest of the rule is ignored, and this exception is not propagated to the user - why not?
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
-                set(this, Bird::wingColor, parent.color());
-                // TODO the set above should not be necessary
                 set(parent, Bird::color, "notblack");
             }
         }
@@ -249,7 +244,6 @@ public interface BirdUniverse extends DUniverse {
         default void setWingColor2() {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
-                set(this, Bird::wingColor, parent.color());
                 set(parent, Bird::color, "notblack");
             }
         }
@@ -258,7 +252,6 @@ public interface BirdUniverse extends DUniverse {
         default void setWingColor3() {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
-                set(this, Bird::wingColor, parent.color());
                 set(parent, Bird::color, "notblack");
             }
         }
@@ -267,7 +260,6 @@ public interface BirdUniverse extends DUniverse {
         default void setWingColor4() {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
-                set(this, Bird::wingColor, parent.color());
                 set(parent, Bird::color, "notblack");
             }
         }
@@ -276,7 +268,6 @@ public interface BirdUniverse extends DUniverse {
         default void setWingColor5() {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
-                set(this, Bird::wingColor, parent.color());
                 set(parent, Bird::color, "notblack");
             }
         }
@@ -298,10 +289,11 @@ public interface BirdUniverse extends DUniverse {
             if ("blue".equals(color())) {
                 Bird child = dclare(HummingBird.class, this, this.name() + "+");
                 set(child, Bird::color, null);
-                System.err.println(child);
-                System.err.println(child.color());
+                set(this, Bird::children, Set::add, child);
                 String color = child.color();
-                System.err.println(color.length());
+                if (color == null) {
+                    System.err.println(color.length());
+                }
             }
         }
 
