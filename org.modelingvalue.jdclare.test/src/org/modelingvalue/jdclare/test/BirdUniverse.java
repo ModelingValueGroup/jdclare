@@ -87,22 +87,22 @@ public interface BirdUniverse extends DUniverse {
         @Rule
         default void setWingColor() {
             if ("white".equals(color())) {
-                set(this, Bird::wingColor, "snowy");
-                set(this, Bird::wingColor, "ivory");
+                set(this, Bird::wingColor, "notwhite");
+                set(this, Bird::wingColor, "nowhite");
             }
         }
 
         @Rule
         default void setWingColor1() {
             if ("red".equals(color())) {
-                set(this, Bird::wingColor, "ruby");
+                set(this, Bird::wingColor, "notred");
             }
         }
 
         @Rule
         default void setWingColor2() {
             if ("red".equals(color())) {
-                set(this, Bird::wingColor, "cherry");
+                set(this, Bird::wingColor, "nored");
             }
         }
 
@@ -172,7 +172,7 @@ public interface BirdUniverse extends DUniverse {
                 for (int i = 0; i < 10000; i++) {
                     Bird child = dclare(Pigeon.class, this, name() + i);
                     set(this, Bird::children, Set::add, child);
-                    set(child, Bird::color, "gray");
+                    set(child, Bird::color, "notgrey");
                 }
             }
         }
@@ -201,7 +201,7 @@ public interface BirdUniverse extends DUniverse {
                     set(this, Bird::orphans, Set::add, orphan);
                     set(orphan, Bird::color, "green");
                 }
-                set(this, Bird::color, "notGreen");
+                set(this, Bird::color, "notgreen");
             }
         }
     }
@@ -226,7 +226,7 @@ public interface BirdUniverse extends DUniverse {
             if ("black".equals(color())) {
                 for (int i = 0; i < 400; i++) {
                     Sparrow child = dclare(Sparrow.class, this, name() + i);
-                    set(child, Bird::color, "grey");
+                    set(child, Bird::color, "noblack");
                     set(this, Bird::children, Set::add, child);
                 }
             }
@@ -240,7 +240,7 @@ public interface BirdUniverse extends DUniverse {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
                 set(this, Bird::wingColor, parent.color());
-                set(parent, Bird::color, "ebony");
+                set(parent, Bird::color, "notblack");
             }
         }
 
@@ -249,7 +249,7 @@ public interface BirdUniverse extends DUniverse {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
                 set(this, Bird::wingColor, parent.color());
-                set(parent, Bird::color, "ebony");
+                set(parent, Bird::color, "notblack");
             }
         }
 
@@ -258,7 +258,7 @@ public interface BirdUniverse extends DUniverse {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
                 set(this, Bird::wingColor, parent.color());
-                set(parent, Bird::color, "ebony");
+                set(parent, Bird::color, "notblack");
             }
         }
 
@@ -267,7 +267,7 @@ public interface BirdUniverse extends DUniverse {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
                 set(this, Bird::wingColor, parent.color());
-                set(parent, Bird::color, "ebony");
+                set(parent, Bird::color, "notblack");
             }
         }
 
@@ -276,7 +276,7 @@ public interface BirdUniverse extends DUniverse {
             Bird parent = dclare(Sparrow.class, dclare(BirdUniverse.class), "0");
             if (parent.color().equals("black")) {
                 set(this, Bird::wingColor, parent.color());
-                set(parent, Bird::color, "ebony");
+                set(parent, Bird::color, "notblack");
             }
         }
 
@@ -353,14 +353,14 @@ public interface BirdUniverse extends DUniverse {
         @Rule
         default void setColor() {
             if ("yellow".equals(color())) {
-                set(this, Bird::color, "gold");
+                set(this, Bird::color, "notyellow");
             }
         }
 
         @Rule
         default void setTailColor1() {
             if ("blue".equals(color())) {
-                set(this, Pheasant::tailColor, "cobalt");
+                set(this, Pheasant::tailColor, "notblue");
             }
         }
 
