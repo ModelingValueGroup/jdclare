@@ -73,7 +73,7 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings("rawtypes")
-    final Entry<Setable, Object> entry(T value, Map<Setable, Object> properties) {
+    protected Entry<Setable, Object> entry(T value, Map<Setable, Object> properties) {
         if (isInternable(value)) {
             return internal.get(value);
         } else {
@@ -86,11 +86,11 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    static void prune(Entry e1, Map<?, ?> map2) {
+    protected void prune(Entry e1, Map<?, ?> map2) {
         Object v1 = e1.getValue();
         if (v1 instanceof Map) {
             for (Entry e3 : (Map<?, ?>) v1) {
-                e3.prune(map2);
+                prune(e3, map2);
             }
         } else {
             for (Entry e2 : map2) {
