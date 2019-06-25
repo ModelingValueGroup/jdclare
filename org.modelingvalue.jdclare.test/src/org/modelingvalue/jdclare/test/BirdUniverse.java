@@ -167,12 +167,28 @@ public interface BirdUniverse extends DUniverse {
     interface Pigeon extends Bird {
 
         @Rule
-        default void addChildren() {
+        default void addChildren1() {
             if ("grey".equals(color())) {
                 for (int i = 0; i < 10000; i++) {
                     Bird child = dclare(Pigeon.class, this, name() + i);
                     set(this, Bird::children, Set::add, child);
                     set(child, Bird::color, "gray");
+                }
+            }
+        }
+
+        @Rule
+        default void addChildren2() {
+            if ("yellow".equals(color())) {
+                for (int i = 0; i < 400; i++) {
+                    Sparrow child = dclare(Sparrow.class, this, name() + i);
+                    set(child, Bird::color, "notyellow");
+                    set(this, Bird::children, Set::add, child);
+                    for (int j = 0; j < 1; j++) {
+                        Sparrow grandChild = dclare(Sparrow.class, child, name() + j + "gc"); //
+                        set(grandChild, Bird::color, "notyellow");
+                        set(child, Bird::children, Set::add, grandChild);
+                    }
                 }
             }
         }
@@ -204,6 +220,7 @@ public interface BirdUniverse extends DUniverse {
     }
 
     interface Sparrow extends Bird {
+
         @Rule
         default void addChildren() {
             if ("black".equals(color())) {
@@ -211,14 +228,6 @@ public interface BirdUniverse extends DUniverse {
                     Sparrow child = dclare(Sparrow.class, this, name() + i);
                     set(child, Bird::color, "grey");
                     set(this, Bird::children, Set::add, child);
-                    for (int j = 0; j < 0; j++) {
-                        Sparrow grandChild = dclare(Sparrow.class, child, name() + j); //
-                        // TODO
-                        // what happens if you create objects with same identity but properties are not
-                        // equal?
-                        set(grandChild, Bird::color, "gray");
-                        set(child, Bird::children, Set::add, grandChild);
-                    }
                 }
             }
         }
@@ -288,10 +297,10 @@ public interface BirdUniverse extends DUniverse {
             if ("blue".equals(color())) {
                 Bird child = dclare(HummingBird.class, this, this.name() + "+");
                 set(child, Bird::color, null);
+                System.err.println(child);
+                System.err.println(child.color());
                 String color = child.color();
-                if (color == null) {
-                    System.err.println(color.length());
-                }
+                System.err.println(color.length());
             }
         }
 

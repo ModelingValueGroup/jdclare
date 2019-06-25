@@ -158,7 +158,7 @@ public class BirdTest {
     }
 
     @Test
-    public void tooManyObservedException() {
+    public void tooManyObservedException1() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
@@ -167,7 +167,21 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObservedException.class, "Too many observed (10002) by 0.Pigeon::addChildren", x -> ((TooManyObservedException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObservedException.class, "Too many observed (10002) by 0.Pigeon::addChildren1", x -> ((TooManyObservedException) x).getSimpleMessage());
+        }
+    }
+
+    @Test
+    public void tooManyObservedException2() {
+        try {
+            DClare<BirdUniverse> dclare = of(BirdUniverse.class);
+            start(dclare);
+            addBird(dclare, Pigeon.class, Pair.of("0", "yellow"));
+            stop(dclare);
+            Assert.fail();
+        } catch (Throwable t) {
+            Throwable cause = getCause(t);
+            assertThrowable(cause, TooManyObservedException.class, "Too many observed (1202) by 0.Pigeon::addChildren2", x -> ((TooManyObservedException) x).getSimpleMessage());
         }
     }
 
@@ -223,10 +237,9 @@ public class BirdTest {
         }
     }
 
-    // @Test
+    //@Test
     // TODO this test fails
-    // The EmptyMandatory Exception is caught in DEqualize.java and in Observer.java
-    public void missingMandatory2() {
+    public void nullPointerException1() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
@@ -235,12 +248,12 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']"));
+            assertThrowable(cause, NullPointerException.class);
         }
     }
 
     @Test
-    public void nullPointerException() {
+    public void nullPointerException2() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
