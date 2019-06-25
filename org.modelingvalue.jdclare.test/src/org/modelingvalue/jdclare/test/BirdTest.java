@@ -17,6 +17,7 @@ import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.test.BirdUniverse.Bird;
 import org.modelingvalue.jdclare.test.BirdUniverse.Condor;
+import org.modelingvalue.jdclare.test.BirdUniverse.HouseSparrow;
 import org.modelingvalue.jdclare.test.BirdUniverse.HummingBird;
 import org.modelingvalue.jdclare.test.BirdUniverse.Pheasant;
 import org.modelingvalue.jdclare.test.BirdUniverse.Pigeon;
@@ -180,17 +181,17 @@ public class BirdTest {
         assertEquals("Unexpected Birds: " + birds, 1, birds.size());
     }
 
-    //@Test
+    @Test
     public void tooManyObserversException1() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
-            addBird(dclare, Sparrow.class, Pair.of("1", "gold"));
+            addBird(dclare, HouseSparrow.class, Pair.of("1", "yellow"));
             stop(dclare);
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2001) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2801) of 1.D_PARENT", x -> ((TooManyObserversException) x).getSimpleMessage());
         }
     }
 
@@ -204,7 +205,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2004) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2003) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
         }
     }
 
