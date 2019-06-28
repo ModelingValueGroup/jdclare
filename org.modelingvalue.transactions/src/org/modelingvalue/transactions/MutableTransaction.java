@@ -32,8 +32,16 @@ public class MutableTransaction extends Transaction {
     @SuppressWarnings("rawtypes")
     private final Concurrent<Map<Observer, Set<Mutable>>>[] triggeredActions;
     private final Concurrent<Set<Mutable>>[]                triggeredMutables;
+    @SuppressWarnings("unchecked")
+    private final Set<TransactionClass>[]                   ts              = new Set[1];
+    private final State[]                                   sa              = new State[1];
+    @SuppressWarnings("unchecked")
+    private final Set<Mutable>[]                            cs              = new Set[1];
+    @SuppressWarnings("unchecked")
+    private final Set<Action<?>>[]                          ls              = new Set[1];
 
     @SuppressWarnings("unchecked")
+
     protected MutableTransaction(UniverseTransaction universeTransaction) {
         super(universeTransaction);
         triggeredActions = new Concurrent[2];
@@ -57,23 +65,22 @@ public class MutableTransaction extends Transaction {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected State run(State state) {
         TraceTimer.traceBegin("compound");
         try {
             State sb = null;
-            Set<TransactionClass>[] ts = new Set[1];
-            State[] sa = new State[]{state};
+            Mutable mutable = mutable();
+            sa[0] = state;
             if (this == universeTransaction()) {
-                sa[0] = schedule(sa[0], Direction.forward);
+                sa[0] = schedule(mutable, sa[0], Direction.forward);
             }
             int i = 0;
             boolean sequential = false;
             while (!universeTransaction().isKilled() && i < 3) {
-                sa[0] = sa[0].set(mutable(), Direction.scheduled.sequence[i], Set.of(), ts);
+                sa[0] = sa[0].set(mutable, Direction.scheduled.sequence[i], Set.of(), ts);
                 if (ts[0].isEmpty()) {
                     if (++i == 3 && this == universeTransaction()) {
-                        sb = schedule(sa[0], Direction.backward);
+                        sb = schedule(mutable, sa[0], Direction.backward);
                         if (sb != sa[0]) {
                             sa[0] = sb;
                             universeTransaction().startOpposite();
@@ -109,7 +116,7 @@ public class MutableTransaction extends Transaction {
                     if (this == universeTransaction()) {
                         universeTransaction().endPriority(Priority.values()[i]);
                     }
-                    sa[0] = schedule(sa[0], Direction.forward);
+                    sa[0] = schedule(mutable, sa[0], Direction.forward);
                     i = 0;
                 }
             }
@@ -127,6 +134,8 @@ public class MutableTransaction extends Transaction {
             }
             throw error;
         } finally {
+            sa[0] = null;
+            ts[0] = null;
             TraceTimer.traceEnd("compound");
         }
     }
@@ -142,14 +151,7 @@ public class MutableTransaction extends Transaction {
         return inner.length;
     }
 
-    @SuppressWarnings("unchecked")
-    private State schedule(State state, Direction direction) {
-        Set<Mutable>[] cs = new Set[1];
-        Set<Action<?>>[] ls = new Set[1];
-        return schedule(mutable(), state, direction, cs, ls);
-    }
-
-    private static State schedule(Mutable mutable, State state, Direction direction, Set<Mutable>[] cs, Set<Action<?>>[] ls) {
+    private State schedule(Mutable mutable, State state, Direction direction) {
         state = state.set(mutable, direction.preDepth, Set.of(), ls);
         state = state.set(mutable, Direction.scheduled.preDepth, Set::addAll, ls[0]);
         state = state.set(mutable, direction.depth, Set.of(), cs);
@@ -158,7 +160,7 @@ public class MutableTransaction extends Transaction {
         state = state.set(mutable, Direction.scheduled.postDepth, Set::addAll, ls[0]);
         Set<Mutable> csc = cs[0];
         for (Mutable r : csc) {
-            state = schedule(r, state, direction, cs, ls);
+            state = schedule(r, state, direction);
         }
         return state;
     }
