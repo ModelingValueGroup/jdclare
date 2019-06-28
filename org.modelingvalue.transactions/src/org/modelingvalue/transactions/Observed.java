@@ -54,7 +54,7 @@ public class Observed<O, T> extends Setable<O, T> {
     private final Setable<Object, Set<ObserverTrace>> writers      = Setable.of(Pair.of(this, "writers"), Set.of());
     private final Observers<O, T>[]                   observers;
     @SuppressWarnings("rawtypes")
-    protected final Entry<Observed, Set<Mutable>>     thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
+    private final Entry<Observed, Set<Mutable>>       thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
 
     @SuppressWarnings("unchecked")
     protected Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
@@ -150,6 +150,11 @@ public class Observed<O, T> extends Setable<O, T> {
             return value.allMatch(e -> e.getValue() == Mutable.THIS_SINGLETON);
         }
 
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected Entry<Observed, Set<Mutable>> entry(Mutable object, Mutable self) {
+        return object.equals(self) ? thisInstance : Entry.of(this, Set.of(object));
     }
 
 }

@@ -118,7 +118,7 @@ public interface Mutable extends TransactionClass {
         return new MutableTransaction(universeTransaction);
     }
 
-    default Mutable resolve(Mutable mutable) {
+    default Mutable resolve(Mutable self) {
         return this;
     }
 

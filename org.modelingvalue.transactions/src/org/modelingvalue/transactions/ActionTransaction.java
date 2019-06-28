@@ -175,15 +175,7 @@ public class ActionTransaction extends LeafTransaction {
     @SuppressWarnings("rawtypes")
     protected Mutable dParent(Mutable object) {
         Entry<Setable, Object> set = setted.get().get(object).getEntry(Mutable.D_PARENT);
-        if (set != null) {
-            if (set.getValue() != null) {
-                return (Mutable) set.getValue();
-            } else {
-                return null;
-            }
-        } else {
-            return super.dParent(object);
-        }
+        return set != null ? (Mutable) set.getValue() : super.dParent(object);
     }
 
     @Override

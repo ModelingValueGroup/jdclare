@@ -69,13 +69,13 @@ public class ObserverTransaction extends ActionTransaction {
             if (changed) {
                 checkTooManyChanges(pre, sets, gets);
             }
-            observe(pre, observer, sets, gets);
+            observe(observer, sets, gets);
         } catch (EmptyMandatoryException soe) {
             clear();
             init(pre);
-            observe(pre, observer, setted.result(), getted.result());
+            observe(observer, setted.result(), getted.result());
         } catch (StopObserverException soe) {
-            observe(pre, observer, Observed.OBSERVED_MAP, Observed.OBSERVED_MAP);
+            observe(observer, Observed.OBSERVED_MAP, Observed.OBSERVED_MAP);
         } finally {
             changed = false;
             getted.clear();
@@ -85,7 +85,7 @@ public class ObserverTransaction extends ActionTransaction {
     }
 
     @SuppressWarnings("rawtypes")
-    private void observe(State state, Observer<?> observer, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
+    private void observe(Observer<?> observer, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
         gets = gets.removeAll(sets, Set::removeAll);
         Mutable mutable = parent().mutable();
         Observerds[] observeds = observer.observeds();
@@ -191,8 +191,7 @@ public class ObserverTransaction extends ActionTransaction {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <O, T> void observe(O object, Getable<O, T> property, T value, boolean set) {
         if (object instanceof Mutable && property instanceof Observed && getted.isInitialized() && OBSERVE.get()) {
-            Entry<Observed, Set<Mutable>> entry = object.equals(parent().mutable()) ? ((Observed) property).thisInstance : Entry.of((Observed) property, Set.of((Mutable) object));
-            (set ? setted : getted).change(o -> o.add(entry, Set::addAll));
+            (set ? setted : getted).change(o -> o.add(((Observed) property).entry((Mutable) object, parent().mutable()), Set::addAll));
         }
     }
 

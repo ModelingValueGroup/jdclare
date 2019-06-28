@@ -48,7 +48,7 @@ public class Observer<O extends Mutable> extends Action<O> {
     protected int                                     changes;
     protected boolean                                 stopped;
     @SuppressWarnings("rawtypes")
-    protected final Entry<Observer, Set<Mutable>>     thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
+    private final Entry<Observer, Set<Mutable>>       thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
 
     protected Observer(Object id, Consumer<O> action, Direction initDirection, Priority priority) {
         super(id, action, initDirection, priority);
@@ -118,10 +118,16 @@ public class Observer<O extends Mutable> extends Action<O> {
                     Setable<Mutable, Map<Observer, Set<Mutable>>> obs = observed.observers(direction);
                     pre.get(observed).compare(post.get(observed)).forEach(d -> {
                         if (d[0] == null) {
-                            d[1].forEach(n -> tx.set(n.resolve(mutable), obs, (m, e) -> m.add(e, Set::addAll), n == Mutable.THIS ? observer.thisInstance : Entry.of(observer, Set.of(mutable))));
+                            d[1].forEach(a -> {
+                                Mutable o = a.resolve(mutable);
+                                tx.set(o, obs, (m, e) -> m.add(e, Set::addAll), observer.entry(mutable, o));
+                            });
                         }
                         if (d[1] == null) {
-                            d[0].forEach(o -> tx.set(o.resolve(mutable), obs, (m, e) -> m.remove(e, Set::removeAll), o == Mutable.THIS ? observer.thisInstance : Entry.of(observer, Set.of(mutable))));
+                            d[0].forEach(r -> {
+                                Mutable o = r.resolve(mutable);
+                                tx.set(o, obs, (m, e) -> m.remove(e, Set::removeAll), observer.entry(mutable, o));
+                            });
                         }
                     });
                 }
@@ -142,6 +148,11 @@ public class Observer<O extends Mutable> extends Action<O> {
 
     public boolean isInternable() {
         return true;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Entry entry(Mutable object, Mutable self) {
+        return object.equals(self) ? thisInstance : Entry.of(this, Set.of(object));
     }
 
 }

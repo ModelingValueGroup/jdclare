@@ -15,15 +15,19 @@ package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.struct.impl.Struct1Impl;
 
-public final class This implements Mutable {
+public final class This extends Struct1Impl<String> implements Mutable {
 
-    This() {
+    private static final long serialVersionUID = 5000610308072466985L;
+
+    public This() {
+        super("<this>");
     }
 
     @Override
     public String toString() {
-        return "<this>";
+        return get0();
     }
 
     @Override
@@ -42,8 +46,8 @@ public final class This implements Mutable {
     }
 
     @Override
-    public final Mutable resolve(Mutable mutable) {
-        return mutable;
+    public final Mutable resolve(Mutable self) {
+        return self;
     }
 
 }
