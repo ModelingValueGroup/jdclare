@@ -82,7 +82,7 @@ public class ReadOnlyTransaction extends LeafTransaction {
     }
 
     @Override
-    protected void stop() {
+    public void stop() {
         super.stop();
         state = null;
     }

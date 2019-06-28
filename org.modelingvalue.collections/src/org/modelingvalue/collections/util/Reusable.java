@@ -11,41 +11,48 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.transactions;
+package org.modelingvalue.collections.util;
 
 import java.util.ArrayList;
 
-public class TransactionList<C extends TransactionClass, T extends Transaction> extends ArrayList<T> {
+public class Reusable<U, C, T, P> extends ArrayList<T> {
 
-    private static final long         serialVersionUID = 9116265671882887291L;
+    private static final long                      serialVersionUID = 9116265671882887291L;
 
-    private static final int          CHUNCK_SIZE      = 4;
+    private static final int                       CHUNCK_SIZE      = 4;
 
-    private final UniverseTransaction universeTransaction;
+    private final U                                init;
+    private final SerializableBiFunction<C, U, T>  construct;
+    private final SerializableTriConsumer<T, C, P> start;
+    private final SerializableConsumer<T>          stop;
+    private final SerializableFunction<T, Boolean> isOpen;
 
-    private int                       level            = -1;
+    private int                                    level            = -1;
 
-    public TransactionList(UniverseTransaction universeTransaction) {
+    public Reusable(U init, SerializableBiFunction<C, U, T> construct, SerializableTriConsumer<T, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
         super(0);
-        this.universeTransaction = universeTransaction;
+        this.init = init;
+        this.construct = construct;
+        this.start = start;
+        this.stop = stop;
+        this.isOpen = isOpen;
     }
 
-    @SuppressWarnings("unchecked")
-    public T open(C cls, MutableTransaction parent) {
+    public T open(C cls, P parent) {
         if (++level >= size()) {
             ensureCapacity(size() + CHUNCK_SIZE);
             for (int i = 0; i < CHUNCK_SIZE; i++) {
-                add((T) cls.newTransaction(universeTransaction));
+                add(construct.apply(cls, init));
             }
         }
         T tx = get(level);
-        tx.start(cls, parent);
+        start.accept(tx, cls, parent);
         return tx;
     }
 
     public void close(T tx) {
-        tx.stop();
-        for (; level >= 0 && !get(level).isOpen(); level--) {
+        stop.accept(tx);
+        for (; level >= 0 && !isOpen.apply(get(level)); level--) {
         }
     }
 

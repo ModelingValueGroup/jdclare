@@ -74,40 +74,40 @@ public class UniverseTransaction extends MutableTransaction {
         return new UniverseTransaction(id, pool, start, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, MAX_NR_OF_HISTORY, null);
     }
 
-    public static final Setable<Universe, Boolean>                                STOPPED       = Setable.of("stopped", false);
-    public static final Setable<Universe, Set<ActionInstance>>                    INTEGRATIONS  = Setable.of("integrations", Set.of());
+    public static final Setable<Universe, Boolean>                                    STOPPED       = Setable.of("stopped", false);
+    public static final Setable<Universe, Set<ActionInstance>>                        INTEGRATIONS  = Setable.of("integrations", Set.of());
 
-    protected final Concurrent<TransactionList<Action<?>, ActionTransaction>>     actionTransactions;
-    protected final Concurrent<TransactionList<Observer<?>, ObserverTransaction>> observerTransactions;
-    protected final Concurrent<TransactionList<Mutable, MutableTransaction>>      mutableTransactions;
-    protected final Concurrent<TransactionList<ReadOnly, ReadOnlyTransaction>>    readOnlys;
+    protected final Concurrent<ReusableTransaction<Action<?>, ActionTransaction>>     actionTransactions;
+    protected final Concurrent<ReusableTransaction<Observer<?>, ObserverTransaction>> observerTransactions;
+    protected final Concurrent<ReusableTransaction<Mutable, MutableTransaction>>      mutableTransactions;
+    protected final Concurrent<ReusableTransaction<ReadOnly, ReadOnlyTransaction>>    readOnlys;
 
-    private final Action<Universe>                                                pre;
-    private final Action<Universe>                                                dummy;
-    private final Action<Universe>                                                stop;
-    private final Action<Universe>                                                backward;
-    private final Action<Universe>                                                forward;
-    private final Action<Universe>                                                clearOrphans;
-    protected final BlockingQueue<Action<Universe>>                               inQueue;
-    private final BlockingQueue<State>                                            resultQueue;
-    private final State                                                           emptyState    = new State(this, null);
-    private final int                                                             maxTotalNrOfChanges;
-    private final int                                                             maxNrOfChanges;
-    private final int                                                             maxNrOfObserved;
-    private final int                                                             maxNrOfObservers;
-    protected final ReadOnly                                                      runOnState    = new ReadOnly(this, Direction.forward, Priority.postDepth);
+    private final Action<Universe>                                                    pre;
+    private final Action<Universe>                                                    dummy;
+    private final Action<Universe>                                                    stop;
+    private final Action<Universe>                                                    backward;
+    private final Action<Universe>                                                    forward;
+    private final Action<Universe>                                                    clearOrphans;
+    protected final BlockingQueue<Action<Universe>>                                   inQueue;
+    private final BlockingQueue<State>                                                resultQueue;
+    private final State                                                               emptyState    = new State(this, null);
+    private final int                                                                 maxTotalNrOfChanges;
+    private final int                                                                 maxNrOfChanges;
+    private final int                                                                 maxNrOfObserved;
+    private final int                                                                 maxNrOfObservers;
+    protected final ReadOnly                                                          runOnState    = new ReadOnly(this, Direction.forward, Priority.postDepth);
 
-    private List<State>                                                           history       = List.of();
-    private List<State>                                                           future        = List.of();
-    private State                                                                 preState;
-    private State                                                                 state;
-    protected ConstantState                                                       constantState = new ConstantState();
-    protected Action<Universe>                                                    leaf;
-    private long                                                                  runCount;
-    private int                                                                   changes;
-    private boolean                                                               debug;
-    private boolean                                                               killed;
-    private Throwable                                                             error;
+    private List<State>                                                               history       = List.of();
+    private List<State>                                                               future        = List.of();
+    private State                                                                     preState;
+    private State                                                                     state;
+    protected ConstantState                                                           constantState = new ConstantState();
+    protected Action<Universe>                                                        leaf;
+    private long                                                                      runCount;
+    private int                                                                       changes;
+    private boolean                                                                   debug;
+    private boolean                                                                   killed;
+    private Throwable                                                                 error;
 
     protected UniverseTransaction(Universe universe, ContextPool pool, State start, int maxInInQueue, int maxTotalNrOfChanges, int maxNrOfChanges, int maxNrOfObserved, int maxNrOfObservers, int maxNrOfHistory, Consumer<UniverseTransaction> cycle) {
         super(null);
@@ -115,10 +115,10 @@ public class UniverseTransaction extends MutableTransaction {
         this.maxNrOfChanges = maxNrOfChanges;
         this.maxNrOfObserved = maxNrOfObserved;
         this.maxNrOfObservers = maxNrOfObservers;
-        this.actionTransactions = Concurrent.of(() -> new TransactionList<>(this));
-        this.observerTransactions = Concurrent.of(() -> new TransactionList<>(this));
-        this.mutableTransactions = Concurrent.of(() -> new TransactionList<>(this));
-        this.readOnlys = Concurrent.of(() -> new TransactionList<>(this));
+        this.actionTransactions = Concurrent.of(() -> new ReusableTransaction<>(this));
+        this.observerTransactions = Concurrent.of(() -> new ReusableTransaction<>(this));
+        this.mutableTransactions = Concurrent.of(() -> new ReusableTransaction<>(this));
+        this.readOnlys = Concurrent.of(() -> new ReusableTransaction<>(this));
         this.inQueue = new LinkedBlockingQueue<>(maxInInQueue);
         this.resultQueue = new LinkedBlockingQueue<>(1);
         this.stop = Action.of("stop", o -> STOPPED.set(universe(), true));

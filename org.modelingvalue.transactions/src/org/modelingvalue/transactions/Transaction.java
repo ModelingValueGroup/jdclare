@@ -53,7 +53,7 @@ public abstract class Transaction {
         return universeTransaction;
     }
 
-    protected void start(TransactionClass cls, MutableTransaction parent) {
+    public void start(TransactionClass cls, MutableTransaction parent) {
         if (this.cls != null) {
             throw new ConcurrentModificationException();
         }
@@ -61,7 +61,7 @@ public abstract class Transaction {
         this.parent = parent;
     }
 
-    protected void stop() {
+    public void stop() {
         if (cls == null) {
             throw new ConcurrentModificationException();
         }
