@@ -14,6 +14,7 @@
 package org.modelingvalue.transactions.test;
 
 import static java.math.BigInteger.*;
+import static org.modelingvalue.transactions.UniverseTransaction.*;
 
 import java.math.BigInteger;
 
@@ -216,6 +217,29 @@ public class TransactionsTests {
         System.err.println("********************************************************************");
         System.err.println(result.asString());
         System.err.println("********************************************************************");
+    }
+
+    @Test
+    public void zuperBig() throws Exception {
+        Observed<DUniverse, DObject> child = Observed.of("child", null, true);
+        Observed<DObject, Set<DObject>> children = Observed.of("children", Set.of(), true);
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", child));
+        DClass dClass = DClass.of("Object", children, Observer.of("observer", o -> {
+            String name = o.id().toString();
+            if (name.length() < 13) {
+                for (int i = 0; i < 10; i++) {
+                    children.set(o, Set::add, DObject.of(name + i, o.dClass()));
+                }
+            }
+        }));
+        UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL, MAX_IN_IN_QUEUE, 1000000000, MAX_NR_OF_CHANGES, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, MAX_NR_OF_HISTORY);
+        universeTransaction.put("init", () -> child.set(universe, DObject.of("object", dClass)));
+        universeTransaction.stop();
+        State result = universeTransaction.waitForEnd();
+        System.err.println("********************************************************************");
+        System.err.println(result.getObjects(DObject.class).size());
+        System.err.println("********************************************************************");
+        Assert.assertEquals(11111112, result.getObjects(DObject.class).size());
     }
 
 }
