@@ -181,9 +181,10 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                     } else if (!TreeCollectionImpl.equalsWithStop(values[i], other.values[i], stop)) {
                         stop[0] = true;
                         return false;
+                    } else {
+                        values[i] = other.values[i];
+                        return true;
                     }
-                    values[i] = other.values[i];
-                    return true;
                 });
             }
         }
