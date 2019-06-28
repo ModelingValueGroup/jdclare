@@ -176,18 +176,13 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 return getIntStream(0, values.length, stop, size).allMatch(i -> {
                     if (stop[0]) {
                         return false;
-                    }
-                    if (!TreeCollectionImpl.equalsWithStop(values[i], other.values[i], stop)) {
+                    } else if (values[i] == other.values[i]) {
+                        return true;
+                    } else if (!TreeCollectionImpl.equalsWithStop(values[i], other.values[i], stop)) {
                         stop[0] = true;
                         return false;
                     }
-                    if (values[i] != other.values[i]) {
-                        if (System.identityHashCode(values[i]) > System.identityHashCode(other.values[i])) {
-                            values[i] = other.values[i];
-                        } else {
-                            other.values[i] = values[i];
-                        }
-                    }
+                    values[i] = other.values[i];
                     return true;
                 });
             }

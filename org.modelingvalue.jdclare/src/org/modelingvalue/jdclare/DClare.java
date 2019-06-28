@@ -653,22 +653,15 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                     return false;
                 } else if (args[0].getClass() != proxy.getClass()) {
                     return false;
+                }
+                IdHandler<F> other = (IdHandler<F>) Proxy.getInvocationHandler(args[0]);
+                if (other.key == key) {
+                    return true;
+                } else if (!Arrays.equals(key, other.key)) {
+                    return false;
                 } else {
-                    IdHandler<F> other = (IdHandler<F>) Proxy.getInvocationHandler(args[0]);
-                    if (other.key == key) {
-                        return true;
-                    }
-                    if (!Arrays.equals(key, other.key)) {
-                        return false;
-                    }
-                    // share the same data array (taking the one with the lowest identityHashCode):
-                    if (System.identityHashCode(other.key) < System.identityHashCode(key)) {
-                        key = other.key;
-                        f = other.f;
-                    } else {
-                        other.key = key;
-                        other.f = f;
-                    }
+                    key = other.key;
+                    f = other.f;
                     return true;
                 }
             } else {
@@ -754,17 +747,12 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                 DStructHandler other = DClare.handler((DStruct) args[0]);
                 if (other.key == key) {
                     return true;
-                }
-                if (!Arrays.equals(key, other.key)) {
+                } else if (!Arrays.equals(key, other.key)) {
                     return false;
-                }
-                // share the same data array (taking the one with the lowest identityHashCode):
-                if (System.identityHashCode(other.key) < System.identityHashCode(key)) {
-                    key = other.key;
                 } else {
-                    other.key = key;
+                    key = other.key;
+                    return true;
                 }
-                return true;
             } else if (method.getParameterCount() == 0) {
                 DProperty<DStruct, Object> dProperty = dProperty(method);
                 if (dProperty != null) {

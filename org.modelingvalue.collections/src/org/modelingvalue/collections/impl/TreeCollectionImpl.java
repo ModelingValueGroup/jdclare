@@ -105,30 +105,23 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
-        }
-        if (obj == null) {
+        } else if (obj == null) {
             return false;
-        }
-        if (!getClass().equals(obj.getClass())) {
+        } else if (!getClass().equals(obj.getClass())) {
             return false;
         }
         @SuppressWarnings("rawtypes")
         TreeCollectionImpl other = (TreeCollectionImpl) obj;
-        if (!equalsWithStop(value, other.value, new boolean[1])) {
+        if (value == other.value) {
+            return true;
+        } else if (!equalsWithStop(value, other.value, new boolean[1])) {
             return false;
         }
-        if (value != other.value) {
-            if (System.identityHashCode(value) > System.identityHashCode(other.value)) {
-                value = other.value;
-            } else {
-                other.value = value;
-            }
-        }
+        value = other.value;
         return true;
     }
 

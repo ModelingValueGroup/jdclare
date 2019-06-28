@@ -21,13 +21,15 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Mergeable;
-import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
 
 public class ActionTransaction extends LeafTransaction {
 
-    private Setted setted = new Setted();
-    private State  preState;
+    @SuppressWarnings("rawtypes")
+    private static final Map<Object, Map<Setable, Object>> MAP_DEFAULT = Map.of(o -> Map.of());
+
+    private final Setted                                   setted      = new Setted();
+    private State                                          preState;
 
     protected ActionTransaction(UniverseTransaction universeTransaction) {
         super(universeTransaction);
@@ -71,7 +73,8 @@ public class ActionTransaction extends LeafTransaction {
         if (preState != null) {
             throw new ConcurrentModificationException();
         }
-        setted.init(Map.of());
+
+        setted.init(MAP_DEFAULT);
         preState = state;
     }
 
@@ -80,11 +83,15 @@ public class ActionTransaction extends LeafTransaction {
         preState = null;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected State result() {
         State result = state();
-        for (Entry<Pair<Object, Setable>, Object> set : setted.result()) {
-            result = result.set(set.getKey().get0(), set.getKey().get1(), set.getValue());
+        for (Entry<Object, Map<Setable, Object>> obj : setted.result()) {
+            Map<Setable, Object> props = result.properties(obj.getKey());
+            for (Entry<Setable, Object> set : obj.getValue()) {
+                props = State.setProperties(props, set.getKey(), set.getValue());
+            }
+            result = result.set(obj.getKey(), props);
         }
         preState = null;
         return result;
@@ -93,50 +100,55 @@ public class ActionTransaction extends LeafTransaction {
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        Pair<Object, Setable> slot = Pair.of(object, property);
         T prePre = state().get(object, property);
-        Map<Pair<Object, Setable>, Object> map = setted.get();
-        Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
+        Map<Object, Map<Setable, Object>> set = setted.get();
+        Map<Setable, Object> map = set.get(object);
+        Entry<Setable, Object> bra = map.getEntry(property);
         T post = function.apply(bra == null ? prePre : (T) bra.getValue(), element);
-        return set(object, property, post, slot, prePre, map, bra);
+        return set(object, property, post, prePre, set, map, bra);
     }
 
     @Override
     @SuppressWarnings("rawtypes")
     public <O, T> T set(O object, Setable<O, T> property, T post) {
-        Pair<Object, Setable> slot = Pair.of(object, property);
         T prePre = state().get(object, property);
-        Map<Pair<Object, Setable>, Object> map = setted.get();
-        Entry<Pair<Object, Setable>, Object> bra = map.getEntry(slot);
-        return set(object, property, post, slot, prePre, map, bra);
+        Map<Object, Map<Setable, Object>> set = setted.get();
+        Map<Setable, Object> map = set.get(object);
+        Entry<Setable, Object> bra = map.getEntry(property);
+        return set(object, property, post, prePre, set, map, bra);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <O, T> T set(O object, Setable<O, T> property, T post, Pair<Object, Setable> slot, T prePre, Map<Pair<Object, Setable>, Object> map, Entry<Pair<Object, Setable>, Object> bra) {
+    private <O, T> T set(O object, Setable<O, T> property, T post, T prePre, Map<Object, Map<Setable, Object>> set, Map<Setable, Object> map, Entry<Setable, Object> bra) {
         T pre = bra == null ? prePre : (T) bra.getValue();
         if (!Objects.equals(pre, post)) {
             if (bra != null) {
-                post = (T) merge(slot, prePre, pre, post);
+                post = (T) merge(object, property, prePre, pre, post);
             }
-            setted.set(map.put(slot, post));
+            setted.set(set.put(object, map.put(property, post)));
             changed(object, property, pre, post);
         }
         return prePre;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private final class Setted extends Concurrent<Map<Pair<Object, Setable>, Object>> {
+    @SuppressWarnings("rawtypes")
+    private final class Setted extends Concurrent<Map<Object, Map<Setable, Object>>> {
+
+        @SuppressWarnings({"resource", "unchecked"})
         @Override
-        protected Map<Pair<Object, Setable>, Object> merge(Map<Pair<Object, Setable>, Object> base, Map<Pair<Object, Setable>, Object>[] branches) {
-            for (Map<Pair<Object, Setable>, Object> b : branches) {
-                for (Entry<Pair<Object, Setable>, Object> e : b) {
-                    Pair<Object, Setable> slot = e.getKey();
-                    Object post = e.getValue();
-                    Entry<Pair<Object, Setable>, Object> bra = base.getEntry(slot);
-                    if (bra != null && !Objects.equals(bra.getValue(), post)) {
-                        post = ActionTransaction.this.merge(slot, state().get(slot.a(), slot.b()), bra.getValue(), post);
+        protected Map<Object, Map<Setable, Object>> merge(Map<Object, Map<Setable, Object>> base, Map<Object, Map<Setable, Object>>[] branches) {
+            for (Map<Object, Map<Setable, Object>> b : branches) {
+                for (Entry<Object, Map<Setable, Object>> obj : b) {
+                    Map<Setable, Object> baseObj = base.get(obj.getKey());
+                    for (Entry<Setable, Object> set : obj.getValue()) {
+                        Object post = set.getValue();
+                        Entry<Setable, Object> bra = baseObj.getEntry(set.getKey());
+                        if (bra != null && !Objects.equals(bra.getValue(), post)) {
+                            post = ActionTransaction.this.merge(obj.getKey(), set.getKey(), state().get(obj.getKey(), set.getKey()), bra.getValue(), post);
+                        }
+                        baseObj = baseObj.put(set.getKey(), post);
                     }
-                    base = base.put(slot, post);
+                    base = base.put(obj.getKey(), baseObj);
                 }
             }
             return base;
@@ -144,25 +156,25 @@ public class ActionTransaction extends LeafTransaction {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Object merge(Pair<Object, Setable> slot, Object prePre, Object pre, Object post) {
+    private Object merge(Object object, Setable property, Object prePre, Object pre, Object post) {
         if (pre == null) {
             return post;
         } else if (post == null) {
             return pre;
         } else if (prePre instanceof Mergeable) {
             return ((Mergeable) prePre).merge2(pre, post);
-        } else if (slot.b() instanceof Observed && this instanceof ObserverTransaction) {
+        } else if (property instanceof Observed && this instanceof ObserverTransaction) {
             trigger(parent().mutable(), (Action<Mutable>) action(), Direction.backward);
             return post;
         } else {
-            throw new ConcurrentModificationException(slot.a() + "." + slot.b() + "= " + prePre + " -> " + pre + " | " + post);
+            throw new ConcurrentModificationException(object + "." + property + "= " + prePre + " -> " + pre + " | " + post);
         }
     }
 
     @Override
     @SuppressWarnings("rawtypes")
     protected Mutable dParent(Mutable object) {
-        Entry<Pair<Object, Setable>, Object> set = setted.get().getEntry(Pair.of(object, Mutable.D_PARENT));
+        Entry<Setable, Object> set = setted.get().get(object).getEntry(Mutable.D_PARENT);
         if (set != null) {
             if (set.getValue() != null) {
                 return (Mutable) set.getValue();

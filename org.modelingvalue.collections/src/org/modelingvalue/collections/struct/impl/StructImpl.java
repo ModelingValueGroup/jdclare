@@ -37,26 +37,18 @@ public abstract class StructImpl implements Struct {
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
-        }
-        if (obj == null) {
+        } else if (obj == null) {
             return false;
-        }
-        if (obj.getClass() != getClass()) {
+        } else if (obj.getClass() != getClass()) {
             return false;
         }
         StructImpl other = (StructImpl) obj;
         if (other.data == data) {
             return true;
-        }
-        if (!Arrays.equals(data, other.data)) {
+        } else if (!Arrays.equals(data, other.data)) {
             return false;
         }
-        // share the same data array (taking the one with the lowest identityHashCode):
-        if (System.identityHashCode(other.data) < System.identityHashCode(data)) {
-            data = other.data;
-        } else {
-            other.data = data;
-        }
+        data = other.data;
         return true;
     }
 

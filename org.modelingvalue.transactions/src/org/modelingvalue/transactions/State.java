@@ -68,7 +68,8 @@ public class State implements Serializable {
     @SuppressWarnings("rawtypes")
     public <O, T> State set(O object, Setable<O, T> property, T value) {
         Map<Setable, Object> props = properties(object);
-        return set(object, props, property, value);
+        Map<Setable, Object> set = setProperties(props, property, value);
+        return set != props ? set(object, set) : this;
     }
 
     public <O, T> State set(O object, Setable<O, T> property, T value, T[] old) {
@@ -89,7 +90,7 @@ public class State implements Serializable {
         Map<Setable, Object> props = properties(object);
         oldNew[0] = get(props, property);
         oldNew[1] = function.apply(oldNew[0], element);
-        return !Objects.equals(oldNew[0], oldNew[1]) ? set(object, props, property, oldNew[1]) : this;
+        return !Objects.equals(oldNew[0], oldNew[1]) ? set(object, setProperties(props, property, oldNew[1])) : this;
     }
 
     @SuppressWarnings("rawtypes")
@@ -97,7 +98,7 @@ public class State implements Serializable {
         Map<Setable, Object> props = properties(object);
         T preVal = get(props, property);
         T postVal = function.apply(preVal, element);
-        return !Objects.equals(preVal, postVal) ? set(object, props, property, postVal) : this;
+        return !Objects.equals(preVal, postVal) ? set(object, setProperties(props, property, postVal)) : this;
     }
 
     @SuppressWarnings("rawtypes")
@@ -112,17 +113,18 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings("rawtypes")
-    <O, T> State set(O object, Map<Setable, Object> pre, Setable<O, T> property, T newValue) {
-        Map<Setable, Object> post;
+    static <O, T> Map<Setable, Object> setProperties(Map<Setable, Object> props, Setable<O, T> property, T newValue) {
         if (Objects.equals(property.getDefault(), newValue)) {
-            post = pre == null ? null : pre.removeKey(property);
-            post = post == null || post.isEmpty() ? null : post;
+            props = props == null ? null : props.removeKey(property);
+            return props == null || props.isEmpty() ? null : props;
         } else {
-            post = pre == null ? Map.of(property.entry(newValue, pre)) : pre.put(property.entry(newValue, pre));
+            return props == null ? Map.of(property.entry(newValue, props)) : props.put(property.entry(newValue, props));
         }
-        if (pre == post) {
-            return this;
-        } else if (post == null) {
+    }
+
+    @SuppressWarnings("rawtypes")
+    <O, T> State set(O object, Map<Setable, Object> post) {
+        if (post == null) {
             Map<Object, Map<Setable, Object>> niw = map == null ? null : map.removeKey(object);
             return niw == null || niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
         } else {
