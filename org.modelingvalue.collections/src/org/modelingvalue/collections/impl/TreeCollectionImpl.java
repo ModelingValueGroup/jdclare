@@ -83,7 +83,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         return v == null ? 0 : v instanceof MultiValue ? ((MultiValue) v).hash : v.hashCode();
     }
 
-    protected static int depth(Object v) {
+    protected static byte depth(Object v) {
         return v == null ? 1 : v instanceof MultiValue ? ((MultiValue) v).depth : 1;
     }
 
@@ -93,6 +93,14 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     protected static int length(Object v) {
         return v == null ? 0 : v instanceof MultiValue ? ((MultiValue) v).values.length : 1;
+    }
+
+    protected static byte max(byte a, byte b) {
+        return (a >= b) ? a : b;
+    }
+
+    protected static byte min(byte a, byte b) {
+        return (a <= b) ? a : b;
     }
 
     protected static Object get(Object v, int i) {
@@ -483,10 +491,12 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     protected abstract static class MultiValue implements Serializable {
 
         private static final long serialVersionUID = -901414039518935454L;
-        protected final Object[]  values;
-        protected final int       size, hash, depth;
 
-        protected MultiValue(Object[] values, int size, int hash, int depth) {
+        protected final Object[]  values;
+        protected final int       size, hash;
+        protected byte            depth;
+
+        protected MultiValue(Object[] values, int size, int hash, byte depth) {
             this.values = values;
             this.size = size;
             this.hash = hash;
@@ -513,7 +523,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             return TreeCollectionImpl.hash(obj);
         }
 
-        protected static int depth(Object obj) {
+        protected static byte depth(Object obj) {
             return TreeCollectionImpl.depth(obj);
         }
 

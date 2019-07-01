@@ -17,28 +17,32 @@ import java.lang.reflect.Array;
 import java.util.Objects;
 
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.struct.impl.Struct2Impl;
 import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.StringUtil;
 
-public final class EntryImpl<K, V> extends Struct2Impl<K, V> implements Entry<K, V> {
+public final class EntryImpl<K, V> implements Entry<K, V> {
 
     private static final long  serialVersionUID = 3714329073858453623L;
 
     @SuppressWarnings("rawtypes")
     private static final Entry NULL             = Entry.of(null, null);
 
+    private final K            key;
+    private V                  value;
+
     public EntryImpl(K key, V value) {
-        super(key, value);
+        this.key = key;
+        this.value = value;
     }
 
     @Override
     public K getKey() {
-        return get0();
+        return key;
     }
 
     @Override
     public V getValue() {
-        return get1();
+        return value;
     }
 
     @SuppressWarnings("unchecked")
@@ -79,6 +83,39 @@ public final class EntryImpl<K, V> extends Struct2Impl<K, V> implements Entry<K,
         return Entry.of(key, v);
     }
 
+    @Override
+    public int hashCode() {
+        return (key == null ? 0 : key.hashCode() * 31) + (value == null ? 0 : value.hashCode());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj == null) {
+            return false;
+        } else if (getClass() != obj.getClass()) {
+            return false;
+        }
+        EntryImpl<K, V> other = (EntryImpl) obj;
+        if (!Objects.equals(key, other.key)) {
+            return false;
+        } else if (value == other.value) {
+            return true;
+        } else if (value == null || !value.equals(other.value)) {
+            return false;
+        } else {
+            this.value = other.value;
+            return true;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Entry[" + StringUtil.toString(key) + "," + StringUtil.toString(value) + "]";
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Entry<K, V> getMerger() {
@@ -87,7 +124,7 @@ public final class EntryImpl<K, V> extends Struct2Impl<K, V> implements Entry<K,
 
     @Override
     public void prune(V value) {
-        set(1, value);
+        this.value = value;
     }
 
 }

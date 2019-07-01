@@ -153,7 +153,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
         private static ListMultivalue of(Object[] values) {
             int hash = 0;
-            int depth = 0;
+            byte depth = 0;
             int len = 0;
             int size = 0;
             for (Object e : values) {
@@ -164,7 +164,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
                 hash += hash(e);
                 size += s;
                 len += length(e);
-                depth = Math.max(depth, depth(e));
+                depth = max(depth, depth(e));
             }
             if (len <= MULTI_MAX_LENGTH) {
                 Object[] flattened = new Object[len];
@@ -175,10 +175,10 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
                         ListMultivalue mv = (ListMultivalue) e;
                         System.arraycopy(mv.values, 0, flattened, i, mv.values.length);
                         i += mv.values.length;
-                        depth = Math.max(depth, mv.depth - 1);
+                        depth = max(depth, (byte) (mv.depth - 1));
                     } else if (e != null) {
                         flattened[i++] = e;
-                        depth = Math.max(depth, 1);
+                        depth = max(depth, (byte) 1);
                     }
                 }
                 values = flattened;
@@ -192,14 +192,14 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
                     int newidx = oldidx + step + (i == HALF_MAX_LENGTH ? rest : 0);
                     balanced[i] = ListImpl.getAllDeep(values, oldidx, newidx);
                     oldidx = newidx;
-                    depth = Math.max(depth, depth(balanced[i]));
+                    depth = max(depth, depth(balanced[i]));
                 }
                 values = balanced;
             }
-            return new ListMultivalue(values, size, hash, depth + 1);
+            return new ListMultivalue(values, size, hash, (byte) (depth + 1));
         }
 
-        private ListMultivalue(Object[] values, int size, int hash, int depth) {
+        private ListMultivalue(Object[] values, int size, int hash, byte depth) {
             super(values, size, hash, depth);
         }
 
