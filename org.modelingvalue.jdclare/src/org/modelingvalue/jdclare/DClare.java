@@ -271,7 +271,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         U universe = root.universe();
         for (int i = 0; i < steps.length; i++) {
             Consumer<U> action = steps[i];
-            root.put("todo" + i, () -> action.accept(universe));
+            root.put("$step" + i, () -> action.accept(universe));
         }
         return root;
     }
@@ -1177,7 +1177,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                 scanner.useDelimiter("\r\n|[\n\r\u2028\u2029\u0085]");
                 while (true) {
                     String input = scanner.next();
-                    put("input", () -> set(universe(), DUniverse::input, dclare(IOString.class, runNr(), input)));
+                    put("$input", () -> set(universe(), DUniverse::input, dclare(IOString.class, runNr(), input)));
                 }
             });
             inputReader.setDaemon(true);
@@ -1250,7 +1250,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return setable;
     }
 
-    private final Action<Universe> bootstrap = Action.of("bootstrap", o -> {
+    private final Action<Universe> bootstrap = Action.of("$bootstrap", o -> {
         jClassRules = Set.<DMethodRule<?, ?>> of(RULE.get(ALL_SUPERS), RULE.get(ALL_RULES), RULE.get(RULES), RULE.get(SUPERS));
         cyclicKey(DClare.<DMethodProperty, Method> method(DMethodProperty::method), 0);
         cyclicKey(DClare.<DStructClass, Class> method(DStructClass::jClass), 0);

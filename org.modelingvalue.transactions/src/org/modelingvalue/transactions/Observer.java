@@ -19,10 +19,11 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.transactions.Direction.Queued;
 
-public class Observer<O extends Mutable> extends Action<O> {
+public class Observer<O extends Mutable> extends Action<O> implements Internable {
 
     @SuppressWarnings("rawtypes")
     protected static final Map<Observer, Set<Mutable>> OBSERVER_MAP = Map.of(k -> Set.of());

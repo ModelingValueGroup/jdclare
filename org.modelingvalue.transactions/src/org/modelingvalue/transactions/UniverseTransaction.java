@@ -294,7 +294,7 @@ public class UniverseTransaction extends MutableTransaction {
 
     public ImperativeTransaction addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
         ImperativeTransaction n = ImperativeTransaction.of(Imperative.of(id), preState, this, scheduler, diffHandler);
-        ActionTransaction.getCurrent().set(universe(), INTEGRATIONS, Set::add, ActionInstance.of(mutable(), Action.of(n, o -> {
+        ActionTransaction.getCurrent().set(universe(), INTEGRATIONS, Set::add, ActionInstance.of(mutable(), Action.of(id, o -> {
             State pre = ActionTransaction.getCurrent().state();
             boolean timeTraveling = isTimeTraveling();
             n.schedule(() -> n.commit(pre, timeTraveling));
