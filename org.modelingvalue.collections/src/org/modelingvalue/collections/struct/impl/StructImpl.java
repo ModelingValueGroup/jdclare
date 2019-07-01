@@ -16,6 +16,7 @@ package org.modelingvalue.collections.struct.impl;
 import java.util.Arrays;
 
 import org.modelingvalue.collections.struct.Struct;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class StructImpl implements Struct {
@@ -71,6 +72,16 @@ public abstract class StructImpl implements Struct {
         Class<? extends StructImpl> clazz = getClass();
         Class<?>[] interfaces = clazz.getInterfaces();
         return (interfaces.length == 0 ? clazz : interfaces[0]).getSimpleName() + StringUtil.toString(data);
+    }
+
+    @Override
+    public boolean isInternable() {
+        for (Object obj : data) {
+            if (!Internable.isInternable(obj)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

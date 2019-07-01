@@ -16,9 +16,10 @@ package org.modelingvalue.collections;
 import java.io.Serializable;
 
 import org.modelingvalue.collections.impl.EntryImpl;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Mergeable;
 
-public interface Entry<K, V> extends Serializable, Mergeable<Entry<K, V>> {
+public interface Entry<K, V> extends Serializable, Mergeable<Entry<K, V>>, Internable {
 
     K getKey();
 

@@ -16,7 +16,9 @@ package org.modelingvalue.collections;
 import java.util.ListIterator;
 import java.util.Spliterator;
 
-public interface ContainingCollection<T> extends Collection<T> {
+import org.modelingvalue.collections.util.Internable;
+
+public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     <R extends ContainingCollection<T>> StreamCollection<R[]> compare(R other);
 

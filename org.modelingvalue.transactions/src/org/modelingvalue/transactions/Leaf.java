@@ -13,6 +13,7 @@
 
 package org.modelingvalue.transactions;
 
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class Leaf implements TransactionClass, Internable {

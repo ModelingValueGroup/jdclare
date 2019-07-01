@@ -40,10 +40,6 @@ public class ObservedInstance extends Struct2Impl<Mutable, Observed> {
         return get1();
     }
 
-    public boolean isInternable() {
-        return mutable() == This.THIS || mutable() instanceof Universe;
-    }
-
     @Override
     public String toString() {
         return mutable() + "." + observed();

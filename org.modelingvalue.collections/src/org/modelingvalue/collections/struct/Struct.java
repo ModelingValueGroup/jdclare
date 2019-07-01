@@ -15,7 +15,9 @@ package org.modelingvalue.collections.struct;
 
 import java.io.Serializable;
 
-public interface Struct extends Serializable {
+import org.modelingvalue.collections.util.Internable;
+
+public interface Struct extends Serializable, Internable {
     Object get(int i);
 
     int length();

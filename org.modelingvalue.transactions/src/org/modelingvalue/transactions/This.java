@@ -13,21 +13,23 @@
 
 package org.modelingvalue.transactions;
 
+import java.io.Serializable;
+
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.struct.impl.Struct1Impl;
+import org.modelingvalue.collections.util.Internable;
 
-public final class This extends Struct1Impl<String> implements Mutable, Internable {
+public final class This implements Mutable, Internable, Serializable {
 
     private static final long serialVersionUID = 5000610308072466985L;
 
     public This() {
-        super("<this>");
+        super();
     }
 
     @Override
     public String toString() {
-        return get0();
+        return "<this>";
     }
 
     @Override

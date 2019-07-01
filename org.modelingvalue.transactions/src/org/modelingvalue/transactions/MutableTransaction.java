@@ -22,7 +22,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.NotMergeableException;
 import org.modelingvalue.collections.util.TraceTimer;
-import org.modelingvalue.transactions.Direction.DirectionSetable;
+import org.modelingvalue.transactions.Direction.Queued;
 import org.modelingvalue.transactions.Observed.Observers;
 
 public class MutableTransaction extends Transaction {
@@ -193,8 +193,8 @@ public class MutableTransaction extends Transaction {
                                 }
                             }
                         }
-                    } else if (p.getKey() instanceof DirectionSetable) {
-                        DirectionSetable<Mutable> ds = (DirectionSetable) p.getKey();
+                    } else if (p.getKey() instanceof Queued) {
+                        Queued<Mutable> ds = (Queued) p.getKey();
                         if (ds.priority() == Priority.depth && ds.direction() != Direction.scheduled) {
                             Set<Mutable> depth = (Set<Mutable>) p.getValue();
                             depth = depth.removeAll(State.get(ps, ds));

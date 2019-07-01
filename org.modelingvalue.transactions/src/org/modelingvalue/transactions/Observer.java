@@ -20,7 +20,7 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.transactions.Direction.DirectionSetable;
+import org.modelingvalue.transactions.Direction.Queued;
 
 public class Observer<O extends Mutable> extends Action<O> {
 
@@ -88,7 +88,7 @@ public class Observer<O extends Mutable> extends Action<O> {
             observeds[ia].setDefault(mutable);
         }
         for (Direction dir : Direction.values()) {
-            for (DirectionSetable<Action<?>> set : dir.priorities) {
+            for (Queued<Action<?>> set : dir.priorities) {
                 set.setDefault(mutable);
             }
         }

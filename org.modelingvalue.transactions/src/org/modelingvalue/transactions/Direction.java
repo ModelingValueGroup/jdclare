@@ -14,9 +14,10 @@
 package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Pair;
 
-public enum Direction {
+public enum Direction implements Internable {
 
     forward(0),
 
@@ -24,27 +25,27 @@ public enum Direction {
 
     scheduled(2);
 
-    public final DirectionSetable<Action<?>>          preDepth;
-    public final DirectionSetable<Mutable>            depth;
-    public final DirectionSetable<Action<?>>          postDepth;
-    public final int                                  nr;
-    public final DirectionSetable<Action<?>>[]        priorities;
-    public final DirectionSetable<TransactionClass>[] sequence;
+    public final Queued<Action<?>>          preDepth;
+    public final Queued<Mutable>            depth;
+    public final Queued<Action<?>>          postDepth;
+    public final int                        nr;
+    public final Queued<Action<?>>[]        priorities;
+    public final Queued<TransactionClass>[] sequence;
 
     @SuppressWarnings("unchecked")
     private Direction(int nr) {
-        preDepth = new DirectionSetable<>(Priority.preDepth);
-        depth = new DirectionSetable<>(Priority.depth);
-        postDepth = new DirectionSetable<>(Priority.postDepth);
-        priorities = new DirectionSetable[]{preDepth, postDepth};
-        sequence = new DirectionSetable[]{preDepth, depth, postDepth};
+        preDepth = new Queued<>(Priority.preDepth);
+        depth = new Queued<>(Priority.depth);
+        postDepth = new Queued<>(Priority.postDepth);
+        priorities = new Queued[]{preDepth, postDepth};
+        sequence = new Queued[]{preDepth, depth, postDepth};
         this.nr = nr;
     }
 
-    public final class DirectionSetable<T extends TransactionClass> extends Setable<Mutable, Set<T>> {
+    public final class Queued<T extends TransactionClass> extends Setable<Mutable, Set<T>> {
         private final Priority priority;
 
-        private DirectionSetable(Priority priority) {
+        private Queued(Priority priority) {
             super(Pair.of(Direction.this, priority), Set.of(), false, null, null);
             this.priority = priority;
         }

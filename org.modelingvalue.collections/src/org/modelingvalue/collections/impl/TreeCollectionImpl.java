@@ -24,6 +24,7 @@ import java.util.Spliterator.OfInt;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -32,16 +33,21 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.StreamCollection;
 import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.collections.util.TriFunction;
 
 public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements ContainingCollection<T> {
-    private static final long  serialVersionUID = 7999808719969099597L;
+    private static final long         serialVersionUID = 7999808719969099597L;
 
-    protected static final int CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
+    protected static final int        CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 
-    private static final int   SPLIT_START      = Integer.getInteger("SPLIT_START", 32);
+    private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 32);
+
+    private static final Predicate<?> ALL_INTERNABLE   = e -> {
+                                                           return e instanceof Internable && ((Internable) e).isInternable();
+                                                       };
 
     protected static boolean split(int amount) {
         if (PARALLEL_COLLECTIONS && Thread.currentThread() instanceof ContextThread) {
@@ -631,6 +637,12 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     public <R> Collection<R> indexed(BiFunction<T, Integer, R> function) {
         int size = size();
         return Collection.of(getIntStream(0, size, new boolean[1], size)).map(i -> function.apply(get(i), i));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean isInternable() {
+        return allMatch((Predicate<? super T>) ALL_INTERNABLE);
     }
 
 }

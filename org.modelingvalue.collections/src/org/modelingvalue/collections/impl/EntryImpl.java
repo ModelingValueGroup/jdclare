@@ -17,6 +17,7 @@ import java.lang.reflect.Array;
 import java.util.Objects;
 
 import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.StringUtil;
 
@@ -127,6 +128,11 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
         if (this.value != value && Objects.equals(this.value, value)) {
             this.value = value;
         }
+    }
+
+    @Override
+    public boolean isInternable() {
+        return Internable.isInternable(key) && Internable.isInternable(value);
     }
 
 }

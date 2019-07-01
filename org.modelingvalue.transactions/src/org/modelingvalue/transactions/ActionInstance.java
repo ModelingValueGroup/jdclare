@@ -36,10 +36,6 @@ public class ActionInstance extends Struct2Impl<Mutable, Action> {
         return get1();
     }
 
-    public boolean isInternable() {
-        return mutable() == This.THIS || mutable() instanceof Universe;
-    }
-
     @Override
     public String toString() {
         return mutable() + "." + action();

@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class Getable<O, T> implements Internable {

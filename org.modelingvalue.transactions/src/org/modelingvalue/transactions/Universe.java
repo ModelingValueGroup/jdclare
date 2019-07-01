@@ -13,6 +13,8 @@
 
 package org.modelingvalue.transactions;
 
+import org.modelingvalue.collections.util.Internable;
+
 public interface Universe extends Mutable, Internable {
 
     default void init() {

@@ -21,6 +21,7 @@ import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 
@@ -71,7 +72,7 @@ public class Setable<O, T> extends Getable<O, T> {
 
     @SuppressWarnings("rawtypes")
     protected Entry<Setable, Object> entry(T value, Map<Setable, Object> properties) {
-        if (isInternable(value)) {
+        if (Internable.isInternable(value)) {
             return internal.get(value);
         } else {
             Entry<Setable, Object> entry = Entry.of(this, value);
@@ -179,30 +180,6 @@ public class Setable<O, T> extends Getable<O, T> {
             }
             return v;
         }, e);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private boolean isInternable(Object value) {
-        if (value instanceof Boolean || value instanceof Byte || value instanceof Character) {
-            return true;
-        } else if (value instanceof Internable) {
-            return ((Internable) value).isInternable();
-        } else if (value instanceof Integer) {
-            int i = (int) value;
-            return i >= Byte.MIN_VALUE && i <= Byte.MAX_VALUE;
-        } else if (value instanceof Short) {
-            short s = (short) value;
-            return s >= Byte.MIN_VALUE && s <= Byte.MAX_VALUE;
-        } else if (value instanceof Map) {
-            Map<?, ?> map = (Map) value;
-            return map.allMatch(e -> (e.getKey() instanceof Internable && ((Internable) e.getKey()).isInternable()) && //
-                    (e.getValue() instanceof Internable && ((Internable) e.getValue()).isInternable()));
-        } else if (value instanceof ContainingCollection) {
-            ContainingCollection cc = (ContainingCollection) value;
-            return cc.allMatch(e -> e instanceof Internable && ((Internable) e).isInternable());
-        } else {
-            return false;
-        }
     }
 
     @SuppressWarnings("unchecked")

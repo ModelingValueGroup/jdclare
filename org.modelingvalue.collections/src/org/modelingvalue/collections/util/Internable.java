@@ -11,12 +11,28 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.transactions;
+package org.modelingvalue.collections.util;
 
 public interface Internable {
 
     default boolean isInternable() {
         return true;
+    }
+
+    static boolean isInternable(Object value) {
+        if (value instanceof Internable) {
+            return ((Internable) value).isInternable();
+        } else if (value instanceof Boolean || value instanceof Byte || value instanceof Character) {
+            return true;
+        } else if (value instanceof Integer) {
+            int i = (int) value;
+            return i >= Byte.MIN_VALUE && i <= Byte.MAX_VALUE;
+        } else if (value instanceof Short) {
+            short s = (short) value;
+            return s >= Byte.MIN_VALUE && s <= Byte.MAX_VALUE;
+        } else {
+            return value == null;
+        }
     }
 
 }
