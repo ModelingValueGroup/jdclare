@@ -106,8 +106,8 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @SuppressWarnings("rawtypes")
     @Override
-    public void prune(QualifiedSet<K, V> other) {
-        prune(value, key(), ((QualifiedSetImpl) other).value, key());
+    public void deduplicate(QualifiedSet<K, V> other) {
+        deduplicate(value, key(), ((QualifiedSetImpl) other).value, key());
     }
 
     @SuppressWarnings("unchecked")

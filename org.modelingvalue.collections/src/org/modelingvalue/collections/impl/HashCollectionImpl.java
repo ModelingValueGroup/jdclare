@@ -647,7 +647,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return set(value, key1, nullFunction(), retained, key2, nullFunction(), RETURN_1);
     }
 
-    protected static <T1, T2> void prune(Object value, Function<T1, Object> key1, Object retained, Function<T2, Object> key2) {
+    protected static <T1, T2> void deduplicate(Object value, Function<T1, Object> key1, Object retained, Function<T2, Object> key2) {
         set(value, key1, nullFunction(), retained, key2, nullFunction(), PRUNE);
     }
 

@@ -123,8 +123,10 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
     }
 
     @Override
-    public void prune(V value) {
-        this.value = value;
+    public void setValueIfEqual(V value) {
+        if (this.value != value && Objects.equals(this.value, value)) {
+            this.value = value;
+        }
     }
 
 }

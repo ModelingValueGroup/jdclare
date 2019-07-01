@@ -196,7 +196,7 @@ public class State implements Serializable {
             if (changeHandler != null && props != null) {
                 for (Entry<Setable, Object> p : props) {
                     if (p != ps.getEntry(p.getKey())) {
-                        p.getKey().prune(p, props);
+                        p.getKey().deduplicate(p, props);
                         changeHandler.accept(o, ps, p, pss);
                     }
                 }

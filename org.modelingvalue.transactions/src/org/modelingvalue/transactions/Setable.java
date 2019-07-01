@@ -76,26 +76,26 @@ public class Setable<O, T> extends Getable<O, T> {
         } else {
             Entry<Setable, Object> entry = Entry.of(this, value);
             if (properties != null) {
-                prune(entry, properties);
+                deduplicate(entry, properties);
             }
             return entry;
         }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected void prune(Entry e1, Map<?, ?> map2) {
+    protected void deduplicate(Entry e1, Map<?, ?> map2) {
         Object v1 = e1.getValue();
         if (v1 instanceof Map) {
             for (Entry e3 : (Map<?, ?>) v1) {
-                prune(e3, map2);
+                deduplicate(e3, map2);
             }
         } else {
             for (Entry e2 : map2) {
                 Object v2 = e2.getValue();
                 if (v2 instanceof Map) {
-                    prune(e1, (Map) v2);
-                } else if (v1 != v2 && v1.equals(v2)) {
-                    e1.prune(v2);
+                    deduplicate(e1, (Map) v2);
+                } else {
+                    e1.setValueIfEqual(v2);
                 }
             }
         }

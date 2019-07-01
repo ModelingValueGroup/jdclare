@@ -69,7 +69,7 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     <V2> Map<K, V> removeAllKey(Map<K, V2> m);
 
-    void prune(Map<K, V> other);
+    void deduplicate(Map<K, V> other);
 
     Collection<K> toKeys();
 

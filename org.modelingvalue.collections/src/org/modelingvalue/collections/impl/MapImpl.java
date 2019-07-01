@@ -78,8 +78,8 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @SuppressWarnings("rawtypes")
     @Override
-    public void prune(Map<K, V> other) {
-        prune(value, key(), ((MapImpl) other).value, key());
+    public void deduplicate(Map<K, V> other) {
+        deduplicate(value, key(), ((MapImpl) other).value, key());
     }
 
     @Override

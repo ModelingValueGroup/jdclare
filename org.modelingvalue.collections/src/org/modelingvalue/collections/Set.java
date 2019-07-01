@@ -58,7 +58,7 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     Set<T> retainAll(Collection<?> c);
 
-    void prune(Set<T> other);
+    void deduplicate(Set<T> other);
 
     @Override
     default Set<T> toSet() {

@@ -64,8 +64,8 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public void prune(Set<T> other) {
-        prune(value, key(), ((SetImpl) other).value, key());
+    public void deduplicate(Set<T> other) {
+        deduplicate(value, key(), ((SetImpl) other).value, key());
     }
 
     @SuppressWarnings("rawtypes")

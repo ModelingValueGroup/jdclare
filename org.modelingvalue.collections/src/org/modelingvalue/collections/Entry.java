@@ -28,5 +28,5 @@ public interface Entry<K, V> extends Serializable, Mergeable<Entry<K, V>> {
         return new EntryImpl<K, V>(key, value);
     }
 
-    void prune(V value);
+    void setValueIfEqual(V value);
 }
