@@ -17,6 +17,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.QuadConsumer;
 
@@ -118,9 +120,10 @@ public class Constant<O, T> extends Setable<O, T> {
         return get(object);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
-    public final boolean isInternable(T value) {
-        return false;
+    protected Entry<Setable, Object> entry(T value, Map<Setable, Object> properties) {
+        return Entry.of(this, value);
     }
 
 }

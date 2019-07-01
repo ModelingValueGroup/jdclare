@@ -17,7 +17,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.struct.impl.Struct1Impl;
 
-public final class This extends Struct1Impl<String> implements Mutable {
+public final class This extends Struct1Impl<String> implements Mutable, Internable {
 
     private static final long serialVersionUID = 5000610308072466985L;
 

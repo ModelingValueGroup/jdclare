@@ -22,21 +22,16 @@ public interface Mutable extends TransactionClass {
 
     Set<Mutable>                                 THIS_SINGLETON   = Set.of(THIS);
 
-    Observed<Mutable, Setable<Mutable, ?>>       D_CONTAINING     = InternableObserved.of("D_CONTAINING", null);
+    Observed<Mutable, Setable<Mutable, ?>>       D_CONTAINING     = Observed.of("D_CONTAINING", null);
 
     Observed<Mutable, Mutable>                   D_PARENT         = Observed.of("D_PARENT", null);
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    Setable<Mutable, Set<? extends Observer<?>>> D_OBSERVERS      = new Setable<Mutable, Set<? extends Observer<?>>>("D_OBSERVERS", Set.of(), false, null, (tx, obj, pre, post) -> {
-                                                                      Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                                //
-                                                                              added -> added.trigger(obj),                                                                          //
+    Setable<Mutable, Set<? extends Observer<?>>> D_OBSERVERS      = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
+                                                                      Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,   //
+                                                                              added -> added.trigger(obj),                             //
                                                                               removed -> removed.deObserve(obj));
-                                                                  }) {
-                                                                      @Override
-                                                                      public boolean isInternable(Set<? extends Observer<?>> value) {
-                                                                          return value.allMatch(Observer::isInternable);
-                                                                      };
-                                                                  };
+                                                                  });
 
     Observer<Mutable>                            D_OBSERVERS_RULE = Observer.of("D_OBSERVERS_RULE", m -> {
                                                                       D_OBSERVERS.set(m, m.dObservers().toSet());

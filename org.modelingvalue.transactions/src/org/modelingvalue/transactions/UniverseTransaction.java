@@ -121,15 +121,15 @@ public class UniverseTransaction extends MutableTransaction {
         this.readOnlys = Concurrent.of(() -> new ReusableTransaction<>(this));
         this.inQueue = new LinkedBlockingQueue<>(maxInInQueue);
         this.resultQueue = new LinkedBlockingQueue<>(1);
-        this.stop = Action.of("stop", o -> STOPPED.set(universe(), true));
-        this.dummy = Action.of("dummy", o -> {
+        this.stop = Action.of("$stop", o -> STOPPED.set(universe(), true));
+        this.dummy = Action.of("$dummy", o -> {
         });
-        this.backward = Action.of("backward", o -> {
+        this.backward = Action.of("$backward", o -> {
         });
-        this.forward = Action.of("forward", o -> {
+        this.forward = Action.of("$forward", o -> {
         });
-        this.pre = cycle != null ? Action.of("cycle", o -> cycle.accept(this)) : null;
-        this.clearOrphans = Action.of("clearOrphans", o -> clearOrphans(o));
+        this.pre = cycle != null ? Action.of("$cycle", o -> cycle.accept(this)) : null;
+        this.clearOrphans = Action.of("$clearOrphans", o -> clearOrphans(o));
         start(universe, null);
         pool.execute(() -> {
             state = start != null ? start.clone(this) : emptyState;
@@ -189,7 +189,7 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     protected void init() {
-        put("init", () -> universe().init());
+        put("$init", () -> universe().init());
     }
 
     public Universe universe() {

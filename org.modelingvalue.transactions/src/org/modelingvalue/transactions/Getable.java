@@ -20,7 +20,7 @@ import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 
-public abstract class Getable<O, T> {
+public abstract class Getable<O, T> implements Internable {
 
     protected final Object id;
     protected final T      def;

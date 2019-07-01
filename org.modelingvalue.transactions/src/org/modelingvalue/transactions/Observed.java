@@ -146,8 +146,8 @@ public class Observed<O, T> extends Setable<O, T> {
         }
 
         @Override
-        public boolean isInternable(Map<Observer, Set<Mutable>> value) {
-            return value.allMatch(e -> e.getValue() == Mutable.THIS_SINGLETON);
+        public String toString() {
+            return getClass().getSimpleName() + super.toString().substring(4);
         }
 
     }

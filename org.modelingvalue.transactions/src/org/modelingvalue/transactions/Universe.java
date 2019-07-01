@@ -13,7 +13,7 @@
 
 package org.modelingvalue.transactions;
 
-public interface Universe extends Mutable {
+public interface Universe extends Mutable, Internable {
 
     default void init() {
         dActivate();

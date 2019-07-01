@@ -13,53 +13,10 @@
 
 package org.modelingvalue.transactions;
 
-import org.modelingvalue.collections.util.StringUtil;
+public interface Internable {
 
-public abstract class Leaf implements TransactionClass, Internable {
-
-    private final Object    id;
-    private final Direction initDirection;
-    private final Priority  priority;
-
-    protected Leaf(Object id, Direction initDirection, Priority priority) {
-        this.id = id;
-        this.initDirection = initDirection;
-        this.priority = priority;
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            return id.equals(((Leaf) obj).id);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return StringUtil.toString(id);
-    }
-
-    public Object id() {
-        return id;
-    }
-
-    protected Direction initDirection() {
-        return initDirection;
-    }
-
-    protected Priority priority() {
-        return priority;
+    default boolean isInternable() {
+        return true;
     }
 
 }

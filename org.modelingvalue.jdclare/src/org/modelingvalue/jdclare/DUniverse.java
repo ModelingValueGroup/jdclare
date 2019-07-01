@@ -52,4 +52,9 @@ public interface DUniverse extends DPackageContainer, DStruct0, Universe {
         Universe.super.init();
     }
 
+    @Override
+    default boolean isInternable() {
+        return Universe.super.isInternable();
+    }
+
 }

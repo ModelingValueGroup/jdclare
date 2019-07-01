@@ -135,19 +135,10 @@ public class Observer<O extends Mutable> extends Action<O> {
         }
 
         @Override
-        public boolean isInternable(Map<Observed, Set<Mutable>> value) {
-            return value.allMatch(e -> e.getValue() == Mutable.THIS_SINGLETON);
-        }
-
-        @Override
         public String toString() {
             return getClass().getSimpleName() + super.toString().substring(4);
         }
 
-    }
-
-    public boolean isInternable() {
-        return true;
     }
 
     @SuppressWarnings("rawtypes")

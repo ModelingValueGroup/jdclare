@@ -1106,16 +1106,16 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
     private Thread                      inputReader;
     private Timer                       timer;
 
-    private final Action<Universe>      stop        = Action.of("stop", o -> stopSetable.set(universe(), true));
-    private final Action<Universe>      setTime     = Action.of("setTime", o -> setTime());
-    private final Action<Universe>      animate     = Action.of("animate", o -> animate());
-    private final Action<Universe>      printOutput = Action.of("printOutput", o -> printOutput());
-    private final Action<Universe>      restart     = Action.of("restart", o -> restart());
+    private final Action<Universe>      stop        = Action.of("$stop", o -> stopSetable.set(universe(), true));
+    private final Action<Universe>      setTime     = Action.of("$setTime", o -> setTime());
+    private final Action<Universe>      animate     = Action.of("$animate", o -> animate());
+    private final Action<Universe>      printOutput = Action.of("$printOutput", o -> printOutput());
+    private final Action<Universe>      restart     = Action.of("$restart", o -> restart());
     private final Action<Universe>      checkFatals;
 
     private DClare(Class<? extends DUniverse> universeClass, boolean checkFatals, Clock clock, int maxInInQueue) {
         super(dStruct(universeClass), THE_POOL, null, maxInInQueue, MAX_TOTAL_NR_OF_CHANGES, MAX_NR_OF_CHANGES, MAX_NR_OF_OBSERVED, MAX_NR_OF_OBSERVERS, MAX_NR_OF_HISTORY, null);
-        this.checkFatals = checkFatals ? Action.of("checkFatals", o -> checkFatals()) : null;
+        this.checkFatals = checkFatals ? Action.of("$checkFatals", o -> checkFatals()) : null;
         this.clock = clock;
     }
 
