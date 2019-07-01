@@ -25,6 +25,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.StreamCollection;
 import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
@@ -256,7 +257,8 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 System.arraycopy(values, 0, result, 0, values.length);
                 result[si] = set;
                 if (result.length > EQUAL_HASHCODE_WARNING_LEVEL) {
-                    System.err.println("WARNING: " + result.length + " non equal objects with equal hashcode");
+                    System.err.println("WARNING: " + result.length + " non equal objects with equal hashcode " + //
+                            StringUtil.toString(Arrays.copyOf(result, EQUAL_HASHCODE_WARNING_LEVEL)));
                 }
                 return new HashMultiValue(result, result.length, result.length * index, (byte) 2, index, NR_OF_PARTS, si == values.length ? mask | 1L << si : mask);
             }
@@ -614,7 +616,8 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
             } else {
                 result = len == result.length ? result : Arrays.copyOf(result, len);
                 if (len > EQUAL_HASHCODE_WARNING_LEVEL) {
-                    System.err.println("WARNING: " + len + " non equal objects with equal hashcode");
+                    System.err.println("WARNING: " + len + " non equal objects with equal hashcode " + //
+                            StringUtil.toString(Arrays.copyOf(result, EQUAL_HASHCODE_WARNING_LEVEL)));
                 }
                 return new HashMultiValue(result, len, len * idx, (byte) 2, idx, NR_OF_PARTS, 0);
             }
