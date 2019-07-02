@@ -141,6 +141,7 @@ public class UniverseTransaction extends MutableTransaction {
                     runCount++;
                     preState = state;
                     leaf = take();
+                    start(leaf);
                     if (leaf == backward) {
                         if (history.size() > 3) {
                             future = future.prepend(state);
@@ -178,6 +179,7 @@ public class UniverseTransaction extends MutableTransaction {
                     error = t;
                     break;
                 } finally {
+                    end(leaf);
                     TraceTimer.traceEnd("root");
                 }
             }
@@ -250,10 +252,12 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     protected void put(Action<Universe> action) {
-        try {
-            inQueue.put(action);
-        } catch (InterruptedException e) {
-            throw new Error(e);
+        if (!killed) {
+            try {
+                inQueue.put(action);
+            } catch (InterruptedException e) {
+                throw new Error(e);
+            }
         }
     }
 
@@ -356,8 +360,8 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     public void kill() {
-        killed = true;
         put(dummy);
+        killed = true;
     }
 
     public long runCount() {
@@ -379,6 +383,12 @@ public class UniverseTransaction extends MutableTransaction {
             throw new Error(error);
         }
         return changes;
+    }
+
+    public void start(Action<Universe> action) {
+    }
+
+    public void end(Action<Universe> action) {
     }
 
     public void startPriority(Priority prio) {

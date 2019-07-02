@@ -303,9 +303,10 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
             return null;
         } else {
             int id = find.hashCode(), it;
+            byte level = -1;
             while (v instanceof HashMultiValue) {
                 HashMultiValue mv = (HashMultiValue) v;
-                if (mv.level == 0 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
+                if (mv.level == level + 1 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
                     if (mv.level == NR_OF_PARTS) {
                         for (it = 0; it < mv.values.length; it++) {
                             v = mv.values[it];
@@ -317,6 +318,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                     } else {
                         it = getIt(mv.mask, (id & PART_MASKS[mv.level]) >>> PART_SHIFTS[mv.level]);
                         if (it >= 0) {
+                            level = mv.level;
                             v = mv.values[it];
                         } else {
                             return null;

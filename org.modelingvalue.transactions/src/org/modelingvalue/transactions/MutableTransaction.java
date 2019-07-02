@@ -136,6 +136,8 @@ public class MutableTransaction extends Transaction {
         } finally {
             sa[0] = null;
             ts[0] = null;
+            cs[0] = null;
+            ls[0] = null;
             TraceTimer.traceEnd("compound");
         }
     }

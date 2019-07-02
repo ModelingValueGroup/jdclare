@@ -53,14 +53,12 @@ public class ImperativeTransaction extends LeafTransaction {
 
     @Override
     public void stop() {
-        scheduler.accept(() -> {
-            super.stop();
-            pre = null;
-            state = null;
-            setted = null;
-            diffHandler = null;
-            LeafTransaction.setCurrent(null);
-        });
+        super.stop();
+        pre = null;
+        state = null;
+        setted = null;
+        diffHandler = null;
+        LeafTransaction.setCurrent(null);
     }
 
     public void schedule(Runnable action) {
