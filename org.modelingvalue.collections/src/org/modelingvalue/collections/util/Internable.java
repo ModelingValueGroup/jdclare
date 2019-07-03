@@ -22,7 +22,7 @@ public interface Internable {
     static boolean isInternable(Object value) {
         if (value instanceof Internable) {
             return ((Internable) value).isInternable();
-        } else if (value instanceof Boolean || value instanceof Byte || value instanceof Character) {
+        } else if (value instanceof Boolean || value instanceof Byte || value instanceof Enum) {
             return true;
         } else if (value instanceof Integer) {
             int i = (int) value;
@@ -30,6 +30,9 @@ public interface Internable {
         } else if (value instanceof Short) {
             short s = (short) value;
             return s >= Byte.MIN_VALUE && s <= Byte.MAX_VALUE;
+        } else if (value instanceof Long) {
+            long l = (long) value;
+            return l >= Byte.MIN_VALUE && l <= Byte.MAX_VALUE;
         } else {
             return value == null;
         }
