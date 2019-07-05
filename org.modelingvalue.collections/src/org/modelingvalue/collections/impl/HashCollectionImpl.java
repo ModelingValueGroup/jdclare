@@ -164,7 +164,9 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 outer:
                 for (int ia = 0; ia < values.length; ia++) {
                     for (int ib = 0; ib < values.length; ib++) {
-                        if (values[ia] == other.values[ib]) {
+                        if (stop[0]) {
+                            return false;
+                        } else if (values[ia] == other.values[ib]) {
                             continue outer;
                         } else if (Objects.equals(values[ia], other.values[ib])) {
                             if (Age.age(values[ia]) > Age.age(other.values[ib])) {
