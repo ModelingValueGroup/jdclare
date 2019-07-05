@@ -14,11 +14,14 @@ public class AgeTest {
         a[0] = o;
         assertEquals(0, Age.age(a));
         assertEquals(0, Age.age(o));
-        Object[] big = new Object[1000000000];
-        if (0 < big.length) {
-        }
-        big = null;
         System.gc();
+        synchronized (this) {
+            try {
+                wait(10000l);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         assertEquals(1, Age.age(a));
         assertEquals(1, Age.age(o));
     }
