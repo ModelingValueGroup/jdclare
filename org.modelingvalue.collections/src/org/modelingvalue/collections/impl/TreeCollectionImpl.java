@@ -32,6 +32,7 @@ import java.util.stream.StreamSupport;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
@@ -119,6 +120,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -134,9 +136,13 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             return true;
         } else if (!equalsWithStop(value, other.value, new boolean[1])) {
             return false;
+        } else if (Age.age(value) > Age.age(other.value)) {
+            other.value = value;
+            return true;
+        } else {
+            value = other.value;
+            return true;
         }
-        value = other.value;
-        return true;
     }
 
     protected void doSerialize(java.io.ObjectOutputStream s) throws java.io.IOException {

@@ -17,6 +17,7 @@ import java.lang.reflect.Array;
 import java.util.Objects;
 
 import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.StringUtil;
@@ -106,8 +107,11 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
             return true;
         } else if (value == null || !value.equals(other.value)) {
             return false;
+        } else if (Age.age(value) > Age.age(other.value)) {
+            other.value = value;
+            return true;
         } else {
-            this.value = other.value;
+            value = other.value;
             return true;
         }
     }

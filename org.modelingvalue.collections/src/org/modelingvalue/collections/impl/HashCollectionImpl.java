@@ -24,6 +24,7 @@ import java.util.function.Function;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.StringUtil;
 
@@ -163,7 +164,14 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 outer:
                 for (int ia = 0; ia < values.length; ia++) {
                     for (int ib = 0; ib < values.length; ib++) {
-                        if (Objects.equals(values[ia], other.values[ib])) {
+                        if (values[ia] == other.values[ib]) {
+                            continue outer;
+                        } else if (Objects.equals(values[ia], other.values[ib])) {
+                            if (Age.age(values[ia]) > Age.age(other.values[ib])) {
+                                other.values[ib] = values[ia];
+                            } else {
+                                values[ia] = other.values[ib];
+                            }
                             continue outer;
                         }
                     }
@@ -180,6 +188,9 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                     } else if (!TreeCollectionImpl.equalsWithStop(values[i], other.values[i], stop)) {
                         stop[0] = true;
                         return false;
+                    } else if (Age.age(values[i]) > Age.age(other.values[i])) {
+                        other.values[i] = values[i];
+                        return true;
                     } else {
                         values[i] = other.values[i];
                         return true;

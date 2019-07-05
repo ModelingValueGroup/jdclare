@@ -20,6 +20,17 @@ public class MapWDVI<K, V> extends MapImpl<K, V> {
         this.defaultFunction = defaultFunction;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj) && defaultFunction.equal(((MapWDVI<K, V>) obj).defaultFunction);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() ^ defaultFunction.hash();
+    }
+
     protected MapWDVI(Object value, SerializableFunction<K, V> defaultFunction) {
         super(value);
         this.defaultFunction = defaultFunction;

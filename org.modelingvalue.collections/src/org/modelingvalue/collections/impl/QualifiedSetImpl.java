@@ -40,6 +40,17 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         this.value = value;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj) && key.equal(((QualifiedSetImpl<K, V>) obj).key);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() ^ key.hash();
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     protected final SerializableFunction<V, Object> key() {

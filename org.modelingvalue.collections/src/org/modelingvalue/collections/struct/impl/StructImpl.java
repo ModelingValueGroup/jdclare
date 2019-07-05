@@ -16,6 +16,7 @@ package org.modelingvalue.collections.struct.impl;
 import java.util.Arrays;
 
 import org.modelingvalue.collections.struct.Struct;
+import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
 
@@ -48,9 +49,13 @@ public abstract class StructImpl implements Struct {
             return true;
         } else if (!Arrays.equals(data, other.data)) {
             return false;
+        } else if (Age.age(data) > Age.age(other.data)) {
+            other.data = data;
+            return true;
+        } else {
+            data = other.data;
+            return true;
         }
-        data = other.data;
-        return true;
     }
 
     @Override

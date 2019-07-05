@@ -46,6 +46,7 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.ContextThread;
@@ -659,6 +660,10 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                     return true;
                 } else if (!Arrays.equals(key, other.key)) {
                     return false;
+                } else if (Age.age(key) > Age.age(other.key)) {
+                    other.key = key;
+                    f = other.f;
+                    return true;
                 } else {
                     key = other.key;
                     f = other.f;
@@ -749,6 +754,9 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                     return true;
                 } else if (!Arrays.equals(key, other.key)) {
                     return false;
+                } else if (Age.age(key) > Age.age(other.key)) {
+                    other.key = key;
+                    return true;
                 } else {
                     key = other.key;
                     return true;
