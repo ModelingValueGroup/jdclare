@@ -193,7 +193,7 @@ public class State implements Serializable {
                     return p.entry(result, null);
                 }
             }, pss);
-            if (changeHandler != null && props != null) {
+            if (changeHandler != null) {
                 for (Entry<Setable, Object> p : props) {
                     if (p != ps.getEntry(p.getKey())) {
                         p.getKey().deduplicate(p, props);
@@ -201,9 +201,9 @@ public class State implements Serializable {
                     }
                 }
             }
-            return props == null || props.isEmpty() ? null : Entry.of(o, props);
+            return props.isEmpty() ? null : Entry.of(o, props);
         }, maps);
-        return niw == null || niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
+        return niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
 
     }
 
