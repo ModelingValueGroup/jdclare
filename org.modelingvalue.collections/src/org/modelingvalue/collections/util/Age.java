@@ -13,25 +13,23 @@
 
 package org.modelingvalue.collections.util;
 
-import java.lang.reflect.Field;
-
-@SuppressWarnings("restriction")
+// @SuppressWarnings("restriction")
 public final class Age {
 
-    private static sun.misc.Unsafe UNSAFE = null;
+    // private static sun.misc.Unsafe UNSAFE = null;
 
-    static {
-        try {
-            Field declaredField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-            declaredField.setAccessible(true);
-            UNSAFE = (sun.misc.Unsafe) declaredField.get(null);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
+    //    static {
+    //        try {
+    //            Field declaredField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+    //            declaredField.setAccessible(true);
+    //            UNSAFE = (sun.misc.Unsafe) declaredField.get(null);
+    //        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+    //            e.printStackTrace();
+    //        }
+    //    }
 
     public static final int age(Object object) {
-        return (UNSAFE.getByte(object, 0l) & 0x78) >> 3;
+        return 0; // (UNSAFE.getByte(object, 0l) & 0x78) >> 3;
     }
 
     private Age() {
