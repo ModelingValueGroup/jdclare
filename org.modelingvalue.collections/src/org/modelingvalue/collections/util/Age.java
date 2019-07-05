@@ -31,7 +31,9 @@ public final class Age {
     }
 
     public static final int age(Object object) {
-        return (UNSAFE.getByte(object, 0l) & 0x78) >> 3;
+        byte b = UNSAFE.getByte(object, 0l);
+        System.err.printf("=> 0x%02x\n", b);
+        return (b & 0x78) >> 3;
     }
 
     private Age() {
