@@ -102,18 +102,18 @@ public class ConstantState {
                     throw new Error("Constant " + constant + " is not set and not derived");
                 } else {
                     V soll = derive(leafTransaction, object, constant);
-                    ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
+                    ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll, false);
                 }
             }
             return ist == NULL ? null : ist;
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, V soll) {
+        public <V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, V soll, boolean forced) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
-                ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
+                ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll, forced);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
                 throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
@@ -127,7 +127,7 @@ public class ConstantState {
             V ist = (V) prev.get(constant);
             V soll = function.apply(ist, element);
             if (ist == null) {
-                ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll);
+                ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll, false);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
                 throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
@@ -151,7 +151,7 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        private <V> V set(LeafTransaction tx, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll) {
+        private <V> V set(LeafTransaction tx, O object, Constant<O, V> constant, Map<Constant<O, ?>, Object> prev, V soll, boolean forced) {
             V ist;
             Map<Constant<O, ?>, Object> next = prev.put(constant, soll);
             while (!UPDATOR.compareAndSet(this, prev, next)) {
@@ -162,7 +162,7 @@ public class ConstantState {
                 }
                 next = prev.put(constant, soll);
             }
-            if (!Objects.equals(constant.getDefault(), soll == NULL ? null : soll)) {
+            if (!forced && !Objects.equals(constant.getDefault(), soll == NULL ? null : soll)) {
                 tx.changed(object, constant, constant.getDefault(), soll == NULL ? null : soll);
             }
             return soll;
@@ -228,8 +228,8 @@ public class ConstantState {
         return getConstants(leafTransaction, object).get(leafTransaction, object, constant);
     }
 
-    public <O, V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, V value) {
-        return getConstants(leafTransaction, object).set(leafTransaction, object, constant, value);
+    public <O, V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, V value, boolean forced) {
+        return getConstants(leafTransaction, object).set(leafTransaction, object, constant, value, forced);
     }
 
     public <O, V, E> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, BiFunction<V, E, V> deriver, E element) {

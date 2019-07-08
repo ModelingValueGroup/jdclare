@@ -139,24 +139,29 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                                                                                                         }
                                                                                                     });
 
-    private static final Getable<Class<? extends DStruct>, DStructClass>         CLASS              = Constant.of("DStructClass", c -> {
-                                                                                                        DStructClass d = dclare(extend(c, DStructClass.class), c);
+    private static final Getable<Class<? extends DStruct>, DStructClass>         CLASS              = Constant.of("DStructClass", (Class<? extends DStruct> c) -> {
+                                                                                                        return dclare(extend(c, DStructClass.class), c);
+                                                                                                    }, (tx, c, o, d) -> {
                                                                                                         Class declaringClass = c.getDeclaringClass();
                                                                                                         if (declaringClass == null) {
                                                                                                             Package pack = c.getPackage();
                                                                                                             DClassContainer constainer = DClare.PACKAGE.get(pack != null ? pack.getName() : "<default>");
                                                                                                             DClare.<DClassContainer, Set<DStructClass>> setable(CLASSES).set(constainer, Set::add, d);
+                                                                                                        } else {
+                                                                                                            dClass(declaringClass);
                                                                                                         }
-                                                                                                        return d;
                                                                                                     });
 
     private static final Constant<Method, DProperty>                             PROPERTY           = Constant.of("dProperty", (Method m) -> {
                                                                                                         if (m.getReturnType() != Void.TYPE && !m.isSynthetic() && m.getParameterCount() == 0 &&                                 //
                                                                                                         (ann(m, Property.class) != null || extend(m, DMethodProperty.class) != DMethodProperty.class)) {
-                                                                                                            dClass((Class) m.getDeclaringClass());
                                                                                                             return dclare(extend(m, DMethodProperty.class), m);
                                                                                                         } else {
                                                                                                             return null;
+                                                                                                        }
+                                                                                                    }, (tx, m, o, p) -> {
+                                                                                                        if (p != null) {
+                                                                                                            dClass((Class) m.getDeclaringClass());
                                                                                                         }
                                                                                                     });
 
@@ -196,19 +201,16 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                                                                                                         }
                                                                                                     });
 
-    private static final Getable<String, DPackage>                               PACKAGE            = Constant.of("dPackage", n -> {
+    private static final Getable<String, DPackage>                               PACKAGE            = Constant.of("dPackage", (String n) -> {
                                                                                                         int i = n.lastIndexOf('.');
                                                                                                         if (i > 0) {
                                                                                                             DPackage pp = DClare.PACKAGE.get(n.substring(0, i));
-                                                                                                            DPackage d = dclare(DPackage.class, pp, n.substring(i + 1));
-                                                                                                            DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(pp, Set::add, d);
-                                                                                                            return d;
+                                                                                                            return dclare(DPackage.class, pp, n.substring(i + 1));
                                                                                                         } else {
-                                                                                                            DUniverse universe = dUniverse();
-                                                                                                            DPackage d = dclare(DPackage.class, universe, n);
-                                                                                                            DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(universe, Set::add, d);
-                                                                                                            return d;
+                                                                                                            return dclare(DPackage.class, dUniverse(), n);
                                                                                                         }
+                                                                                                    }, (tx, n, o, p) -> {
+                                                                                                        DClare.<DPackageContainer, Set<DPackage>> setable(PACKAGES).set(p.parent(), Set::add, p);
                                                                                                     });
 
     private static final Getable<Class<? extends DStruct>, Lookup>               NATIVE_LOOKUP      = Constant.of("nLookup", c -> {
@@ -1293,6 +1295,11 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         cyclicConstant(DClare.<DMethodProperty, Function> method(DMethodProperty::deriver));
         cyclicContainment(DClare.<DPackageContainer, Set> method(DPackageContainer::packages));
         cyclicContainment(DClare.<DClassContainer, Set> method(DClassContainer::classes));
+        dClass(DMethodProperty.class);
+        dClass(DStructClass.class);
+        dClass(DClass.class);
+        dClass(DPackageContainer.class);
+        dClass(DClassContainer.class);
         stopSetable = cyclicObserved(DClare.<DUniverse, Boolean> method(DUniverse::stop));
     });
 

@@ -107,6 +107,7 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <O, T> void set(O object, Setable<O, T> property, T pre, T bra, T post) {
         if (!Objects.equals(bra, post)) {
+            T[] oldNew = (T[]) new Object[2];
             setted.change(s -> s.set(object, property, (br, po) -> {
                 if (!Objects.equals(br, pre)) {
                     if (br == null || post == null) {
@@ -119,8 +120,8 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
                     }
                 }
                 return po;
-            }, post));
-            changed(object, property, bra, post);
+            }, post, oldNew));
+            changed(object, property, oldNew[0], oldNew[1]);
         }
     }
 
