@@ -92,9 +92,6 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @Override
     Collection<T> onClose(Runnable closeHandler);
 
-    @Override
-    void forEach(Consumer<? super T> action);
-
     default Set<T> toSet() {
         return reduce(Set.of(), (s, a) -> s.add(a), (a, b) -> a.addAll(b));
     }
@@ -107,9 +104,13 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
         return reduce(Map.<K, V> of(), (s, a) -> s.put(entry.apply(a)), (a, b) -> a.putAll(b));
     }
 
+    default <K, V> DefaultMap<K, V> toDefaultMap(SerializableFunction<K, V> defaultFunction, Function<T, Entry<K, V>> entry) {
+        return reduce(DefaultMap.<K, V> of(defaultFunction), (s, a) -> s.put(entry.apply(a)), (a, b) -> a.putAll(b));
+    }
+
     @SuppressWarnings("unchecked")
-    default <K, V> QualifiedSet<K, V> toQualifiedSet(SerializableFunction<V, K> key) {
-        return reduce(QualifiedSet.<K, V> of(key), (s, a) -> s.add((V) a), (a, b) -> a.addAll(b));
+    default <K, V> QualifiedSet<K, V> toQualifiedSet(SerializableFunction<V, K> qualifier) {
+        return reduce(QualifiedSet.<K, V> of(qualifier), (s, a) -> s.add((V) a), (a, b) -> a.addAll(b));
     }
 
     @SuppressWarnings("rawtypes")

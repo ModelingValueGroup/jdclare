@@ -16,21 +16,17 @@ package org.modelingvalue.collections;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 
-import org.modelingvalue.collections.impl.MapImpl;
+import org.modelingvalue.collections.impl.DefaultMapImpl;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.TriFunction;
 
-public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
+public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<DefaultMap<K, V>> {
 
     @SafeVarargs
-    @SuppressWarnings("unchecked")
-    static <K, V> Map<K, V> of(Entry<K, V>... e) {
-        if (e.length == 0) {
-            return MapImpl.EMPTY;
-        } else {
-            return new MapImpl<K, V>(e);
-        }
+    static <K, V> DefaultMap<K, V> of(SerializableFunction<K, V> defaultFunction, Entry<K, V>... e) {
+        return new DefaultMapImpl<K, V>(e, defaultFunction);
     }
 
     V get(K key);
@@ -39,50 +35,52 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     Collection<V> getAll(Set<K> keys);
 
-    Map<K, V> put(Entry<K, V> entry);
+    DefaultMap<K, V> put(Entry<K, V> entry);
 
-    Map<K, V> put(K key, V value);
+    DefaultMap<K, V> put(K key, V value);
 
-    Map<K, V> putAll(Map<? extends K, ? extends V> c);
+    DefaultMap<K, V> putAll(DefaultMap<? extends K, ? extends V> c);
 
-    Map<K, V> add(Entry<K, V> entry, BinaryOperator<V> merger);
+    DefaultMap<K, V> add(Entry<K, V> entry, BinaryOperator<V> merger);
 
-    Map<K, V> add(K key, V value, BinaryOperator<V> merger);
+    DefaultMap<K, V> add(K key, V value, BinaryOperator<V> merger);
 
-    Map<K, V> addAll(Map<? extends K, ? extends V> c, BinaryOperator<V> merger);
+    DefaultMap<K, V> addAll(DefaultMap<? extends K, ? extends V> c, BinaryOperator<V> merger);
 
-    Map<K, V> remove(Entry<K, V> entry, BinaryOperator<V> merger);
+    DefaultMap<K, V> remove(Entry<K, V> entry, BinaryOperator<V> merger);
 
-    Map<K, V> remove(K key, V value, BinaryOperator<V> merger);
+    DefaultMap<K, V> remove(K key, V value, BinaryOperator<V> merger);
 
-    Map<K, V> removeAll(Map<? extends K, ? extends V> c, BinaryOperator<V> merger);
+    DefaultMap<K, V> removeAll(DefaultMap<? extends K, ? extends V> c, BinaryOperator<V> merger);
 
-    Map<K, V> removeKey(K key);
+    DefaultMap<K, V> removeKey(K key);
 
-    Map<K, V> removeAllKey(Collection<?> c);
+    DefaultMap<K, V> removeAllKey(Collection<?> c);
 
-    Map<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate);
+    DefaultMap<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate);
 
-    <V2> Map<K, V> removeAllKey(Map<K, V2> m);
+    <V2> DefaultMap<K, V> removeAllKey(DefaultMap<K, V2> m);
 
-    void deduplicate(Map<K, V> other);
+    void deduplicate(DefaultMap<K, V> other);
 
     Collection<K> toKeys();
 
     Collection<V> toValues();
 
     @SuppressWarnings("unchecked")
-    Map<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Map<K, V>... branches);
+    DefaultMap<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, DefaultMap<K, V>... branches);
 
     @Override
-    Map<K, V> remove(Object e);
+    DefaultMap<K, V> remove(Object e);
 
     @Override
-    Map<K, V> add(Entry<K, V> e);
+    DefaultMap<K, V> add(Entry<K, V> e);
 
     @Override
-    Map<K, V> addAll(Collection<? extends Entry<K, V>> es);
+    DefaultMap<K, V> addAll(Collection<? extends Entry<K, V>> es);
 
-    Collection<Entry<K, Pair<V, V>>> diff(Map<K, V> other);
+    Collection<Entry<K, Pair<V, V>>> diff(DefaultMap<K, V> other);
+
+    SerializableFunction<K, V> defaultFunction();
 
 }

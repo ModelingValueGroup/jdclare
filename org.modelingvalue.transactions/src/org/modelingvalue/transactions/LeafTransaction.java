@@ -15,8 +15,8 @@ package org.modelingvalue.transactions;
 
 import java.util.function.BiFunction;
 
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Context;
 
@@ -33,13 +33,13 @@ public abstract class LeafTransaction extends Transaction {
     }
 
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyObservers(Object object, Observed observed, Map<Observer, Set<Mutable>> observers) {
+    protected void checkTooManyObservers(Object object, Observed observed, DefaultMap<Observer, Set<Mutable>> observers) {
         if (universeTransaction().maxNrOfObservers() < size(observers)) {
             throw new TooManyObserversException(object, observed, observers, universeTransaction());
         }
     }
 
-    protected static int size(Map<?, Set<Mutable>> map) {
+    protected static int size(DefaultMap<?, Set<Mutable>> map) {
         return map.reduce(0, (a, e) -> a + e.getValue().size(), (a, b) -> a + b);
     }
 
@@ -71,11 +71,8 @@ public abstract class LeafTransaction extends Transaction {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public <O> void clear(O object) {
-        Map<Setable, Object> properties = state().properties(object);
-        if (properties != null) {
-            for (Entry<Setable, Object> e : properties) {
-                set(object, e.getKey(), e.getKey().getDefault());
-            }
+        for (Entry<Setable, Object> e : state().getProperties(object)) {
+            set(object, e.getKey(), e.getKey().getDefault());
         }
     }
 

@@ -13,25 +13,27 @@
 
 package org.modelingvalue.collections;
 
+import java.util.function.Predicate;
+
 import org.modelingvalue.collections.impl.QualifiedSetImpl;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.SerializableFunction;
 
 public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<QualifiedSet<K, V>> {
     @SafeVarargs
-    static <K, V> QualifiedSet<K, V> of(SerializableFunction<V, K> key, V... e) {
+    static <K, V> QualifiedSet<K, V> of(SerializableFunction<V, K> qualifier, V... e) {
         if (e.length == 0) {
-            return new QualifiedSetImpl<>(key, (Object) null);
+            return new QualifiedSetImpl<>(qualifier, (Object) null);
         } else {
-            return new QualifiedSetImpl<>(key, e);
+            return new QualifiedSetImpl<>(qualifier, e);
         }
     }
 
-    static <K, V> QualifiedSet<K, V> of(SerializableFunction<V, K> key, java.util.Collection<? extends V> coll) {
+    static <K, V> QualifiedSet<K, V> of(SerializableFunction<V, K> qualifier, java.util.Collection<? extends V> coll) {
         if (coll.isEmpty()) {
-            return new QualifiedSetImpl<>(key, (Object) null);
+            return new QualifiedSetImpl<>(qualifier, (Object) null);
         } else {
-            return new QualifiedSetImpl<>(key, coll);
+            return new QualifiedSetImpl<>(qualifier, coll);
         }
     }
 
@@ -61,4 +63,9 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
     QualifiedSet<K, V> remove(Object e);
 
     void deduplicate(QualifiedSet<K, V> other);
+
+    SerializableFunction<V, K> qualifier();
+
+    QualifiedSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate);
+
 }

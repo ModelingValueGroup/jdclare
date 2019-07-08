@@ -226,7 +226,7 @@ public class TransactionsTests {
         DUniverse universe = DUniverse.of("universe", DClass.of("Universe", child));
         DClass dClass = DClass.of("Object", children, Observer.of("observer", o -> {
             String name = o.id().toString();
-            if (name.length() < 13) {
+            if (name.length() < 12) {
                 for (int i = 0; i < 10; i++) {
                     children.set(o, Set::add, DObject.of(name + i, o.dClass()));
                 }
@@ -239,7 +239,7 @@ public class TransactionsTests {
         System.err.println("********************************************************************");
         System.err.println(result.getObjects(DObject.class).size());
         System.err.println("********************************************************************");
-        Assert.assertEquals(11111112, result.getObjects(DObject.class).size());
+        Assert.assertEquals(1_111_112, result.getObjects(DObject.class).size());
     }
 
 }

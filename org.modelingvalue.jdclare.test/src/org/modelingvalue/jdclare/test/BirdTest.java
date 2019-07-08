@@ -1,18 +1,15 @@
 package org.modelingvalue.jdclare.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.modelingvalue.jdclare.DClare.dclare;
-import static org.modelingvalue.jdclare.DClare.of;
-import static org.modelingvalue.jdclare.DClare.set;
+import static org.junit.Assert.*;
+import static org.modelingvalue.jdclare.DClare.*;
 
-import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.function.Function;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.NotMergeableException;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.test.BirdUniverse.Bird;
@@ -326,7 +323,7 @@ public class BirdTest {
     }
 
     @Test
-    public void concurrentModificationException() {
+    public void notMergeableException() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
             start(dclare);
@@ -338,7 +335,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, ConcurrentModificationException.class, java.util.regex.Pattern.quote("0.color= null -> green | yellow"));
+            assertThrowable(cause, NotMergeableException.class, java.util.regex.Pattern.quote("0.color= null -> [green,yellow]"));
         }
     }
 

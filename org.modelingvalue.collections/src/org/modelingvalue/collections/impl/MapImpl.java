@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
@@ -120,6 +121,33 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     }
 
     @Override
+    public Map<K, V> add(Entry<K, V> entry) {
+        return put(entry);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public Map<K, V> addAll(Collection<? extends Entry<K, V>> es) {
+        return putAll(es instanceof Map ? (Map) es : es.toMap(e -> e));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<K, V> remove(Object e) {
+        return e instanceof Entry ? removeKey(((Entry<K, V>) e).getKey()) : this;
+    }
+
+    @Override
+    public Map<K, V> removeAll(Collection<?> e) {
+        @SuppressWarnings("resource")
+        Map<K, V> result = this;
+        for (Object r : e) {
+            result = result.remove(r);
+        }
+        return result;
+    }
+
+    @Override
     public Map<K, V> remove(K key, V val, BinaryOperator<V> merger) {
         return remove(Entry.of(key, val), merger);
     }
@@ -155,19 +183,6 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
                 (e, es) -> mergeEntry((Entry<K, V>) e, merger, es), a, a.length), branches));
     }
 
-    @Override
-    public Collection<Entry<K, Pair<Entry<K, V>, Entry<K, V>>>> diff(Map<K, V> toCompare) {
-        return compare(toCompare).<Entry<K, Pair<Entry<K, V>, Entry<K, V>>>> flatMap(a -> {
-            if (a[0] == null) {
-                return a[1].map(e -> Entry.of(e.getKey(), Pair.of(null, a[1].getEntry(e.getKey()))));
-            } else if (a[1] == null) {
-                return a[0].map(e -> Entry.of(e.getKey(), Pair.of(a[0].getEntry(e.getKey()), null)));
-            } else {
-                return a[0].toKeys().toSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].getEntry(k), a[1].getEntry(k))));
-            }
-        });
-    }
-
     @SuppressWarnings("unchecked")
     protected Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Object[] es) {
         Entry<K, V>[] vs = new Entry[es.length];
@@ -191,6 +206,19 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
             }
         }
         return result;
+    }
+
+    @Override
+    public Collection<Entry<K, Pair<V, V>>> diff(Map<K, V> toCompare) {
+        return compare(toCompare).<Entry<K, Pair<V, V>>> flatMap(a -> {
+            if (a[0] == null) {
+                return a[1].map(e -> Entry.of(e.getKey(), Pair.of(null, a[1].get(e.getKey()))));
+            } else if (a[1] == null) {
+                return a[0].map(e -> Entry.of(e.getKey(), Pair.of(a[0].get(e.getKey()), null)));
+            } else {
+                return a[0].toKeys().toSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].get(k), a[1].get(k))));
+            }
+        });
     }
 
     @Override
@@ -233,33 +261,6 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return EMPTY;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Map<K, V> remove(Object e) {
-        return e instanceof Entry ? removeKey(((Entry<K, V>) e).getKey()) : this;
-    }
-
-    @Override
-    public Map<K, V> removeAll(Collection<?> e) {
-        @SuppressWarnings("resource")
-        Map<K, V> result = this;
-        for (Object r : e) {
-            result = result.remove(r);
-        }
-        return result;
-    }
-
-    @Override
-    public Map<K, V> add(Entry<K, V> entry) {
-        return put(entry);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Override
-    public Map<K, V> addAll(Collection<? extends Entry<K, V>> es) {
-        return putAll(es instanceof Map ? (Map) es : es.toMap(e -> e));
-    }
-
     private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
         doSerialize(s);
     }
@@ -267,4 +268,10 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
         doDeserialize(s);
     }
+
+    @Override
+    public Map<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
+        return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toMap(Function.identity());
+    }
+
 }

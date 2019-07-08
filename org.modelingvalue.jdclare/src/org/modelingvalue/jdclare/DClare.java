@@ -51,6 +51,7 @@ import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
+import org.modelingvalue.collections.util.LambdaReflection;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
 import org.modelingvalue.collections.util.SerializableBiConsumer;
@@ -58,6 +59,8 @@ import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableConsumer;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.SerializableRunnable;
+import org.modelingvalue.collections.util.SerializableTriConsumer;
+import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
@@ -154,6 +157,19 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                                                                                                             return dclare(extend(m, DMethodProperty.class), m);
                                                                                                         } else {
                                                                                                             return null;
+                                                                                                        }
+                                                                                                    });
+
+    private static final Constant<Pair<Class, LambdaReflection>, Method>         METHOD             = Constant.of("dMethod", p -> {
+                                                                                                        Method method = p.b().implMethod();
+                                                                                                        if (method.getDeclaringClass() != p.a()) {
+                                                                                                            try {
+                                                                                                                return p.a().getMethod(method.getName(), method.getParameterTypes());
+                                                                                                            } catch (NoSuchMethodException | SecurityException e) {
+                                                                                                                throw new Error(e);
+                                                                                                            }
+                                                                                                        } else {
+                                                                                                            return method;
                                                                                                         }
                                                                                                     });
 
@@ -472,6 +488,10 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return consumer.implMethod();
     }
 
+    public static <U, V, W> Method method(SerializableTriConsumer<U, V, W> consumer) {
+        return consumer.implMethod();
+    }
+
     public static <O, V> Method method(SerializableFunction<O, V> function) {
         return function.implMethod();
     }
@@ -480,21 +500,16 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         return function.implMethod();
     }
 
+    public static <U, V, W, R> Method method(SerializableTriFunction<U, V, W, R> function) {
+        return function.implMethod();
+    }
+
     private static <O extends DStruct, V> Method method(O dObject, SerializableFunction<O, V> property) {
         return method(jClass(dObject), property);
     }
 
     private static <O extends DStruct, V> Method method(Class<O> cls, SerializableFunction<O, V> property) {
-        Method method = method(property);
-        if (method.getDeclaringClass() != cls) {
-            try {
-                return cls.getMethod(method.getName(), method.getParameterTypes());
-            } catch (NoSuchMethodException | SecurityException e) {
-                throw new Error(e);
-            }
-        } else {
-            return method;
-        }
+        return METHOD.get(Pair.of(cls, property));
     }
 
     public static <O extends DStruct, V> int getNrOfObservers(O dObject, DProperty<O, V> property) {
@@ -1046,14 +1061,14 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
             @Override
             public void accept(State pre, State post, Boolean last) {
                 pre.diff(post, //
-                        o -> filterClass.isInstance(o), p -> true).forEach(e0 -> {
+                        o -> filterClass.isInstance(o), p -> true).forEachOrdered(e0 -> {
                             DObject dObject = (DObject) e0.getKey();
                             DNative no = NATIVE.get(dObject);
                             Pair<Object, Object> diff = e0.getValue().get(Mutable.D_PARENT);
                             if (diff != null) {
                                 if (diff.a() == null) {
                                     no.init((DObject) diff.b());
-                                    dObject.dClass().allProperties().forEach(p -> {
+                                    dObject.dClass().allProperties().forEachOrdered(p -> {
                                         ChangeHandler nch = p.nativeChangeHandler();
                                         if (nch != null) {
                                             change(no, nch, Pair.of(p.defaultValue(), p.get(dObject)));
@@ -1063,7 +1078,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                                     no.exit((DObject) diff.a());
                                 }
                             } else if (Mutable.D_PARENT.get(dObject) != null) {
-                                e0.getValue().forEach(e1 -> {
+                                e0.getValue().forEachOrdered(e1 -> {
                                     if (e1.getKey().id() instanceof DProperty) {
                                         DProperty<DStruct, Object> p = (DProperty) e1.getKey().id();
                                         ChangeHandler nch = p.nativeChangeHandler();

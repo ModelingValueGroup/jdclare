@@ -15,8 +15,8 @@ package org.modelingvalue.transactions;
 
 import java.util.function.BiFunction;
 
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Context;
@@ -25,14 +25,14 @@ import org.modelingvalue.transactions.Observer.Observerds;
 
 public class ObserverTransaction extends ActionTransaction {
 
-    public static final Context<Boolean>                  OBSERVE = Context.of(true);
+    public static final Context<Boolean>                         OBSERVE = Context.of(true);
 
     @SuppressWarnings("rawtypes")
-    private final Concurrent<Map<Observed, Set<Mutable>>> getted  = Concurrent.of();
+    private final Concurrent<DefaultMap<Observed, Set<Mutable>>> getted  = Concurrent.of();
     @SuppressWarnings("rawtypes")
-    private final Concurrent<Map<Observed, Set<Mutable>>> setted  = Concurrent.of();
+    private final Concurrent<DefaultMap<Observed, Set<Mutable>>> setted  = Concurrent.of();
 
-    private boolean                                       changed;
+    private boolean                                              changed;
 
     protected ObserverTransaction(UniverseTransaction universeTransaction) {
         super(universeTransaction);
@@ -64,8 +64,8 @@ public class ObserverTransaction extends ActionTransaction {
             getted.init(Observed.OBSERVED_MAP);
             setted.init(Observed.OBSERVED_MAP);
             super.run(pre, universeTransaction);
-            Map<Observed, Set<Mutable>> gets = getted.result();
-            Map<Observed, Set<Mutable>> sets = setted.result();
+            DefaultMap<Observed, Set<Mutable>> gets = getted.result();
+            DefaultMap<Observed, Set<Mutable>> sets = setted.result();
             if (changed) {
                 checkTooManyChanges(pre, sets, gets);
             }
@@ -85,12 +85,12 @@ public class ObserverTransaction extends ActionTransaction {
     }
 
     @SuppressWarnings("rawtypes")
-    private void observe(Observer<?> observer, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
+    private void observe(Observer<?> observer, DefaultMap<Observed, Set<Mutable>> sets, DefaultMap<Observed, Set<Mutable>> gets) {
         gets = gets.removeAll(sets, Set::removeAll);
         Mutable mutable = parent().mutable();
         Observerds[] observeds = observer.observeds();
-        Map<Observed, Set<Mutable>> oldGets = observeds[Direction.forward.nr].set(mutable, gets);
-        Map<Observed, Set<Mutable>> oldSets = observeds[Direction.backward.nr].set(mutable, sets);
+        DefaultMap<Observed, Set<Mutable>> oldGets = observeds[Direction.forward.nr].set(mutable, gets);
+        DefaultMap<Observed, Set<Mutable>> oldSets = observeds[Direction.backward.nr].set(mutable, sets);
         if (oldGets.isEmpty() && oldSets.isEmpty() && !(sets.isEmpty() && gets.isEmpty())) {
             observer.instances++;
         } else if (!(oldGets.isEmpty() && oldSets.isEmpty()) && sets.isEmpty() && gets.isEmpty()) {
@@ -100,14 +100,14 @@ public class ObserverTransaction extends ActionTransaction {
     }
 
     @SuppressWarnings("rawtypes")
-    protected void checkTooManyObserved(Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
+    protected void checkTooManyObserved(DefaultMap<Observed, Set<Mutable>> sets, DefaultMap<Observed, Set<Mutable>> gets) {
         if (universeTransaction().maxNrOfObserved() < size(gets) + size(sets)) {
             throw new TooManyObservedException(parent().mutable(), observer(), gets.addAll(sets, Set::addAll), universeTransaction());
         }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected void checkTooManyChanges(State pre, Map<Observed, Set<Mutable>> sets, Map<Observed, Set<Mutable>> gets) {
+    protected void checkTooManyChanges(State pre, DefaultMap<Observed, Set<Mutable>> sets, DefaultMap<Observed, Set<Mutable>> gets) {
         UniverseTransaction universeTransaction = universeTransaction();
         Observer<?> observer = observer();
         Mutable mutable = parent().mutable();
@@ -154,8 +154,10 @@ public class ObserverTransaction extends ActionTransaction {
     }
 
     @SuppressWarnings("rawtypes")
-    protected void countChanges(Observed observed) {
+    protected boolean countChanges(Observed observed) {
+        boolean old = changed;
         changed = true;
+        return !old;
     }
 
     @Override
@@ -163,36 +165,38 @@ public class ObserverTransaction extends ActionTransaction {
         if (property instanceof Observed && Constant.DERIVED.get() != null && ObserverTransaction.OBSERVE.get()) {
             throw new NonDeterministicException("Reading observed '" + property + "' while initializing constant '" + Constant.DERIVED.get() + "'");
         }
-        T value = super.get(object, property);
-        observe(object, property, value, false);
-        return value;
+        observe(object, property, false);
+        return super.get(object, property);
     }
 
     @Override
     public <O, T> T pre(O object, Getable<O, T> property) {
-        T value = super.pre(object, property);
-        observe(object, property, value, false);
-        return value;
+        observe(object, property, false);
+        return super.pre(object, property);
     }
 
     @Override
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        T value = super.set(object, property, function, element);
-        observe(object, property, value, true);
-        return value;
+        observe(object, property, true);
+        return super.set(object, property, function, element);
     }
 
     @Override
     public <O, T> T set(O object, Setable<O, T> property, T value) {
-        observe(object, property, value, true);
+        observe(object, property, true);
         return super.set(object, property, value);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <O, T> void observe(O object, Getable<O, T> property, T value, boolean set) {
+    private <O, T> void observe(O object, Getable<O, T> property, boolean set) {
         if (object instanceof Mutable && property instanceof Observed && getted.isInitialized() && OBSERVE.get()) {
             (set ? setted : getted).change(o -> o.add(((Observed) property).entry((Mutable) object, parent().mutable()), Set::addAll));
         }
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public void handleMergeConflict(Object object, Setable property, Object pre, Object... branches) {
     }
 
     @Override
@@ -209,8 +213,7 @@ public class ObserverTransaction extends ActionTransaction {
     @Override
     protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
         runNonObserving(() -> super.changed(object, setable, preValue, postValue));
-        if (setable instanceof Observed) {
-            countChanges((Observed) setable);
+        if (setable instanceof Observed && countChanges((Observed) setable)) {
             trigger(parent().mutable(), (Observer<Mutable>) observer(), Direction.backward);
         }
     }

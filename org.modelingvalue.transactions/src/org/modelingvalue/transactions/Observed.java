@@ -15,8 +15,8 @@ package org.modelingvalue.transactions;
 
 import java.util.function.Supplier;
 
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadConsumer;
@@ -24,7 +24,7 @@ import org.modelingvalue.collections.util.QuadConsumer;
 public class Observed<O, T> extends Setable<O, T> {
 
     @SuppressWarnings("rawtypes")
-    protected static final Map<Observed, Set<Mutable>> OBSERVED_MAP = Map.of(k -> Set.of());
+    protected static final DefaultMap<Observed, Set<Mutable>> OBSERVED_MAP = DefaultMap.of(k -> Set.of());
 
     public static <C, V> Observed<C, V> of(Object id, V def) {
         return new Observed<C, V>(id, def, false, null, null);
@@ -78,7 +78,7 @@ public class Observed<O, T> extends Setable<O, T> {
                 changed.accept(l, o, p, n);
             }
             for (int ia = 0; ia < 2; ia++) {
-                Map<Observer, Set<Mutable>> obsSet = l.get(o, observers[ia]);
+                DefaultMap<Observer, Set<Mutable>> obsSet = l.get(o, observers[ia]);
                 l.checkTooManyObservers(o, observers[ia].observed, obsSet);
                 for (Entry<Observer, Set<Mutable>> e : obsSet) {
                     for (Mutable m : e.getValue()) {
@@ -122,7 +122,7 @@ public class Observed<O, T> extends Setable<O, T> {
     }
 
     @SuppressWarnings("rawtypes")
-    public static final class Observers<O, T> extends Setable<O, Map<Observer, Set<Mutable>>> {
+    public static final class Observers<O, T> extends Setable<O, DefaultMap<Observer, Set<Mutable>>> {
 
         private Observed<O, T>  observed;
         private final Direction direction;

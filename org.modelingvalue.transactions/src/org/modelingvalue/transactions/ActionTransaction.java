@@ -17,19 +17,18 @@ import java.util.ConcurrentModificationException;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.NotMergeableException;
+import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TraceTimer;
 
-public class ActionTransaction extends LeafTransaction {
+public class ActionTransaction extends LeafTransaction implements StateMergeHandler {
 
-    @SuppressWarnings("rawtypes")
-    private static final Map<Object, Map<Setable, Object>> MAP_DEFAULT = Map.of(o -> Map.of());
-
-    private final Setted                                   setted      = new Setted();
-    private State                                          preState;
+    private final Setted setted = new Setted();
+    private State        preState;
 
     protected ActionTransaction(UniverseTransaction universeTransaction) {
         super(universeTransaction);
@@ -73,9 +72,8 @@ public class ActionTransaction extends LeafTransaction {
         if (preState != null) {
             throw new ConcurrentModificationException();
         }
-
-        setted.init(MAP_DEFAULT);
         preState = state;
+        setted.init(state);
     }
 
     protected void clear() {
@@ -83,99 +81,70 @@ public class ActionTransaction extends LeafTransaction {
         preState = null;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     protected State result() {
-        State result = state();
-        for (Entry<Object, Map<Setable, Object>> obj : setted.result()) {
-            Map<Setable, Object> props = result.properties(obj.getKey());
-            for (Entry<Setable, Object> set : obj.getValue()) {
-                props = State.setProperties(props, set.getKey(), set.getValue());
-            }
-            result = result.set(obj.getKey(), props);
-        }
+        State result = setted.result();
         preState = null;
         return result;
     }
 
     @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        T prePre = state().get(object, property);
-        Map<Object, Map<Setable, Object>> set = setted.get();
-        Map<Setable, Object> map = set.get(object);
-        Entry<Setable, Object> bra = map.getEntry(property);
-        T post = function.apply(bra == null ? prePre : (T) bra.getValue(), element);
-        return set(object, property, post, prePre, set, map, bra);
+        T pre = state().get(object, property);
+        T bra = setted.get().get(object, property);
+        T post = function.apply(bra, element);
+        set(object, property, pre, bra, post);
+        return pre;
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public <O, T> T set(O object, Setable<O, T> property, T post) {
-        T prePre = state().get(object, property);
-        Map<Object, Map<Setable, Object>> set = setted.get();
-        Map<Setable, Object> map = set.get(object);
-        Entry<Setable, Object> bra = map.getEntry(property);
-        return set(object, property, post, prePre, set, map, bra);
+        T pre = state().get(object, property);
+        T bra = setted.get().get(object, property);
+        set(object, property, pre, bra, post);
+        return pre;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private <O, T> T set(O object, Setable<O, T> property, T post, T prePre, Map<Object, Map<Setable, Object>> set, Map<Setable, Object> map, Entry<Setable, Object> bra) {
-        T pre = bra == null ? prePre : (T) bra.getValue();
-        if (!Objects.equals(pre, post)) {
-            if (bra != null) {
-                post = (T) merge(object, property, prePre, pre, post);
-            }
-            setted.set(set.put(object, map.put(property, post)));
-            changed(object, property, pre, post);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <O, T> void set(O object, Setable<O, T> property, T pre, T bra, T post) {
+        if (!Objects.equals(bra, post)) {
+            setted.change(s -> s.set(object, property, (br, po) -> {
+                if (!Objects.equals(br, pre)) {
+                    if (br == null || post == null) {
+                        return post;
+                    } else if (pre instanceof Mergeable) {
+                        return (T) ((Mergeable) pre).merge2(br, po);
+                    } else {
+                        handleMergeConflict(object, property, pre, br, po);
+                        return po;
+                    }
+                }
+                return po;
+            }, post));
+            changed(object, property, bra, post);
         }
-        return prePre;
+    }
+
+    private final class Setted extends Concurrent<State> {
+        @Override
+        protected State merge(State base, State[] branches) {
+            return base.merge(ActionTransaction.this, branches);
+        }
     }
 
     @SuppressWarnings("rawtypes")
-    private final class Setted extends Concurrent<Map<Object, Map<Setable, Object>>> {
-
-        @SuppressWarnings({"resource", "unchecked"})
-        @Override
-        protected Map<Object, Map<Setable, Object>> merge(Map<Object, Map<Setable, Object>> base, Map<Object, Map<Setable, Object>>[] branches) {
-            for (Map<Object, Map<Setable, Object>> b : branches) {
-                for (Entry<Object, Map<Setable, Object>> obj : b) {
-                    Map<Setable, Object> baseObj = base.get(obj.getKey());
-                    for (Entry<Setable, Object> set : obj.getValue()) {
-                        Object post = set.getValue();
-                        Entry<Setable, Object> bra = baseObj.getEntry(set.getKey());
-                        if (bra != null && !Objects.equals(bra.getValue(), post)) {
-                            post = ActionTransaction.this.merge(obj.getKey(), set.getKey(), state().get(obj.getKey(), set.getKey()), bra.getValue(), post);
-                        }
-                        baseObj = baseObj.put(set.getKey(), post);
-                    }
-                    base = base.put(obj.getKey(), baseObj);
-                }
-            }
-            return base;
-        }
+    @Override
+    public void handleMergeConflict(Object object, Setable property, Object pre, Object... branches) {
+        throw new NotMergeableException(object + "." + property + "= " + pre + " -> " + StringUtil.toString(branches));
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private Object merge(Object object, Setable property, Object prePre, Object pre, Object post) {
-        if (pre == null) {
-            return post;
-        } else if (post == null) {
-            return pre;
-        } else if (prePre instanceof Mergeable) {
-            return ((Mergeable) prePre).merge2(pre, post);
-        } else if (property instanceof Observed && this instanceof ObserverTransaction) {
-            trigger(parent().mutable(), (Action<Mutable>) action(), Direction.backward);
-            return post;
-        } else {
-            throw new ConcurrentModificationException(object + "." + property + "= " + prePre + " -> " + pre + " | " + post);
-        }
+    @SuppressWarnings("rawtypes")
+    @Override
+    public void handleChange(Object o, DefaultMap<Setable, Object> ps, Entry<Setable, Object> p, DefaultMap<Setable, Object>[] psbs) {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     protected Mutable dParent(Mutable object) {
-        Entry<Setable, Object> set = setted.get().get(object).getEntry(Mutable.D_PARENT);
-        return set != null ? (Mutable) set.getValue() : super.dParent(object);
+        return setted.get().get(object, Mutable.D_PARENT);
     }
 
     @Override

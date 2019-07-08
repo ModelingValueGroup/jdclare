@@ -18,8 +18,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Pair;
@@ -71,7 +71,7 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings("rawtypes")
-    protected Entry<Setable, Object> entry(T value, Map<Setable, Object> properties) {
+    protected Entry<Setable, Object> entry(T value, DefaultMap<Setable, Object> properties) {
         if (Internable.isInternable(value)) {
             return internal.get(value);
         } else {
@@ -84,17 +84,17 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected void deduplicate(Entry e1, Map<?, ?> map2) {
+    protected void deduplicate(Entry e1, DefaultMap<?, ?> map2) {
         Object v1 = e1.getValue();
-        if (v1 instanceof Map) {
-            for (Entry e3 : (Map<?, ?>) v1) {
+        if (v1 instanceof DefaultMap) {
+            for (Entry e3 : (DefaultMap<?, ?>) v1) {
                 deduplicate(e3, map2);
             }
         } else {
             for (Entry e2 : map2) {
                 Object v2 = e2.getValue();
-                if (v2 instanceof Map) {
-                    deduplicate(e1, (Map) v2);
+                if (v2 instanceof DefaultMap) {
+                    deduplicate(e1, (DefaultMap) v2);
                 } else {
                     e1.setValueIfEqual(v2);
                 }
@@ -185,12 +185,16 @@ public class Setable<O, T> extends Getable<O, T> {
     @SuppressWarnings("unchecked")
     public static <T, E> void diff(T pre, T post, Consumer<E> added, Consumer<E> removed) {
         if (pre instanceof ContainingCollection && post instanceof ContainingCollection) {
-            ((ContainingCollection<Object>) pre).compare((ContainingCollection<Object>) post).forEach(d -> {
+            ((ContainingCollection<E>) pre).compare((ContainingCollection<E>) post).forEachOrdered(d -> {
                 if (d[0] == null) {
-                    d[1].forEach(a -> added.accept((E) a));
+                    for (E a : d[1]) {
+                        added.accept(a);
+                    }
                 }
                 if (d[1] == null) {
-                    d[0].forEach(r -> removed.accept((E) r));
+                    for (E e : d[0]) {
+                        removed.accept(e);
+                    }
                 }
             });
         } else {

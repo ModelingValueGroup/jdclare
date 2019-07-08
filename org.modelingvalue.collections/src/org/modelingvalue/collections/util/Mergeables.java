@@ -43,7 +43,7 @@ public interface Mergeables {
                 }
                 return (T) ((Mergeable) (b == null ? merger : b)).merge(bs);
             } else {
-                throw new NotMergeableException(b + " " + Arrays.toString(bs));
+                throw new NotMergeableException(b + " -> " + Arrays.toString(bs));
             }
         }, branches, l);
     }

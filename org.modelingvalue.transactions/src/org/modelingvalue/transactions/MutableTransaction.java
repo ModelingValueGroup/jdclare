@@ -16,16 +16,18 @@ package org.modelingvalue.transactions;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.NotMergeableException;
+import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.transactions.Direction.Queued;
 import org.modelingvalue.transactions.Observed.Observers;
 
-public class MutableTransaction extends Transaction {
+public class MutableTransaction extends Transaction implements StateMergeHandler {
 
     private static final int                                MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
@@ -167,7 +169,6 @@ public class MutableTransaction extends Transaction {
         return state;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private State merge(State base, State[] branches) {
         if (universeTransaction().isKilled()) {
             return base;
@@ -178,43 +179,7 @@ public class MutableTransaction extends Transaction {
                 triggeredMutables[ia].init(Set.of());
             }
             try {
-                State state = base.merge((o, ps, p, psbs) -> {
-                    if (p.getKey() instanceof Observers) {
-                        Observers<?, ?> os = (Observers) p.getKey();
-                        Map<Observer, Set<Mutable>> observers = (Map) p.getValue();
-                        observers = observers.removeAll(State.get(ps, os), Set::removeAll);
-                        if (!observers.isEmpty()) {
-                            Observed<?, ?> observedProp = os.observed();
-                            Object baseValue = State.get(ps, observedProp);
-                            for (Map<Setable, Object> psb : psbs) {
-                                Object branchValue = State.get(psb, observedProp);
-                                if (!Objects.equals(branchValue, baseValue)) {
-                                    Map<Observer, Set<Mutable>> addedObservers = observers.removeAll(State.get(psb, os), Set::removeAll).//
-                                    toMap(e -> Entry.of(e.getKey(), e.getValue().map(m -> m.resolve((Mutable) o)).toSet()));
-                                    triggeredActions[os.direction().nr].change(ts -> ts.addAll(addedObservers, Set::addAll));
-                                }
-                            }
-                        }
-                    } else if (p.getKey() instanceof Queued) {
-                        Queued<Mutable> ds = (Queued) p.getKey();
-                        if (ds.priority() == Priority.depth && ds.direction() != Direction.scheduled) {
-                            Set<Mutable> depth = (Set<Mutable>) p.getValue();
-                            depth = depth.removeAll(State.get(ps, ds));
-                            if (!depth.isEmpty()) {
-                                Mutable baseParent = State.get(ps, Mutable.D_PARENT);
-                                for (Map<Setable, Object> psb : psbs) {
-                                    Mutable branchParent = State.get(psb, Mutable.D_PARENT);
-                                    if (!Objects.equals(branchParent, baseParent)) {
-                                        Set<Mutable> addedDepth = depth.removeAll(State.get(psb, ds));
-                                        if (!addedDepth.isEmpty()) {
-                                            triggeredMutables[ds.direction().nr].change(ts -> ts.addAll(addedDepth));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }, branches);
+                State state = base.merge(this, branches);
                 for (int ia = 0; ia < 2; ia++) {
                     state = trigger(state, triggeredActions[ia].result(), Direction.values()[ia]);
                     state = triggerMutables(state, triggeredMutables[ia].result(), Direction.values()[ia]);
@@ -226,6 +191,52 @@ public class MutableTransaction extends Transaction {
                     triggeredMutables[ia].clear();
                 }
                 TraceTimer.traceEnd("merge");
+            }
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public void handleMergeConflict(Object object, Setable property, Object pre, Object... branches) {
+        throw new NotMergeableException(object + "." + property + "= " + pre + " -> " + StringUtil.toString(branches));
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public void handleChange(Object o, DefaultMap<Setable, Object> ps, Entry<Setable, Object> p, DefaultMap<Setable, Object>[] psbs) {
+        if (p.getKey() instanceof Observers) {
+            Observers<?, ?> os = (Observers) p.getKey();
+            DefaultMap<Observer, Set<Mutable>> observers = (DefaultMap) p.getValue();
+            observers = observers.removeAll(State.get(ps, os), Set::removeAll);
+            if (!observers.isEmpty()) {
+                Observed<?, ?> observedProp = os.observed();
+                Object baseValue = State.get(ps, observedProp);
+                for (DefaultMap<Setable, Object> psb : psbs) {
+                    Object branchValue = State.get(psb, observedProp);
+                    if (!Objects.equals(branchValue, baseValue)) {
+                        Map<Observer, Set<Mutable>> addedObservers = observers.removeAll(State.get(psb, os), Set::removeAll).//
+                                toMap(e -> Entry.of(e.getKey(), e.getValue().map(m -> m.resolve((Mutable) o)).toSet()));
+                        triggeredActions[os.direction().nr].change(ts -> ts.addAll(addedObservers, Set::addAll));
+                    }
+                }
+            }
+        } else if (p.getKey() instanceof Queued) {
+            Queued<Mutable> ds = (Queued) p.getKey();
+            if (ds.priority() == Priority.depth && ds.direction() != Direction.scheduled) {
+                Set<Mutable> depth = (Set<Mutable>) p.getValue();
+                depth = depth.removeAll(State.get(ps, ds));
+                if (!depth.isEmpty()) {
+                    Mutable baseParent = State.get(ps, Mutable.D_PARENT);
+                    for (DefaultMap<Setable, Object> psb : psbs) {
+                        Mutable branchParent = State.get(psb, Mutable.D_PARENT);
+                        if (!Objects.equals(branchParent, baseParent)) {
+                            Set<Mutable> addedDepth = depth.removeAll(State.get(psb, ds));
+                            if (!addedDepth.isEmpty()) {
+                                triggeredMutables[ds.direction().nr].change(ts -> ts.addAll(addedDepth));
+                            }
+                        }
+                    }
+                }
             }
         }
     }

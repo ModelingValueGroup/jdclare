@@ -15,20 +15,20 @@ package org.modelingvalue.transactions;
 
 import java.util.stream.Collectors;
 
-import org.modelingvalue.collections.Map;
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Set;
 
 @SuppressWarnings("rawtypes")
 public final class TooManyObserversException extends Error {
 
-    private static final long                 serialVersionUID = -1059588522731393631L;
+    private static final long                        serialVersionUID = -1059588522731393631L;
 
-    private final Map<Observer, Set<Mutable>> observers;
-    private final Object                      object;
-    private final Observed                    observed;
-    private final UniverseTransaction         universeTransaction;
+    private final DefaultMap<Observer, Set<Mutable>> observers;
+    private final Object                             object;
+    private final Observed                           observed;
+    private final UniverseTransaction                universeTransaction;
 
-    public TooManyObserversException(Object object, Observed observed, Map<Observer, Set<Mutable>> observers, UniverseTransaction universeTransaction) {
+    public TooManyObserversException(Object object, Observed observed, DefaultMap<Observer, Set<Mutable>> observers, UniverseTransaction universeTransaction) {
         this.observers = observers;
         this.object = object;
         this.observed = observed;
@@ -53,7 +53,7 @@ public final class TooManyObserversException extends Error {
         return LeafTransaction.size(observers);
     }
 
-    public Map<Observer, Set<Mutable>> getObservers() {
+    public DefaultMap<Observer, Set<Mutable>> getObservers() {
         return observers;
     }
 

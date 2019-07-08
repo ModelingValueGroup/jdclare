@@ -14,6 +14,7 @@
 package org.modelingvalue.collections.impl;
 
 import java.util.Spliterator;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.QualifiedSet;
@@ -23,48 +24,37 @@ import org.modelingvalue.collections.util.SerializableFunction;
 @SuppressWarnings("serial")
 public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedSet<K, V> {
 
-    private SerializableFunction<V, K> key;
+    private SerializableFunction<V, K> qualifier;
 
-    public QualifiedSetImpl(SerializableFunction<V, K> key, V[] es) {
-        this.key = key;
+    public QualifiedSetImpl(SerializableFunction<V, K> qualifier, V[] es) {
+        this.qualifier = qualifier;
         this.value = es.length == 1 ? es[0] : addAll(null, key(), es);
     }
 
-    public QualifiedSetImpl(SerializableFunction<V, K> key, java.util.Collection<? extends V> coll) {
-        this.key = key;
+    public QualifiedSetImpl(SerializableFunction<V, K> qualifier, java.util.Collection<? extends V> coll) {
+        this.qualifier = qualifier;
         this.value = coll.size() == 1 ? coll.iterator().next() : addAll(null, key(), coll);
     }
 
-    public QualifiedSetImpl(SerializableFunction<V, K> key, Object value) {
-        this.key = key;
+    public QualifiedSetImpl(SerializableFunction<V, K> qualifier, Object value) {
+        this.qualifier = qualifier;
         this.value = value;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj) && key.equal(((QualifiedSetImpl<K, V>) obj).key);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode() ^ key.hash();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     protected final SerializableFunction<V, Object> key() {
-        return (SerializableFunction) key;
+        return (SerializableFunction) qualifier;
     }
 
     private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeObject(key);
+        s.writeObject(qualifier);
         doSerialize(s);
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        key = (SerializableFunction<V, K>) s.readObject();
+        qualifier = (SerializableFunction<V, K>) s.readObject();
         doDeserialize(s);
     }
 
@@ -129,7 +119,7 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @Override
     public Collection<K> toKeys() {
-        return map(key);
+        return map(qualifier);
     }
 
     @Override
@@ -146,7 +136,7 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     @SuppressWarnings("unchecked")
     @Override
     protected QualifiedSetImpl<K, V> create(Object val) {
-        return val != value ? new QualifiedSetImpl<>(key, val) : this;
+        return val != value ? new QualifiedSetImpl<>(qualifier, val) : this;
     }
 
     @Override
@@ -162,7 +152,7 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     @SuppressWarnings("unchecked")
     @Override
     public QualifiedSet<K, V> remove(Object e) {
-        return removeKey(key.apply((V) e));
+        return removeKey(qualifier.apply((V) e));
     }
 
     @Override
@@ -173,6 +163,16 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
             result = result.remove(r);
         }
         return result;
+    }
+
+    @Override
+    public SerializableFunction<V, K> qualifier() {
+        return qualifier;
+    }
+
+    @Override
+    public QualifiedSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
+        return filter(v -> keyPredicate.test(qualifier.apply(v)) && valuePredicate.test(v)).toQualifiedSet(qualifier);
     }
 
 }

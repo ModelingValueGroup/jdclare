@@ -17,8 +17,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.QuadConsumer;
 
@@ -122,7 +122,7 @@ public class Constant<O, T> extends Setable<O, T> {
 
     @SuppressWarnings("rawtypes")
     @Override
-    protected Entry<Setable, Object> entry(T value, Map<Setable, Object> properties) {
+    protected Entry<Setable, Object> entry(T value, DefaultMap<Setable, Object> properties) {
         return Entry.of(this, value);
     }
 

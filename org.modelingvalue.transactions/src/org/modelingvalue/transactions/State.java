@@ -18,33 +18,37 @@ import java.lang.reflect.Array;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.NotMergeableException;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.QuadConsumer;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 
 public class State implements Serializable {
-    private static final long                       serialVersionUID = -3468784705870374732L;
+    private static final long                                           serialVersionUID   = -3468784705870374732L;
 
     @SuppressWarnings("rawtypes")
-    private static final Comparator<Entry>          COMPARATOR       = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
+    public static final DefaultMap<Setable, Object>                     EMPTY_SETABLES_MAP = DefaultMap.of(s -> s.getDefault());
+    @SuppressWarnings("rawtypes")
+    public static final DefaultMap<Object, DefaultMap<Setable, Object>> EMPTY_OBJECTS_MAP  = DefaultMap.of(o -> EMPTY_SETABLES_MAP);
 
     @SuppressWarnings("rawtypes")
-    private final Map<Object, Map<Setable, Object>> map;
-    private final UniverseTransaction               universeTransaction;
+    private static final Comparator<Entry>                              COMPARATOR         = (a, b) -> StringUtil.toString(a.getKey()).compareTo(StringUtil.toString(b.getKey()));
 
     @SuppressWarnings("rawtypes")
-    State(UniverseTransaction universeTransaction, Map<Object, Map<Setable, Object>> map) {
+    private final DefaultMap<Object, DefaultMap<Setable, Object>>       map;
+    private final UniverseTransaction                                   universeTransaction;
+
+    @SuppressWarnings("rawtypes")
+    State(UniverseTransaction universeTransaction, DefaultMap<Object, DefaultMap<Setable, Object>> map) {
         this.universeTransaction = universeTransaction;
         this.map = map;
     }
@@ -53,10 +57,8 @@ public class State implements Serializable {
         return new State(universeTransaction, map);
     }
 
-    @SuppressWarnings("rawtypes")
     public <O, T> T get(O object, Getable<O, T> property) {
-        Map<Setable, Object> props = properties(object);
-        return get(props, (Setable<O, T>) property);
+        return get(getProperties(object), (Setable<O, T>) property);
     }
 
     @SuppressWarnings("unchecked")
@@ -67,8 +69,8 @@ public class State implements Serializable {
 
     @SuppressWarnings("rawtypes")
     public <O, T> State set(O object, Setable<O, T> property, T value) {
-        Map<Setable, Object> props = properties(object);
-        Map<Setable, Object> set = setProperties(props, property, value);
+        DefaultMap<Setable, Object> props = getProperties(object);
+        DefaultMap<Setable, Object> set = setProperties(props, property, value);
         return set != props ? set(object, set) : this;
     }
 
@@ -81,13 +83,13 @@ public class State implements Serializable {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <O> O canonical(O object) {
-        Entry<Object, Map<Setable, Object>> entry = map == null ? null : map.getEntry(object);
+        Entry<Object, DefaultMap<Setable, Object>> entry = map.getEntry(object);
         return entry != null ? (O) entry.getKey() : object;
     }
 
     @SuppressWarnings("rawtypes")
     public <O, T, E> State set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element, T[] oldNew) {
-        Map<Setable, Object> props = properties(object);
+        DefaultMap<Setable, Object> props = getProperties(object);
         oldNew[0] = get(props, property);
         oldNew[1] = function.apply(oldNew[0], element);
         return !Objects.equals(oldNew[0], oldNew[1]) ? set(object, setProperties(props, property, oldNew[1])) : this;
@@ -95,58 +97,49 @@ public class State implements Serializable {
 
     @SuppressWarnings("rawtypes")
     public <O, T, E> State set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        Map<Setable, Object> props = properties(object);
+        DefaultMap<Setable, Object> props = getProperties(object);
         T preVal = get(props, property);
         T postVal = function.apply(preVal, element);
         return !Objects.equals(preVal, postVal) ? set(object, setProperties(props, property, postVal)) : this;
     }
 
     @SuppressWarnings("rawtypes")
-    <O> Map<Setable, Object> properties(O object) {
-        return map == null ? null : map.get(object);
+    <O> DefaultMap<Setable, Object> getProperties(O object) {
+        return map.get(object);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    static <O, T> T get(Map<Setable, Object> props, Setable<O, T> property) {
-        Entry entry = props == null ? null : props.getEntry(property);
-        return entry == null ? property.getDefault() : (T) entry.getValue();
+    static <O, T> T get(DefaultMap<Setable, Object> props, Setable<O, T> property) {
+        return (T) props.get(property);
     }
 
     @SuppressWarnings("rawtypes")
-    static <O, T> Map<Setable, Object> setProperties(Map<Setable, Object> props, Setable<O, T> property, T newValue) {
-        if (Objects.equals(property.getDefault(), newValue)) {
-            props = props == null ? null : props.removeKey(property);
-            return props == null || props.isEmpty() ? null : props;
+    private static <O, T> DefaultMap<Setable, Object> setProperties(DefaultMap<Setable, Object> props, Setable<O, T> property, T newValue) {
+        return Objects.equals(property.getDefault(), newValue) ? props.removeKey(property) : props.put(property.entry(newValue, props));
+    }
+
+    @SuppressWarnings("rawtypes")
+    <O, T> State set(O object, DefaultMap<Setable, Object> post) {
+        if (post.isEmpty()) {
+            DefaultMap<Object, DefaultMap<Setable, Object>> niw = map.removeKey(object);
+            return niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
         } else {
-            return props == null ? Map.of(property.entry(newValue, props)) : props.put(property.entry(newValue, props));
+            return new State(universeTransaction, map.put(object, post));
         }
     }
 
     @SuppressWarnings("rawtypes")
-    <O, T> State set(O object, Map<Setable, Object> post) {
-        if (post == null) {
-            Map<Object, Map<Setable, Object>> niw = map == null ? null : map.removeKey(object);
-            return niw == null || niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
-        } else {
-            return new State(universeTransaction, map == null ? Map.of(Entry.of(object, post)) : map.put(object, post));
-        }
+    private static DefaultMap<Setable, Object> map(Entry<Object, DefaultMap<Setable, Object>> in) {
+        return in == null ? EMPTY_SETABLES_MAP : in.getValue();
     }
 
-    private static <X, Y> Map<X, Y> map(Map<X, Y> in) {
-        return in == null ? Map.<X, Y> of() : in;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <X, Y> Map<X, Y>[] map(Entry<?, Map<X, Y>>[] in) {
-        Map<X, Y>[] r = new Map[in.length];
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static DefaultMap<Setable, Object>[] map(Entry<Object, DefaultMap<Setable, Object>>[] in) {
+        DefaultMap<Setable, Object>[] r = new DefaultMap[in.length];
         for (int i = 0; i < in.length; i++) {
-            r[i] = in[i] == null ? Map.<X, Y> of() : in[i].getValue();
+            r[i] = in[i] == null ? EMPTY_SETABLES_MAP : in[i].getValue();
         }
         return r;
-    }
-
-    private static <X, Y> Y val(Entry<X, Y> e) {
-        return e == null ? null : e.getValue();
     }
 
     private static <X, Y> Y val(Setable<X, Y> p, Entry<?, Y> e) {
@@ -163,15 +156,15 @@ public class State implements Serializable {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public State merge(QuadConsumer<Object, Map<Setable, Object>, Entry<Setable, Object>, Map<Setable, Object>[]> changeHandler, State... branches) {
-        Map<Object, Map<Setable, Object>>[] maps = new Map[branches.length];
+    public State merge(StateMergeHandler changeHandler, State... branches) {
+        DefaultMap<Object, DefaultMap<Setable, Object>>[] maps = new DefaultMap[branches.length];
         for (int i = 0; i < maps.length; i++) {
-            maps[i] = map(branches[i].map);
+            maps[i] = branches[i].map;
         }
-        Map<Object, Map<Setable, Object>> niw = map(map).merge((o, eps, epss) -> {
-            Map<Setable, Object> ps = map(val(eps));
-            Map<Setable, Object>[] pss = map(epss);
-            Map<Setable, Object> props = ps.merge((p, ev, evs) -> {
+        DefaultMap<Object, DefaultMap<Setable, Object>> niw = map.merge((o, eps, epss) -> {
+            DefaultMap<Setable, Object> ps = map(eps);
+            DefaultMap<Setable, Object>[] pss = map(epss);
+            DefaultMap<Setable, Object> props = ps.merge((p, ev, evs) -> {
                 Object v = val(p, ev);
                 Object[] vs;
                 if (v instanceof Mergeable) {
@@ -184,7 +177,11 @@ public class State implements Serializable {
                     for (int i = 0; i < vs.length; i++) {
                         if (vs[i] != null) {
                             if (result != null) {
-                                throw new NotMergeableException("State merge conflict");
+                                if (changeHandler != null) {
+                                    changeHandler.handleMergeConflict(o, p, v, vs);
+                                } else {
+                                    throw new NotMergeableException(o + "." + p + "= " + v + " -> " + StringUtil.toString(vs));
+                                }
                             } else {
                                 result = vs[i];
                             }
@@ -197,7 +194,7 @@ public class State implements Serializable {
                 for (Entry<Setable, Object> p : props) {
                     if (p != ps.getEntry(p.getKey())) {
                         p.getKey().deduplicate(p, props);
-                        changeHandler.accept(o, ps, p, pss);
+                        changeHandler.handleChange(o, ps, p, pss);
                     }
                 }
             }
@@ -209,12 +206,12 @@ public class State implements Serializable {
 
     @Override
     public String toString() {
-        return "State" + "[" + universeTransaction.getClass().getSimpleName() + properties(universeTransaction.universe()).toString().substring(3) + "]";
+        return "State" + "[" + universeTransaction.getClass().getSimpleName() + getProperties(universeTransaction.universe()).toString().substring(3) + "]";
     }
 
     public String asString() {
         return get(() -> {
-            return "State{" + map(map).sorted(COMPARATOR).reduce("", (s1, e1) -> s1 + "\n  " + StringUtil.toString(e1.getKey()) + //
+            return "State{" + map.sorted(COMPARATOR).reduce("", (s1, e1) -> s1 + "\n  " + StringUtil.toString(e1.getKey()) + //
             "{" + e1.getValue().sorted(COMPARATOR).reduce("", (s2, e2) -> s2 + "\n    " + StringUtil.toString(e2.getKey()) + "=" + //
             (e2.getValue() instanceof State ? "State{...}" : StringUtil.toString(e2.getValue())), (a2, b2) -> a2 + b2) + "}", //
                     (a1, b1) -> a1 + b1) + "}";
@@ -223,7 +220,7 @@ public class State implements Serializable {
 
     @SuppressWarnings("rawtypes")
     public Map<Setable, Integer> count() {
-        return get(() -> map(map).toValues().flatMap(m -> m).reduce(Map.of(), (m, e) -> {
+        return get(() -> map.toValues().flatMap(m -> m).reduce(Map.of(), (m, e) -> {
             Integer cnt = m.get(e.getKey());
             return m.put(e.getKey(), cnt == null ? 1 : cnt + 1);
         }, (a, b) -> {
@@ -250,7 +247,7 @@ public class State implements Serializable {
     }
 
     public <T> Collection<T> getObjects(Class<T> filter) {
-        return map(map).toKeys().filter(filter);
+        return map.toKeys().filter(filter);
     }
 
     public Collection<?> getObjects() {
@@ -258,23 +255,16 @@ public class State implements Serializable {
     }
 
     public int size() {
-        return map == null ? 0 : map.size();
+        return map.size();
     }
 
     public boolean isEmpty() {
-        return map == null;
+        return map.isEmpty();
     }
 
     @SuppressWarnings("rawtypes")
     public Collection<Entry<Object, Collection<Entry<Setable, Object>>>> filter(Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
-        return map == null ? Map.of() : map.filter(e1 -> objectFilter.test(e1.getKey())).map(e1 -> Entry.of(e1.getKey(), e1.getValue().filter(e2 -> setableFilter.test(e2.getKey()))));
-    }
-
-    @SuppressWarnings("rawtypes")
-    public State copy(Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
-        return map == null ? universeTransaction.emptyState() : new State(universeTransaction, map.filter(e1 -> //
-        objectFilter.test(e1.getKey())).map(e1 -> Entry.of(e1.getKey(), e1.getValue().filter(e2 -> setableFilter.test(e2.getKey())))).//
-                toMap(e0 -> Entry.of(e0.getKey(), e0.getValue().toMap(Function.identity()))));
+        return map.filter(e1 -> objectFilter.test(e1.getKey())).map(e1 -> Entry.of(e1.getKey(), e1.getValue().filter(e2 -> setableFilter.test(e2.getKey()))));
     }
 
     @SuppressWarnings("rawtypes")
@@ -282,16 +272,10 @@ public class State implements Serializable {
         return diff(other, o -> true, s -> true);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings("rawtypes")
     public Collection<Entry<Object, Map<Setable, Pair<Object, Object>>>> diff(State other, Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
-        return map(map).diff(map(other.map)).filter(d1 -> objectFilter.test(d1.getKey())).map(d2 -> {
-            Map<Setable, Object> a = map(val(d2.getValue().a()));
-            Map<Setable, Object> b = map(val(d2.getValue().b()));
-            Map<Setable, Pair<Object, Object>> diff = a.diff(b).filter(d3 -> setableFilter.test(d3.getKey())).toMap(e -> {
-                Object va = val(e.getKey(), e.getValue().a());
-                Object vb = val(e.getKey(), e.getValue().b());
-                return Entry.of(e.getKey(), Pair.of(va, vb));
-            });
+        return map.diff(other.map).filter(d1 -> objectFilter.test(d1.getKey())).map(d2 -> {
+            Map<Setable, Pair<Object, Object>> diff = d2.getValue().a().diff(d2.getValue().b()).filter(d3 -> setableFilter.test(d3.getKey())).toMap(e -> e);
             return diff.isEmpty() ? null : Entry.of(d2.getKey(), diff);
         }).notNull();
     }
@@ -318,14 +302,12 @@ public class State implements Serializable {
 
     @SuppressWarnings("rawtypes")
     public void forEach(TriConsumer<Object, Setable, Object> consumer) {
-        if (map != null) {
-            map.forEach(e0 -> e0.getValue().forEach(e1 -> consumer.accept(e0.getKey(), e1.getKey(), e1.getValue())));
-        }
+        map.forEach(e0 -> e0.getValue().forEach(e1 -> consumer.accept(e0.getKey(), e1.getKey(), e1.getValue())));
     }
 
     @Override
     public int hashCode() {
-        return map == null ? universeTransaction.hashCode() : universeTransaction.hashCode() + map.hashCode();
+        return universeTransaction.hashCode() + map.hashCode();
     }
 
     @Override

@@ -365,7 +365,7 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        baseStream().sequential().forEach(action);
+        baseStream().sequential().forEachOrdered(action);
     }
 
     @Override

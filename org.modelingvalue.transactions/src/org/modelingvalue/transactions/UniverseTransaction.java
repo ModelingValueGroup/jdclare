@@ -28,7 +28,7 @@ import org.modelingvalue.collections.util.TriConsumer;
 public class UniverseTransaction extends MutableTransaction {
 
     public static final int MAX_IN_IN_QUEUE         = Integer.getInteger("MAX_IN_IN_QUEUE", 100);
-    public static final int MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 5000);
+    public static final int MAX_TOTAL_NR_OF_CHANGES = Integer.getInteger("MAX_TOTAL_NR_OF_CHANGES", 10000);
     public static final int MAX_NR_OF_CHANGES       = Integer.getInteger("MAX_NR_OF_CHANGES", 200);
     public static final int MAX_NR_OF_OBSERVED      = Integer.getInteger("MAX_NR_OF_OBSERVED", 1000);
     public static final int MAX_NR_OF_OBSERVERS     = Integer.getInteger("MAX_NR_OF_OBSERVERS", 1000);
@@ -90,7 +90,7 @@ public class UniverseTransaction extends MutableTransaction {
     private final Action<Universe>                                                    clearOrphans;
     protected final BlockingQueue<Action<Universe>>                                   inQueue;
     private final BlockingQueue<State>                                                resultQueue;
-    private final State                                                               emptyState    = new State(this, null);
+    private final State                                                               emptyState    = new State(this, State.EMPTY_OBJECTS_MAP);
     private final int                                                                 maxTotalNrOfChanges;
     private final int                                                                 maxNrOfChanges;
     private final int                                                                 maxNrOfObserved;

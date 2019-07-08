@@ -16,8 +16,8 @@ package org.modelingvalue.transactions;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Pair;
@@ -26,7 +26,7 @@ import org.modelingvalue.transactions.Direction.Queued;
 public class Observer<O extends Mutable> extends Action<O> implements Internable {
 
     @SuppressWarnings("rawtypes")
-    protected static final Map<Observer, Set<Mutable>> OBSERVER_MAP = Map.of(k -> Set.of());
+    protected static final DefaultMap<Observer, Set<Mutable>> OBSERVER_MAP = DefaultMap.of(k -> Set.of());
 
     public static <M extends Mutable> Observer<M> of(Object id, Consumer<M> action) {
         return new Observer<M>(id, action, Direction.forward, Priority.postDepth);
@@ -106,7 +106,7 @@ public class Observer<O extends Mutable> extends Action<O> implements Internable
     }
 
     @SuppressWarnings("rawtypes")
-    public static final class Observerds extends Setable<Mutable, Map<Observed, Set<Mutable>>> {
+    public static final class Observerds extends Setable<Mutable, DefaultMap<Observed, Set<Mutable>>> {
 
         public static Observerds of(Observer observer, Direction direction) {
             return new Observerds(observer, direction);
@@ -116,19 +116,19 @@ public class Observer<O extends Mutable> extends Action<O> implements Internable
         private Observerds(Observer observer, Direction direction) {
             super(Pair.of(observer, direction), Observed.OBSERVED_MAP, false, null, (tx, mutable, pre, post) -> {
                 for (Observed observed : Collection.concat(pre.toKeys(), post.toKeys()).distinct()) {
-                    Setable<Mutable, Map<Observer, Set<Mutable>>> obs = observed.observers(direction);
-                    pre.get(observed).compare(post.get(observed)).forEach(d -> {
+                    Setable<Mutable, DefaultMap<Observer, Set<Mutable>>> obs = observed.observers(direction);
+                    pre.get(observed).compare(post.get(observed)).forEachOrdered(d -> {
                         if (d[0] == null) {
-                            d[1].forEach(a -> {
+                            for (Mutable a : d[1]) {
                                 Mutable o = a.resolve(mutable);
                                 tx.set(o, obs, (m, e) -> m.add(e, Set::addAll), observer.entry(mutable, o));
-                            });
+                            }
                         }
                         if (d[1] == null) {
-                            d[0].forEach(r -> {
+                            for (Mutable r : d[0]) {
                                 Mutable o = r.resolve(mutable);
                                 tx.set(o, obs, (m, e) -> m.remove(e, Set::removeAll), observer.entry(mutable, o));
-                            });
+                            }
                         }
                     });
                 }
