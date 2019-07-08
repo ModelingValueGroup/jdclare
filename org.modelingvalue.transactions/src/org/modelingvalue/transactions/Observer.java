@@ -117,22 +117,16 @@ public class Observer<O extends Mutable> extends Action<O> implements Internable
             super(Pair.of(observer, direction), Observed.OBSERVED_MAP, false, null, (tx, mutable, pre, post) -> {
                 for (Observed observed : Collection.concat(pre.toKeys(), post.toKeys()).distinct()) {
                     Setable<Mutable, DefaultMap<Observer, Set<Mutable>>> obs = observed.observers(direction);
-                    pre.get(observed).compare(post.get(observed)).forEachOrdered(d -> {
-                        if (d[0] == null) {
-                            for (Mutable a : d[1]) {
-                                Mutable o = a.resolve(mutable);
-                                tx.set(o, obs, (m, e) -> m.add(e, Set::addAll), observer.entry(mutable, o));
-                            }
-                        }
-                        if (d[1] == null) {
-                            for (Mutable r : d[0]) {
-                                Mutable o = r.resolve(mutable);
-                                tx.set(o, obs, (m, e) -> m.remove(e, Set::removeAll), observer.entry(mutable, o));
-                            }
-                        }
+                    Setable.<Set<Mutable>, Mutable> diff(pre.get(observed), post.get(observed), a -> {
+                        Mutable o = a.resolve(mutable);
+                        tx.set(o, obs, (m, e) -> m.add(e, Set::addAll), observer.entry(mutable, o));
+                    }, r -> {
+                        Mutable o = r.resolve(mutable);
+                        tx.set(o, obs, (m, e) -> m.remove(e, Set::removeAll), observer.entry(mutable, o));
                     });
                 }
             });
+
         }
 
         @Override
