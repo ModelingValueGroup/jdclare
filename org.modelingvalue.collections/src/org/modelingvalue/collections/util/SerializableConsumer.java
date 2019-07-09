@@ -16,6 +16,26 @@ package org.modelingvalue.collections.util;
 import java.util.function.Consumer;
 
 @FunctionalInterface
-public interface SerializableConsumer<T> extends Consumer<T>, LambdaReflection {
+public interface SerializableConsumer<U> extends Consumer<U>, LambdaReflection {
+
+    @Override
+    default SerializableConsumerImpl<U> of() {
+        return this instanceof SerializableConsumerImpl ? (SerializableConsumerImpl<U>) this : new SerializableConsumerImpl<U>(this);
+    }
+
+    static class SerializableConsumerImpl<U> extends LambdaImpl<SerializableConsumer<U>> implements SerializableConsumer<U> {
+
+        private static final long serialVersionUID = -6443217484725683637L;
+
+        public SerializableConsumerImpl(SerializableConsumer<U> f) {
+            super(f);
+        }
+
+        @Override
+        public void accept(U t) {
+            f.accept(t);
+        }
+
+    }
 
 }

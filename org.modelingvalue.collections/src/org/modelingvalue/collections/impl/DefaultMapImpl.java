@@ -40,12 +40,22 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @SuppressWarnings({"rawtypes", "unchecked"})
     public DefaultMapImpl(Entry[] es, SerializableFunction<K, V> defaultFunction) {
         this.value = es.length == 1 ? es[0] : putAll(null, key(), es);
-        this.defaultFunction = defaultFunction;
+        this.defaultFunction = defaultFunction.of();
     }
 
     protected DefaultMapImpl(Object value, SerializableFunction<K, V> defaultFunction) {
         this.value = value;
-        this.defaultFunction = defaultFunction;
+        this.defaultFunction = defaultFunction.of();
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() ^ defaultFunction.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj) && defaultFunction.equals(((DefaultMapImpl<?, ?>) obj).defaultFunction);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -267,13 +277,14 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     }
 
     private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeObject(defaultFunction);
+        s.writeObject(defaultFunction.original());
         doSerialize(s);
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
         defaultFunction = (SerializableFunction<K, V>) s.readObject();
+        defaultFunction = defaultFunction.of();
         doDeserialize(s);
     }
 

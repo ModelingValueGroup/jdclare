@@ -16,6 +16,26 @@ package org.modelingvalue.collections.util;
 import java.util.function.Function;
 
 @FunctionalInterface
-public interface SerializableFunction<T, R> extends Function<T, R>, LambdaReflection {
+public interface SerializableFunction<U, V> extends Function<U, V>, LambdaReflection {
+
+    @Override
+    default SerializableFunctionImpl<U, V> of() {
+        return this instanceof SerializableFunctionImpl ? (SerializableFunctionImpl<U, V>) this : new SerializableFunctionImpl<U, V>(this);
+    }
+
+    static class SerializableFunctionImpl<U, V> extends LambdaImpl<SerializableFunction<U, V>> implements SerializableFunction<U, V> {
+
+        private static final long serialVersionUID = 5814783501752526565L;
+
+        public SerializableFunctionImpl(SerializableFunction<U, V> f) {
+            super(f);
+        }
+
+        @Override
+        public final V apply(U t) {
+            return f.apply(t);
+        }
+
+    }
 
 }

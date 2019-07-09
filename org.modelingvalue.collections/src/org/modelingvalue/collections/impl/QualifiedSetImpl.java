@@ -27,18 +27,28 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     private SerializableFunction<V, K> qualifier;
 
     public QualifiedSetImpl(SerializableFunction<V, K> qualifier, V[] es) {
-        this.qualifier = qualifier;
+        this.qualifier = qualifier.of();
         this.value = es.length == 1 ? es[0] : addAll(null, key(), es);
     }
 
     public QualifiedSetImpl(SerializableFunction<V, K> qualifier, java.util.Collection<? extends V> coll) {
-        this.qualifier = qualifier;
+        this.qualifier = qualifier.of();
         this.value = coll.size() == 1 ? coll.iterator().next() : addAll(null, key(), coll);
     }
 
     public QualifiedSetImpl(SerializableFunction<V, K> qualifier, Object value) {
-        this.qualifier = qualifier;
+        this.qualifier = qualifier.of();
         this.value = value;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() ^ qualifier.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj) && qualifier.equals(((QualifiedSetImpl<?, ?>) obj).qualifier);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -48,13 +58,14 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeObject(qualifier);
+        s.writeObject(qualifier.original());
         doSerialize(s);
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
         qualifier = (SerializableFunction<V, K>) s.readObject();
+        qualifier = qualifier.of();
         doDeserialize(s);
     }
 

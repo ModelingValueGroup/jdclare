@@ -14,6 +14,26 @@
 package org.modelingvalue.collections.util;
 
 @FunctionalInterface
-public interface SerializableTriConsumer<T, V, U> extends TriConsumer<T, V, U>, LambdaReflection {
+public interface SerializableTriConsumer<A, B, C> extends TriConsumer<A, B, C>, LambdaReflection {
+
+    @Override
+    default SerializableTriConsumerImpl<A, B, C> of() {
+        return this instanceof SerializableTriConsumerImpl ? (SerializableTriConsumerImpl<A, B, C>) this : new SerializableTriConsumerImpl<A, B, C>(this);
+    }
+
+    static class SerializableTriConsumerImpl<A, B, C> extends LambdaImpl<SerializableTriConsumer<A, B, C>> implements SerializableTriConsumer<A, B, C> {
+
+        private static final long serialVersionUID = -6808570298306369071L;
+
+        public SerializableTriConsumerImpl(SerializableTriConsumer<A, B, C> f) {
+            super(f);
+        }
+
+        @Override
+        public void accept(A s, B t, C u) {
+            f.accept(s, t, u);
+        }
+
+    }
 
 }

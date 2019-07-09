@@ -16,6 +16,26 @@ package org.modelingvalue.collections.util;
 import java.util.function.BiConsumer;
 
 @FunctionalInterface
-public interface SerializableBiConsumer<T, V> extends BiConsumer<T, V>, LambdaReflection {
+public interface SerializableBiConsumer<A, B> extends BiConsumer<A, B>, LambdaReflection {
+
+    @Override
+    default SerializableBiConsumerImpl<A, B> of() {
+        return this instanceof SerializableBiConsumerImpl ? (SerializableBiConsumerImpl<A, B>) this : new SerializableBiConsumerImpl<A, B>(this);
+    }
+
+    static class SerializableBiConsumerImpl<A, B> extends LambdaImpl<SerializableBiConsumer<A, B>> implements SerializableBiConsumer<A, B> {
+
+        private static final long serialVersionUID = 4203724319598910043L;
+
+        public SerializableBiConsumerImpl(SerializableBiConsumer<A, B> f) {
+            super(f);
+        }
+
+        @Override
+        public void accept(A t, B u) {
+            f.accept(t, u);
+        }
+
+    }
 
 }

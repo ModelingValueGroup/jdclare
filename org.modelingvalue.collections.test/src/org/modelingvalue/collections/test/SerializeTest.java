@@ -26,6 +26,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 import org.junit.Test;
+import org.modelingvalue.collections.DefaultMap;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.QualifiedSet;
@@ -92,6 +94,14 @@ public class SerializeTest {
         Set<String> set = Set.of("a", "b", "c", "d", "e");
         qset = qset.addAll(set);
         testSerializability(qset);
+    }
+
+    @Test
+    public void serializeDefaultMap() {
+        DefaultMap<String, String> dmap = DefaultMap.of(s -> s);
+        Set<String> set = Set.of("a", "b", "c", "d", "e");
+        dmap = dmap.addAll(set.map(s -> Entry.of(s, s)));
+        testSerializability(dmap);
     }
 
     @SuppressWarnings("unchecked")

@@ -14,6 +14,26 @@
 package org.modelingvalue.collections.util;
 
 @FunctionalInterface
-public interface SerializableTriFunction<T, U, R, S> extends TriFunction<T, U, R, S>, LambdaReflection {
+public interface SerializableTriFunction<A, B, C, D> extends TriFunction<A, B, C, D>, LambdaReflection {
+
+    @Override
+    default SerializableTriFunctionImpl<A, B, C, D> of() {
+        return this instanceof SerializableTriFunctionImpl ? (SerializableTriFunctionImpl<A, B, C, D>) this : new SerializableTriFunctionImpl<A, B, C, D>(this);
+    }
+
+    static class SerializableTriFunctionImpl<A, B, C, D> extends LambdaImpl<SerializableTriFunction<A, B, C, D>> implements SerializableTriFunction<A, B, C, D> {
+
+        private static final long serialVersionUID = -1175580467666540454L;
+
+        public SerializableTriFunctionImpl(SerializableTriFunction<A, B, C, D> f) {
+            super(f);
+        }
+
+        @Override
+        public D apply(A s, B t, C u) {
+            return f.apply(s, t, u);
+        }
+
+    }
 
 }

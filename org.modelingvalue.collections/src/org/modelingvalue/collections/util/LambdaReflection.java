@@ -83,7 +83,9 @@ public interface LambdaReflection extends Serializable {
         Class<?> cls = cls(lambda.getImplClass().replaceAll("/", "."));
         try {
             List<Class<?>> sign = in(lambda.getImplMethodSignature());
-            return cls.getDeclaredMethod(lambda.getImplMethodName(), sign.toArray(l -> new Class[l]));
+            Method method = cls.getDeclaredMethod(lambda.getImplMethodName(), sign.toArray(l -> new Class[l]));
+            method.setAccessible(true);
+            return method;
         } catch (NoSuchMethodException | SecurityException e) {
             throw new RuntimeException(e);
         }
@@ -93,7 +95,9 @@ public interface LambdaReflection extends Serializable {
         Class<?> cls = cls(lambda.getFunctionalInterfaceClass().replaceAll("/", "."));
         try {
             List<Class<?>> sign = in(lambda.getFunctionalInterfaceMethodSignature());
-            return cls.getDeclaredMethod(lambda.getFunctionalInterfaceMethodName(), sign.toArray(l -> new Class[l]));
+            Method method = cls.getDeclaredMethod(lambda.getFunctionalInterfaceMethodName(), sign.toArray(l -> new Class[l]));
+            method.setAccessible(true);
+            return method;
         } catch (NoSuchMethodException | SecurityException e) {
             throw new RuntimeException(e);
         }
@@ -117,30 +121,16 @@ public interface LambdaReflection extends Serializable {
         }
     }
 
-    default List<Class<?>> in() {
-        SerializedLambda lambda = serialized();
+    static List<Class<?>> in(SerializedLambda lambda) {
         List<Class<?>> in = in(lambda.getImplMethodSignature());
         return in.sublist(lambda.getCapturedArgCount(), in.size());
     }
 
-    default Class<?> out() {
-        return out(serialized().getImplMethodSignature());
+    static Class<?> out(SerializedLambda lambda) {
+        return out(lambda.getImplMethodSignature());
     }
 
-    default Method implMethod() {
-        Method method = implMethod(serialized());
-        method.setAccessible(true);
-        return method;
-    }
-
-    default Method funcMethod() {
-        Method method = funcMethod(serialized());
-        method.setAccessible(true);
-        return method;
-    }
-
-    default Object invoke(Object... args) {
-        SerializedLambda lambda = serialized();
+    static Object invoke(SerializedLambda lambda, LambdaReflection function, Object... args) {
         Method method = implMethod(lambda);
         method.setAccessible(true);
         try {
@@ -151,29 +141,26 @@ public interface LambdaReflection extends Serializable {
                 System.arraycopy(args, 0, all, capt.length, args.length);
                 args = all;
             }
-            return implMethod().invoke(this, args);
+            return method.invoke(function, args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
 
-    default int hash() {
-        SerializedLambda lambda = serialized();
-        return lambda.getCapturingClass().hashCode() + //
-                lambda.getFunctionalInterfaceClass().hashCode() + //
-                lambda.getFunctionalInterfaceMethodName().hashCode() + //
-                lambda.getFunctionalInterfaceMethodSignature().hashCode() + //
-                lambda.getImplMethodKind() + //
-                lambda.getImplClass().hashCode() + //
-                lambda.getImplMethodName().hashCode() + //
-                lambda.getImplMethodSignature().hashCode() + //
-                lambda.getInstantiatedMethodType().hashCode() + //
+    static int hash(SerializedLambda lambda) {
+        return lambda.getCapturingClass().hashCode() ^ //
+                lambda.getFunctionalInterfaceClass().hashCode() ^ //
+                lambda.getFunctionalInterfaceMethodName().hashCode() ^ + //
+                lambda.getFunctionalInterfaceMethodSignature().hashCode() ^ //
+                lambda.getImplMethodKind() ^ //
+                lambda.getImplClass().hashCode() ^ //
+                lambda.getImplMethodName().hashCode() ^ //
+                lambda.getImplMethodSignature().hashCode() ^ //
+                lambda.getInstantiatedMethodType().hashCode() ^ //
                 Arrays.hashCode(capturedArgs(lambda));
     }
 
-    default boolean equal(LambdaReflection other) {
-        SerializedLambda a = serialized();
-        SerializedLambda b = other.serialized();
+    static boolean equal(SerializedLambda a, SerializedLambda b) {
         return a.getImplMethodKind() == b.getImplMethodKind() && //
                 a.getCapturingClass().equals(b.getCapturingClass()) && //
                 a.getFunctionalInterfaceClass().equals(b.getFunctionalInterfaceClass()) && //
@@ -186,8 +173,7 @@ public interface LambdaReflection extends Serializable {
                 Arrays.equals(capturedArgs(a), capturedArgs(b));
     }
 
-    default String string() {
-        SerializedLambda lambda = serialized();
+    static String string(SerializedLambda lambda) {
         String implKind = MethodHandleInfo.referenceKindToString(lambda.getImplMethodKind());
         return String.format("SerializedLambda[%s=%s, %s=%s.%s:%s, " + "%s=%s %s.%s:%s, %s=%s, %s=%s]", //
                 "capturingClass", lambda.getCapturingClass(), //
@@ -195,6 +181,115 @@ public interface LambdaReflection extends Serializable {
                 "implementation", implKind, lambda.getImplClass(), lambda.getImplMethodName(), lambda.getImplMethodSignature(), //
                 "instantiatedMethodType", lambda.getInstantiatedMethodType(), //
                 "capturedArgs", StringUtil.toString(capturedArgs(lambda)));
+    }
+
+    LambdaImpl<?> of();
+
+    default Method implMethod() {
+        return of().implMethod();
+    }
+
+    default Method funcMethod() {
+        return of().funcMethod();
+    }
+
+    default Object[] capturedArgs() {
+        return of().capturedArgs();
+    }
+
+    default List<Class<?>> in() {
+        return of().in();
+    }
+
+    default Class<?> out() {
+        return of().out();
+    }
+
+    default Object invoke(Object... args) {
+        return of().invoke(args);
+    }
+
+    default LambdaReflection original() {
+        return this;
+    }
+
+    static abstract class LambdaImpl<F extends LambdaReflection> implements LambdaReflection {
+
+        private static final long      serialVersionUID = 5814783501752526565L;
+
+        protected final F              f;
+        private final SerializedLambda serialized;
+        private final int              hashCode;
+
+        public LambdaImpl(F f) {
+            this.f = f;
+            this.serialized = f.serialized();
+            this.hashCode = LambdaReflection.hash(serialized);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            } else if (obj == null) {
+                return false;
+            } else if (getClass() != obj.getClass()) {
+                return false;
+            }
+            LambdaImpl<?> other = (LambdaImpl) obj;
+            if (hashCode != other.hashCode) {
+                return false;
+            } else {
+                return LambdaReflection.equal(serialized, other.serialized);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return LambdaReflection.string(serialized);
+        }
+
+        @Override
+        public Method implMethod() {
+            return LambdaReflection.implMethod(serialized);
+        }
+
+        @Override
+        public Method funcMethod() {
+            return LambdaReflection.funcMethod(serialized);
+        }
+
+        @Override
+        public Object[] capturedArgs() {
+            return LambdaReflection.capturedArgs(serialized);
+        }
+
+        @Override
+        public List<Class<?>> in() {
+            return LambdaReflection.in(serialized);
+        }
+
+        @Override
+        public Class<?> out() {
+            return LambdaReflection.out(serialized);
+        }
+
+        @Override
+        public Object invoke(Object... args) {
+            return LambdaReflection.invoke(serialized, f, args);
+        }
+
+        @Override
+        public F original() {
+            return f;
+        }
+
     }
 
 }

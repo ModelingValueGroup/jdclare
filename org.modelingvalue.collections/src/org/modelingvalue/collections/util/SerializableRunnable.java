@@ -16,4 +16,24 @@ package org.modelingvalue.collections.util;
 @FunctionalInterface
 public interface SerializableRunnable extends Runnable, LambdaReflection {
 
+    @Override
+    default SerializableRunnableImpl of() {
+        return this instanceof SerializableRunnableImpl ? (SerializableRunnableImpl) this : new SerializableRunnableImpl(this);
+    }
+
+    static class SerializableRunnableImpl extends LambdaImpl<SerializableRunnable> implements SerializableRunnable {
+
+        private static final long serialVersionUID = -930587277518158938L;
+
+        public SerializableRunnableImpl(SerializableRunnable f) {
+            super(f);
+        }
+
+        @Override
+        public void run() {
+            f.run();
+        }
+
+    }
+
 }

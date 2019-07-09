@@ -16,6 +16,26 @@ package org.modelingvalue.collections.util;
 import java.util.function.BiFunction;
 
 @FunctionalInterface
-public interface SerializableBiFunction<T, U, R> extends BiFunction<T, U, R>, LambdaReflection {
+public interface SerializableBiFunction<A, B, C> extends BiFunction<A, B, C>, LambdaReflection {
+
+    @Override
+    default SerializableBiFunctionImpl<A, B, C> of() {
+        return this instanceof SerializableBiFunctionImpl ? (SerializableBiFunctionImpl<A, B, C>) this : new SerializableBiFunctionImpl<A, B, C>(this);
+    }
+
+    static class SerializableBiFunctionImpl<A, B, C> extends LambdaImpl<SerializableBiFunction<A, B, C>> implements SerializableBiFunction<A, B, C> {
+
+        private static final long serialVersionUID = 3679004512278552829L;
+
+        public SerializableBiFunctionImpl(SerializableBiFunction<A, B, C> f) {
+            super(f);
+        }
+
+        @Override
+        public C apply(A t, B u) {
+            return f.apply(t, u);
+        }
+
+    }
 
 }

@@ -31,6 +31,7 @@ public class LambdaTest {
     public void lambdaReflection() {
         int x = 10;
         SerializableBiFunction<List<String>, Integer, String> f0 = (a, b) -> a.toString() + b + x;
+        f0 = f0.of();
         assertEquals(f0.in().get(0), List.class);
         assertEquals(f0.in().get(1), Integer.class);
         assertEquals(f0.in().size(), 2);
@@ -39,9 +40,11 @@ public class LambdaTest {
 
         SerializableBiFunction<String, Integer, String> f1 = LambdaTest::a;
         SerializableBiFunction<String, Integer, String> f2 = LambdaTest::a;
-        assertTrue(f1.equal(f2));
-        assertEquals(f1.hash(), f2.hash());
-        assertEquals(f1.string(), f2.string());
+        f1 = f1.of();
+        f2 = f2.of();
+        assertTrue(f1.equals(f2));
+        assertEquals(f1.hashCode(), f2.hashCode());
+        assertEquals(f1.toString(), f2.toString());
         assertEquals(f1.implMethod(), f2.implMethod());
         assertEquals(f1.implMethod(), reflect());
     }
