@@ -62,6 +62,12 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
     @Override
     QualifiedSet<K, V> remove(Object e);
 
+    boolean containsAll(Collection<?> c);
+
+    QualifiedSet<K, V> exclusiveAll(Collection<? extends V> c);
+
+    QualifiedSet<K, V> retainAll(Collection<?> c);
+
     void deduplicate(QualifiedSet<K, V> other);
 
     SerializableFunction<V, K> qualifier();

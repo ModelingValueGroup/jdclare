@@ -175,4 +175,34 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         return filter(v -> keyPredicate.test(qualifier.apply(v)) && valuePredicate.test(v)).toQualifiedSet(qualifier);
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        if (c instanceof QualifiedSetImpl) {
+            return c.size() == size(retain(value, key(), ((QualifiedSetImpl) c).value, key()));
+        } else {
+            return containsAll(c.toQualifiedSet(qualifier));
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public QualifiedSet<K, V> exclusiveAll(Collection<? extends V> c) {
+        if (c instanceof QualifiedSetImpl) {
+            return create(exclusive(value, key(), ((QualifiedSetImpl) c).value, key()));
+        } else {
+            return exclusiveAll(c.toQualifiedSet(qualifier));
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public QualifiedSet<K, V> retainAll(Collection<?> c) {
+        if (c instanceof QualifiedSetImpl) {
+            return create(retain(value, key(), ((QualifiedSetImpl) c).value, key()));
+        } else {
+            return retainAll(c.toQualifiedSet(qualifier));
+        }
+    }
+
 }
