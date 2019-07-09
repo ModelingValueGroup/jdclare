@@ -13,8 +13,6 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.function.BiFunction;
-
 import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
@@ -176,12 +174,6 @@ public class ObserverTransaction extends ActionTransaction {
     }
 
     @Override
-    public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        observe(object, property, true);
-        return super.set(object, property, function, element);
-    }
-
-    @Override
     public <O, T> T set(O object, Setable<O, T> property, T value) {
         observe(object, property, true);
         return super.set(object, property, value);
@@ -213,7 +205,7 @@ public class ObserverTransaction extends ActionTransaction {
     @Override
     protected <O, T> void changed(O object, Setable<O, T> setable, T preValue, T postValue) {
         runNonObserving(() -> super.changed(object, setable, preValue, postValue));
-        if (setable instanceof Observed && countChanges((Observed) setable)) {
+        if (object instanceof Mutable && setable instanceof Observed && getted.isInitialized() && OBSERVE.get() && countChanges((Observed) setable)) {
             trigger(parent().mutable(), (Observer<Mutable>) observer(), Direction.backward);
         }
     }
