@@ -89,40 +89,29 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
 
     @Override
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
-        T pre = state().get(object, property);
-        T bra = setted.get().get(object, property);
-        T post = function.apply(bra, element);
-        set(object, property, pre, bra, post);
-        return pre;
-    }
-
-    @Override
-    public <O, T> T set(O object, Setable<O, T> property, T post) {
-        T pre = state().get(object, property);
-        T bra = setted.get().get(object, property);
-        set(object, property, pre, bra, post);
-        return pre;
+        return set(object, property, function.apply(setted.get().get(object, property), element));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <O, T> void set(O object, Setable<O, T> property, T pre, T bra, T post) {
-        if (!Objects.equals(bra, post)) {
-            T[] oldNew = (T[]) new Object[2];
-            setted.change(s -> s.set(object, property, (br, po) -> {
-                if (!Objects.equals(br, pre)) {
-                    if (br == null || post == null) {
-                        return post;
-                    } else if (pre instanceof Mergeable) {
-                        return (T) ((Mergeable) pre).merge2(br, po);
-                    } else {
-                        handleMergeConflict(object, property, pre, br, po);
-                        return po;
-                    }
+    @Override
+    public <O, T> T set(O object, Setable<O, T> property, T post) {
+        T pre = state().get(object, property);
+        T[] oldNew = (T[]) new Object[2];
+        if (setted.change(s -> s.set(object, property, (br, po) -> {
+            if (Objects.equals(br, po)) {
+                po = br;
+            } else if (!Objects.equals(br, pre)) {
+                if (pre instanceof Mergeable) {
+                    po = (T) ((Mergeable) pre).merge2(br, po);
+                } else if (br != null && po != null) {
+                    handleMergeConflict(object, property, pre, br, po);
                 }
-                return po;
-            }, post, oldNew));
+            }
+            return po;
+        }, post, oldNew))) {
             changed(object, property, oldNew[0], oldNew[1]);
         }
+        return pre;
     }
 
     private final class Setted extends Concurrent<State> {
