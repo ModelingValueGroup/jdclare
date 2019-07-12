@@ -532,7 +532,7 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @Override
     public <U extends Mergeable<U>> U reduce(U identity, BiFunction<U, ? super T, U> accumulator) {
-        return reduce(identity, accumulator, (a, b) -> identity.merge2(a, b));
+        return reduce(identity, accumulator, (a, b) -> identity.merge(a, b));
     }
 
 }

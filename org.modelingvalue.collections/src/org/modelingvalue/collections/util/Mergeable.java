@@ -17,16 +17,20 @@ import java.lang.reflect.Array;
 
 public interface Mergeable<T> {
 
-    T merge(T[] branches);
+    default T merge(T[] branches) {
+        return merge(branches, branches.length);
+    }
+
+    T merge(T[] branches, int length);
 
     T getMerger();
 
     @SuppressWarnings("unchecked")
-    default T merge2(T a, T b) {
+    default T merge(T a, T b) {
         T[] us = (T[]) Array.newInstance(getClass(), 2);
         us[0] = a;
         us[1] = b;
-        return merge(us);
+        return merge(us, 2);
     }
 
 }

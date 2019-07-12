@@ -702,17 +702,17 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
     @SuppressWarnings("resource")
     @Override
-    public List<T> merge(List<T>[] branches) {
+    public List<T> merge(List<T>[] branches, int length) {
         int biggest = -1;
         int size = -1;
-        for (int i = 0; i < branches.length; i++) {
+        for (int i = 0; i < length; i++) {
             if (branches[i].size() > size) {
                 size = branches[i].size();
                 biggest = i;
             }
         }
         List<T> result = biggest >= 0 ? branches[biggest] : this;
-        for (int i = 0; i < branches.length; i++) {
+        for (int i = 0; i < length; i++) {
             if (i != biggest) {
                 for (T t : this) {
                     if (!branches[i].contains(t)) {

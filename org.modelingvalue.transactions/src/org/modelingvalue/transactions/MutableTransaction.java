@@ -179,7 +179,7 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
                 triggeredMutables[ia].init(Set.of());
             }
             try {
-                State state = base.merge(this, branches);
+                State state = base.merge(this, branches, branches.length);
                 for (int ia = 0; ia < 2; ia++) {
                     state = trigger(state, triggeredActions[ia].result(), Direction.values()[ia]);
                     state = triggerMutables(state, triggeredMutables[ia].result(), Direction.values()[ia]);

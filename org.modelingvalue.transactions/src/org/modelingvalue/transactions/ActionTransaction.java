@@ -102,7 +102,7 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
                 po = br;
             } else if (!Objects.equals(br, pre)) {
                 if (pre instanceof Mergeable) {
-                    po = (T) ((Mergeable) pre).merge2(br, po);
+                    po = (T) ((Mergeable) pre).merge(br, po);
                 } else if (br != null && po != null) {
                     handleMergeConflict(object, property, pre, br, po);
                 }
@@ -116,8 +116,8 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
 
     private final class Setted extends Concurrent<State> {
         @Override
-        protected State merge(State base, State[] branches) {
-            return base.merge(ActionTransaction.this, branches);
+        protected State merge(State base, State[] branches, int length) {
+            return base.merge(ActionTransaction.this, branches, length);
         }
     }
 

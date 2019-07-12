@@ -19,8 +19,8 @@ import java.util.function.Predicate;
 import org.modelingvalue.collections.impl.DefaultMapImpl;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.collections.util.TriFunction;
 
 public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<DefaultMap<K, V>> {
 
@@ -67,8 +67,7 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
 
     Collection<V> toValues();
 
-    @SuppressWarnings("unchecked")
-    DefaultMap<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, DefaultMap<K, V>... branches);
+    DefaultMap<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, DefaultMap<K, V>[] branches, int length);
 
     @Override
     DefaultMap<K, V> remove(Object e);

@@ -14,7 +14,6 @@
 package org.modelingvalue.transactions;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -128,68 +127,34 @@ public class State implements Serializable {
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    private static DefaultMap<Setable, Object> map(Entry<Object, DefaultMap<Setable, Object>> in) {
-        return in == null ? EMPTY_SETABLES_MAP : in.getValue();
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static DefaultMap<Setable, Object>[] map(Entry<Object, DefaultMap<Setable, Object>>[] in) {
-        DefaultMap<Setable, Object>[] r = new DefaultMap[in.length];
-        for (int i = 0; i < in.length; i++) {
-            r[i] = in[i] == null ? EMPTY_SETABLES_MAP : in[i].getValue();
-        }
-        return r;
-    }
-
-    private static <X, Y> Y val(Setable<X, Y> p, Entry<?, Y> e) {
-        return e == null ? p.getDefault() : e.getValue();
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static <X, Y> Y[] val(Y b, Setable<X, Y> p, Entry<Setable, Y>[] in) {
-        Y[] r = b != null ? (Y[]) Array.newInstance(b.getClass(), in.length) : (Y[]) new Object[in.length];
-        for (int i = 0; i < in.length; i++) {
-            r[i] = in[i] == null ? p.getDefault() : in[i].getValue();
-        }
-        return r;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public State merge(StateMergeHandler changeHandler, State... branches) {
-        DefaultMap<Object, DefaultMap<Setable, Object>>[] maps = new DefaultMap[branches.length];
-        for (int i = 0; i < maps.length; i++) {
+    public State merge(StateMergeHandler changeHandler, State[] branches, int length) {
+        DefaultMap<Object, DefaultMap<Setable, Object>>[] maps = new DefaultMap[length];
+        for (int i = 0; i < length; i++) {
             maps[i] = branches[i].map;
         }
-        DefaultMap<Object, DefaultMap<Setable, Object>> niw = map.merge((o, eps, epss) -> {
-            DefaultMap<Setable, Object> ps = map(eps);
-            DefaultMap<Setable, Object>[] pss = map(epss);
-            DefaultMap<Setable, Object> props = ps.merge((p, ev, evs) -> {
-                Object v = val(p, ev);
-                Object[] vs;
+        DefaultMap<Object, DefaultMap<Setable, Object>> niw = map.merge((o, ps, pss, pl) -> {
+            DefaultMap<Setable, Object> props = ps.merge((p, v, vs, vl) -> {
                 if (v instanceof Mergeable) {
-                    vs = val(v, p, evs);
-                    Object result = ((Mergeable) v).merge(vs);
-                    return Objects.equals(result, p.getDefault()) ? null : p.entry(result, null);
+                    return ((Mergeable) v).merge(vs, (int) vl);
                 } else {
-                    vs = val(null, p, evs);
-                    Object result = null;
-                    for (int i = 0; i < vs.length; i++) {
-                        if (vs[i] != null) {
-                            if (result != null) {
+                    Object r = v;
+                    for (int i = 0; i < vl; i++) {
+                        if (vs[i] != null && !vs[i].equals(v)) {
+                            if (!Objects.equals(r, v)) {
                                 if (changeHandler != null) {
                                     changeHandler.handleMergeConflict(o, p, v, vs);
                                 } else {
                                     throw new NotMergeableException(o + "." + p + "= " + v + " -> " + StringUtil.toString(vs));
                                 }
                             } else {
-                                result = vs[i];
+                                r = vs[i];
                             }
                         }
                     }
-                    return p.entry(result, null);
+                    return r;
                 }
-            }, pss);
+            }, pss, pl);
             if (changeHandler != null) {
                 for (Entry<Setable, Object> p : props) {
                     if (p != ps.getEntry(p.getKey())) {
@@ -198,8 +163,8 @@ public class State implements Serializable {
                     }
                 }
             }
-            return props.isEmpty() ? null : Entry.of(o, props);
-        }, maps);
+            return props;
+        }, maps, maps.length);
         return niw.isEmpty() ? universeTransaction.emptyState() : new State(universeTransaction, niw);
 
     }

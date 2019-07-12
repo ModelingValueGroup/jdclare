@@ -172,23 +172,23 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     }
 
     @Override
-    public Map<K, V> merge(Map<K, V>[] branches) {
+    public Map<K, V> merge(Map<K, V>[] branches, int length) {
         return merge((k, v, vs) -> Mergeables.merge(v, vs, vs.length), branches);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Map<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Map<K, V>... branches) {
-        return create(visit(a -> Mergeables.merge(a[0], //
-                (e, es) -> mergeEntry((Entry<K, V>) e, merger, es), a, a.length), branches));
+        return create(visit((a, l) -> Mergeables.merge(a[0], //
+                (e, es, el) -> mergeEntry((Entry<K, V>) e, merger, es, el), a, l), branches, branches.length));
     }
 
     @SuppressWarnings("unchecked")
-    protected Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Object[] es) {
-        Entry<K, V>[] vs = new Entry[es.length];
-        System.arraycopy(es, 0, vs, 0, es.length);
+    private Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Object[] es, int el) {
+        Entry<K, V>[] vs = new Entry[el];
+        System.arraycopy(es, 0, vs, 0, el);
         K key = e != null ? e.getKey() : null;
-        for (int i = 0; key == null && i < es.length; i++) {
+        for (int i = 0; key == null && i < el; i++) {
             if (vs[i] != null) {
                 key = vs[i].getKey();
             }
@@ -199,7 +199,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         } else if (Objects.equals(result, e)) {
             return e;
         } else {
-            for (int i = 0; i < es.length; i++) {
+            for (int i = 0; i < el; i++) {
                 if (Objects.equals(result, es[i])) {
                     return (Entry<K, V>) es[i];
                 }

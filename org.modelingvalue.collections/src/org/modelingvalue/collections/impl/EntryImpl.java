@@ -49,14 +49,14 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Entry<K, V> merge(Entry<K, V>[] branches) {
+    public Entry<K, V> merge(Entry<K, V>[] branches, int length) {
         V[] vs = null;
         K key = getKey();
         if (getValue() != null) {
             Class<?> vc = getValue().getClass();
-            vs = (V[]) Array.newInstance(vc, branches.length);
+            vs = (V[]) Array.newInstance(vc, length);
         }
-        for (int i = 0; i < branches.length; i++) {
+        for (int i = 0; i < length; i++) {
             if (branches[i] != null) {
                 if (key == null) {
                     key = branches[i].getKey();
@@ -64,17 +64,17 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
                 if (branches[i].getValue() != null) {
                     if (vs == null) {
                         Class<?> vc = branches[i].getValue().getClass();
-                        vs = (V[]) Array.newInstance(vc, branches.length);
+                        vs = (V[]) Array.newInstance(vc, length);
                     }
                     vs[i] = branches[i].getValue();
                 }
             }
         }
-        V v = Mergeables.merge(getValue(), vs, vs.length);
+        V v = Mergeables.merge(getValue(), vs, length);
         if (Objects.equals(getValue(), v) && Objects.equals(getKey(), key)) {
             return this;
         } else {
-            for (int i = 0; i < branches.length; i++) {
+            for (int i = 0; i < length; i++) {
                 if (branches[i] != null) {
                     if (Objects.equals(branches[i].getValue(), v)) {
                         return branches[i];

@@ -684,15 +684,15 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected <R extends ContainingCollection<T>> R hashMerge(R[] branches) {
-        return (R) create(visit(a -> {
-            for (int i = 1; i < a.length; i++) {
-                if (a[i] != a[0]) {
+    protected <R extends ContainingCollection<T>> R hashMerge(R[] branches, int length) {
+        return (R) create(visit((a, l) -> {
+            for (int i = 1; i < l; i++) {
+                if (!Objects.equals(a[i], a[0])) {
                     return a[i];
                 }
             }
             return a[0];
-        }, branches));
+        }, branches, length));
     }
 
     @Override
@@ -764,8 +764,8 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected Object visit(Function<? super Object[], Object> visitor, ContainingCollection<? extends T>... others) {
-        Object[] values = new Object[others.length + 1];
+    protected final Object visit(BiFunction<? super Object[], Integer, Object> visitor, ContainingCollection<? extends T>[] others, int length) {
+        Object[] values = new Object[length + 1];
         @SuppressWarnings("rawtypes")
         Function[] keys = new Function[values.length];
         int[] ids = new int[values.length];
@@ -774,26 +774,28 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         keys[0] = key();
         ids[0] = index(value, key());
         byte maxLevel = level(value);
-        keep[0] = visitor.apply(SINGLES[0]) == DUMMY;
+        keep[0] = visitor.apply(SINGLES[0], values.length) == DUMMY;
         for (int i = 1; i < values.length; i++) {
             HashCollectionImpl<T> other = (HashCollectionImpl<T>) others[i - 1];
             values[i] = other.value;
             keys[i] = other.key();
             ids[i] = index(other.value, other.key());
             maxLevel = min(maxLevel, level(other.value));
-            keep[i] = visitor.apply(SINGLES[i]) == DUMMY;
+            keep[i] = visitor.apply(SINGLES[i], values.length) == DUMMY;
         }
         return visit(visitor, keep, keys, values, ids, maxLevel, (byte) 0, 0);
     }
 
     @SuppressWarnings("rawtypes")
-    private static Object visit(Function<? super Object[], Object> visitor, boolean[] keep, Function[] keys, Object[] values, int[] ids, byte maxLevel, byte level, int index) {
-        if (equalKeys(values, keys)) {
-            return visitor.apply(values);
+    private static Object visit(BiFunction<? super Object[], Integer, Object> visitor, boolean[] keep, Function[] keys, Object[] values, int[] ids, byte maxLevel, byte level, int index) {
+        int len = equalKeys(keep, keys, values, ids);
+        if (len >= 0) {
+            return visitor.apply(values, len);
         } else {
+            len = -len;
             stop:
             for (int cnt = 0, idx, newIndex = index; level < maxLevel; cnt = 0, index = newIndex, level++) {
-                for (int i = 0; i < values.length; i++) {
+                for (int i = 0; i < len; i++) {
                     if (values[i] != null) {
                         idx = index | (ids[i] & PART_MASKS[level]);
                         if (cnt++ > 0) {
@@ -807,23 +809,23 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 }
             }
             if (level == NR_OF_PARTS) {
-                return visitEqualHashes(visitor, keep, keys, values, index);
+                return visitEqualHashes(visitor, keep, keys, values, index, len);
             } else {
-                return visitUnequalHashes(visitor, keep, keys, values, ids, level, index);
+                return visitUnequalHashes(visitor, keep, keys, values, ids, level, index, len);
             }
         }
     }
 
     @SuppressWarnings("rawtypes")
-    private static Object visitUnequalHashes(Function<? super Object[], Object> visitor, boolean[] keep, Function[] keys, Object[] values, int[] ids, byte level, int index) {
+    private static Object visitUnequalHashes(BiFunction<? super Object[], Integer, Object> visitor, boolean[] keep, Function[] keys, Object[] values, int[] ids, byte level, int index, int len) {
         Object result = null, val;
         int resultIdx = -1, idx, prev = 0;
         byte it, maxLevel = -1;
-        int[] downIds = new int[values.length];
-        Object[] downValues = new Object[values.length];
-        long[] masks = new long[values.length];
+        int[] downIds = new int[len];
+        Object[] downValues = new Object[len];
+        long[] masks = new long[len];
         long downMask, mask = 0;
-        for (it = 0; it < values.length; it++) {
+        for (it = 0; it < len; it++) {
             if (keep[it]) {
                 val = values[it];
                 // use 'idx' for current length
@@ -837,7 +839,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 }
             }
         }
-        for (it = 0; it < values.length; it++) {
+        for (it = 0; it < len; it++) {
             downMask = mask(values[it], ids[it], level);
             masks[it] = downMask;
             if (it != maxLevel) {
@@ -846,7 +848,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
         for (idx = Long.numberOfTrailingZeros(mask); idx < Long.SIZE; idx++, idx += Long.numberOfTrailingZeros(mask >>> idx)) {
             maxLevel = NR_OF_PARTS;
-            for (it = 0; it < values.length; it++) {
+            for (it = 0; it < len; it++) {
                 // use 'prev' as it
                 prev = getIt(masks[it], idx);
                 if (prev >= 0) {
@@ -855,6 +857,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                     maxLevel = min(level(downValues[it]), maxLevel);
                 } else {
                     downValues[it] = null;
+                    downIds[it] = 0;
                 }
             }
             val = visit(visitor, keep, keys, downValues, downIds, maxLevel, level, index);
@@ -888,11 +891,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Object visitEqualHashes(Function<? super Object[], Object> visitor, boolean[] keep, Function[] keys, Object[] values, int index) {
-        Object[] downValues = new Object[values.length];
+    private static Object visitEqualHashes(BiFunction<? super Object[], Integer, Object> visitor, boolean[] keep, Function[] keys, Object[] values, int index, int len) {
+        Object[] downValues = new Object[len];
         Object obj, other, key, result = null;
         int it, length, base = -1, prev = -1;
-        for (it = 0; it < values.length; it++) {
+        for (it = 0; it < len; it++) {
             if (keep[it]) {
                 obj = values[it];
                 length = obj instanceof HashMultiValue && ((HashMultiValue) obj).level == NR_OF_PARTS ? ((HashMultiValue) obj).values.length : obj != null ? 1 : 0;
@@ -903,14 +906,14 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 }
             }
         }
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < len; i++) {
             if (i != base) {
                 length = length(values[i]);
                 next:
                 for (int ii = 0; ii < length; ii++) {
                     downValues[i] = get(values[i], ii);
                     key = keys[i].apply(downValues[i]);
-                    for (int iii = 0; iii < values.length; iii++) {
+                    for (int iii = 0; iii < len; iii++) {
                         if (iii != i) {
                             downValues[iii] = null;
                             it = length(values[iii]);
@@ -928,7 +931,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                             }
                         }
                     }
-                    obj = visitor.apply(downValues);
+                    obj = visitor.apply(downValues, downValues.length);
                     if (result == null) {
                         result = obj;
                     } else if (result instanceof HashMultiValue && ((HashMultiValue) result).level == NR_OF_PARTS) {
@@ -947,23 +950,33 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @SuppressWarnings("rawtypes")
-    private static boolean equalKeys(Object[] values, Function[] keys) {
+    private static int equalKeys(boolean[] keep, Function[] keys, Object[] values, int[] ids) {
         Object prev = null;
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != null) {
-                Object obj = key(values[i], keys[i]);
-                if (prev != null) {
-                    if (!prev.equals(obj)) {
-                        return false;
-                    } else if (obj == values[i]) {
-                        values[i] = prev;
-                    }
-                } else {
-                    prev = obj;
+        int l = 0, i, ii;
+        boolean equal = true;
+        for (i = 0; i < values.length; i++) {
+            for (ii = 0; ii < l; ii++) {
+                if (keep[i] == keep[ii] && ids[i] == ids[ii] && keys[i] == keys[ii] && values[i] == values[ii]) {
+                    break;
                 }
             }
+            if (ii == l) {
+                keep[l] = keep[i];
+                ids[l] = ids[i];
+                keys[l] = keys[i];
+                values[l] = values[i];
+                if (equal && values[l] != null) {
+                    Object key = key(values[l], keys[l]);
+                    if (prev != null) {
+                        equal = prev.equals(key);
+                    } else {
+                        prev = key;
+                    }
+                }
+                l++;
+            }
         }
-        return true;
+        return equal ? l : -l;
     }
 
     @Override

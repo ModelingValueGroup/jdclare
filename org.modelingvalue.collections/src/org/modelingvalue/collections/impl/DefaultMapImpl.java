@@ -13,6 +13,7 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.lang.reflect.Array;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
@@ -25,8 +26,8 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.collections.util.TriFunction;
 
 public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements DefaultMap<K, V> {
 
@@ -188,40 +189,70 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     }
 
     @Override
-    public DefaultMap<K, V> merge(DefaultMap<K, V>[] branches) {
-        return merge((k, v, vs) -> Mergeables.merge(v, vs, vs.length), branches);
+    public DefaultMap<K, V> merge(DefaultMap<K, V>[] branches, int length) {
+        return merge((k, v, vs, l) -> Mergeables.merge(v, vs, l), branches, length);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public DefaultMap<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, DefaultMap<K, V>... branches) {
-        return create(visit(a -> Mergeables.merge(a[0], //
-                (e, es) -> mergeEntry((Entry<K, V>) e, merger, es), a, a.length), branches));
-    }
-
-    @SuppressWarnings("unchecked")
-    protected Entry<K, V> mergeEntry(Entry<K, V> e, TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Object[] es) {
-        Entry<K, V>[] vs = new Entry[es.length];
-        System.arraycopy(es, 0, vs, 0, es.length);
-        K key = e != null ? e.getKey() : null;
-        for (int i = 0; key == null && i < es.length; i++) {
-            if (vs[i] != null) {
-                key = vs[i].getKey();
-            }
-        }
-        Entry<K, V> result = merger.apply(key, e, vs);
-        if (result == null || Objects.equals(result.getValue(), defaultFunction.apply(key))) {
-            return null;
-        } else if (Objects.equals(result, e)) {
-            return e;
-        } else {
-            for (int i = 0; i < es.length; i++) {
-                if (Objects.equals(result, es[i])) {
-                    return (Entry<K, V>) es[i];
+    public DefaultMap<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, DefaultMap<K, V>[] branches, int length) {
+        return create(visit((a, l) -> {
+            Object r = a[0];
+            for (int i = 1; i < l; i++) {
+                if (!Objects.equals(a[i], a[0]) && !Objects.equals(a[i], r)) {
+                    if (!Objects.equals(a[0], r)) {
+                        return merge(merger, a, l);
+                    } else {
+                        r = a[i];
+                    }
                 }
             }
+            return r;
+        }, branches, length));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object merge(QuadFunction<K, V, V[], Integer, V> merger, Object[] es, int el) {
+        K key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
+        V def = key != null ? defaultFunction.apply(key) : null;
+        V v = es[0] != null ? ((Entry<K, V>) es[0]).getValue() : def;
+        V[] vs = def != null ? (V[]) Array.newInstance(def.getClass(), el - 1) : v != null ? (V[]) Array.newInstance(v.getClass(), el - 1) : null;
+        V b;
+        boolean noKey;
+        for (int i = 1; i < el; i++) {
+            if (es[i] != null) {
+                noKey = key == null;
+                if (noKey) {
+                    key = ((Entry<K, V>) es[i]).getKey();
+                    def = defaultFunction.apply(key);
+                    v = def;
+                }
+                b = ((Entry<K, V>) es[i]).getValue();
+                if (vs == null) {
+                    vs = def != null ? (V[]) Array.newInstance(def.getClass(), el - 1) : b != null ? (V[]) Array.newInstance(b.getClass(), el - 1) : null;
+                }
+                if (def != null && noKey) {
+                    for (int ii = 0; ii < i - 1; ii++) {
+                        vs[ii] = def;
+                    }
+                }
+                if (b != null) {
+                    vs[i - 1] = b;
+                }
+            } else if (def != null) {
+                vs[i - 1] = def;
+            }
         }
-        return result;
+        V result = merger.apply(key, v, vs, el - 1);
+        if (Objects.equals(result, def)) {
+            return null;
+        } else {
+            for (int i = 0; i < el; i++) {
+                if (es[i] != null && Objects.equals(result, ((Entry<K, V>) es[i]).getValue())) {
+                    return es[i];
+                }
+            }
+            return Entry.of(key, result);
+        }
     }
 
     @Override

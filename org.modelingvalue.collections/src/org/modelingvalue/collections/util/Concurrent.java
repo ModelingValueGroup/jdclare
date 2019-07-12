@@ -98,7 +98,7 @@ public class Concurrent<T> {
                     if (pre == states[ContextThread.POOL_SIZE]) {
                         states[ContextThread.POOL_SIZE] = value;
                     } else if (pre instanceof Mergeable) {
-                        states[ContextThread.POOL_SIZE] = (T) ((Mergeable) pre).merge2(states[ContextThread.POOL_SIZE], value);
+                        states[ContextThread.POOL_SIZE] = (T) ((Mergeable) pre).merge(states[ContextThread.POOL_SIZE], value);
                     } else {
                         throw new ConcurrentModificationException();
                     }
@@ -153,7 +153,7 @@ public class Concurrent<T> {
                 states[l++] = states[i];
             }
         }
-        T result = Mergeables.merge(pre, (p, a) -> merge(p, a), states, l);
+        T result = Mergeables.merge(pre, this::merge, states, l);
         Arrays.fill(states, null);
         pre = null;
         return result;
@@ -177,9 +177,9 @@ public class Concurrent<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected T merge(T base, T[] branches) {
+    protected T merge(T base, T[] branches, int l) {
         if (base instanceof Mergeable) {
-            return ((Mergeable<T>) base).merge(branches);
+            return ((Mergeable<T>) base).merge(branches, l);
         } else {
             throw new ConcurrentModificationException();
         }

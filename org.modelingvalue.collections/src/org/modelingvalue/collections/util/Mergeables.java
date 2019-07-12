@@ -15,7 +15,6 @@ package org.modelingvalue.collections.util;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.function.BiFunction;
 
 public interface Mergeables {
 
@@ -25,10 +24,10 @@ public interface Mergeables {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     static <T> T merge(T base, T[] branches, int l) {
-        return merge(base, (b, bs) -> {
+        return merge(base, (b, bs, bl) -> {
             Mergeable merger = b instanceof Mergeable ? (Mergeable) ((Mergeable) b).getMerger() : null;
             if (merger == null) {
-                for (int i = 0; i < bs.length; i++) {
+                for (int i = 0; i < bl; i++) {
                     if (bs[i] instanceof Mergeable) {
                         merger = (Mergeable) ((Mergeable) bs[i]).getMerger();
                         break;
@@ -36,37 +35,37 @@ public interface Mergeables {
                 }
             }
             if (merger != null) {
-                for (int i = 0; i < bs.length; i++) {
+                for (int i = 0; i < bl; i++) {
                     if (bs[i] == null) {
                         bs[i] = (T) merger;
                     }
                 }
-                return (T) ((Mergeable) (b == null ? merger : b)).merge(bs);
+                return (T) ((Mergeable) (b == null ? merger : b)).merge(bs, (int) bl);
             } else {
                 throw new NotMergeableException(b + " -> " + Arrays.toString(bs));
             }
         }, branches, l);
     }
 
-    static <T> T merge(T base, BiFunction<T, T[], T> merger, T[] branches, int l) {
+    static <T> T merge(T base, TriFunction<T, T[], Integer, T> merger, T[] branches, int length) {
         boolean copied = false;
-        for (int i = 0; i < l; i++) {
+        for (int i = 0; i < length; i++) {
             if (Objects.equals(branches[i], base) || contains(branches, branches[i], i)) {
-                if (i < --l) {
+                if (i < --length) {
                     if (!copied) {
-                        branches = Arrays.copyOf(branches, l + 1);
+                        branches = Arrays.copyOf(branches, length + 1);
                         copied = true;
                     }
-                    System.arraycopy(branches, i + 1, branches, i, l - i--);
+                    System.arraycopy(branches, i + 1, branches, i, length - i--);
                 }
             }
         }
-        if (l == 0) {
+        if (length == 0) {
             return base;
-        } else if (l == 1) {
+        } else if (length == 1) {
             return branches[0];
         } else {
-            return merger.apply(base, !copied || branches.length > l ? Arrays.copyOf(branches, l) : branches);
+            return merger.apply(base, !copied ? Arrays.copyOf(branches, length) : branches, length);
         }
     }
 

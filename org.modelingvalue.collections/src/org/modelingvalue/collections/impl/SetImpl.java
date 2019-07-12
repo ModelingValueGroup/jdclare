@@ -125,8 +125,8 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     }
 
     @Override
-    public Set<T> merge(Set<T>[] branches) {
-        return hashMerge(branches);
+    public Set<T> merge(Set<T>[] branches, int length) {
+        return hashMerge(branches, length);
     }
 
     @SuppressWarnings("unchecked")

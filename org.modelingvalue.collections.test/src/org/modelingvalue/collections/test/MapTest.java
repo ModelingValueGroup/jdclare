@@ -136,7 +136,7 @@ public class MapTest {
         Map<String, String> map2 = Map.of(Entry.of("AA", "aa"));
         Map<String, String> map3 = Map.of(Entry.of("AA", "bb"));
 
-        Map<String, String> map4 = map1.merge2(map2, map3);
+        Map<String, String> map4 = map1.merge(map2, map3);
         assertEquals(map4, map3);
     }
 

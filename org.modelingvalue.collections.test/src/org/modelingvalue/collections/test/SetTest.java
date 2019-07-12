@@ -230,7 +230,7 @@ public class SetTest {
         System.err.println();
         set0.compare(set2).forEach(c -> System.err.println(Arrays.deepToString(c)));
 
-        Set<Integer> merged = set0.merge2(set1, set2);
+        Set<Integer> merged = set0.merge(set1, set2);
 
         Set<Integer> set12 = set1.addAll(set2).remove(40);
         assertEquals(set12, merged);

@@ -13,9 +13,7 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.RecursiveAction;
 import java.util.stream.Collectors;
@@ -55,9 +53,9 @@ public class QualifiedSetTest {
         Set<O> set2 = Set.of(O.of("aap"), O.of("jet"), O.of("mies"), O.of("noot"), O.of("noot"), O.of("noot"), O.of("teun"));
         assertEquals(7, set2.size());
 
-        QualifiedSet<String, O> qset3 = QualifiedSet.of(a -> a.k, O.of("noot"), O.of("mies"), O.of("teun"), O.of("mies"), O.of("jet"), O.of("aap"));
+        QualifiedSet<String, O> qset3 = QualifiedSet.of(o -> o.k, O.of("noot"), O.of("mies"), O.of("teun"), O.of("mies"), O.of("jet"), O.of("aap"));
         assertEquals(5, qset3.size());
-        QualifiedSet<String, O> qset4 = QualifiedSet.of(a -> a.k, O.of("aap"), O.of("jet"), O.of("mies"), O.of("noot"), O.of("noot"), O.of("noot"), O.of("teun"));
+        QualifiedSet<String, O> qset4 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("jet"), O.of("mies"), O.of("noot"), O.of("noot"), O.of("noot"), O.of("teun"));
         assertEquals(5, qset4.size());
         assertTrue(qset3.containsAll(qset4));
         assertTrue(qset4.containsAll(qset3));
@@ -115,11 +113,14 @@ public class QualifiedSetTest {
         QualifiedSet<String, O> qset2 = QualifiedSet.of(f, collection);
         assertEquals(qset1, qset2);
 
-        QualifiedSet<String, O> qset3 = QualifiedSet.of(o -> o.k, collection);
-        QualifiedSet<String, O> qset4 = QualifiedSet.of(o -> o.k, collection);
-        // TODO
-        //assertEquals(qset3, qset4);
+        QualifiedSet<String, O> qset3 = QualifiedSet.of(QualifiedSetTest::k, collection);
+        QualifiedSet<String, O> qset4 = QualifiedSet.of(QualifiedSetTest::k, collection);
+        assertEquals(qset3, qset4);
 
+    }
+
+    private static String k(O o) {
+        return o.k;
     }
 
     @Test

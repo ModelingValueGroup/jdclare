@@ -151,8 +151,8 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     @Override
-    public QualifiedSet<K, V> merge(QualifiedSet<K, V>[] branches) {
-        return hashMerge(branches);
+    public QualifiedSet<K, V> merge(QualifiedSet<K, V>[] branches, int length) {
+        return hashMerge(branches, length);
     }
 
     @Override

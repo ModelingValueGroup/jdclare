@@ -795,7 +795,7 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
 
     public static State getConstraints(Method method) {
         Set<Class> supers = supers(Set.of(method.getDeclaringClass(), elementClass(method.getGenericReturnType())));
-        return dClare().emptyState().merge(null, supers.map(s -> CLASS_INIT.get(s)).toArray(l -> new State[l]));
+        return dClare().emptyState().merge(null, supers.map(s -> CLASS_INIT.get(s)).toArray(l -> new State[l]), supers.size());
     }
 
     @SuppressWarnings("unlikely-arg-type")
