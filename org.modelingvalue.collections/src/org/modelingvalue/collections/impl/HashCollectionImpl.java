@@ -699,7 +699,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     @SuppressWarnings("unchecked")
     protected StreamCollection<Object[]> getCompareStream(ContainingCollection<? extends T> toCompare) {
         HashCollectionImpl<T> other = (HashCollectionImpl<T>) toCompare;
-        return new StreamCollectionImpl<>(new Comparer(key(), value, other.key(), other.value, size() + other.size()), isParallel());
+        return new StreamCollectionImpl<>(new Comparer(key(), value, other.key(), other.value, size() + other.size()), false);
     }
 
     private static final class Comparer implements Spliterator<Object[]> {
