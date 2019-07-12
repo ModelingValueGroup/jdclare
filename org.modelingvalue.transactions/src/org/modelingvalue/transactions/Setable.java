@@ -162,9 +162,6 @@ public class Setable<O, T> extends Getable<O, T> {
     public <E> void add(O obj, E e) {
         set(obj, (v, a) -> {
             if (v instanceof ContainingCollection) {
-                if (this instanceof Constant && !((ContainingCollection<E>) v).contains(a)) {
-                    new Exception("!!!!!!!!!!!AAA!!!!!!!!!!!! ").printStackTrace();
-                }
                 return (T) ((ContainingCollection<E>) v).addUnique(a);
             } else if (!a.equals(v)) {
                 return (T) a;
@@ -177,9 +174,6 @@ public class Setable<O, T> extends Getable<O, T> {
     public <E> void remove(O obj, E e) {
         set(obj, (v, r) -> {
             if (v instanceof ContainingCollection) {
-                if (this instanceof Constant && ((ContainingCollection<E>) v).contains(r)) {
-                    new Exception("!!!!!!!!!!!RRR!!!!!!!!!!!! ").printStackTrace();
-                }
                 return (T) ((ContainingCollection<E>) v).remove(r);
             } else if (r.equals(v)) {
                 return null;
