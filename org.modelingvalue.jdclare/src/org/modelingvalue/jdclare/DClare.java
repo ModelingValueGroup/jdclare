@@ -1300,6 +1300,9 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
         dClass(DClass.class);
         dClass(DPackageContainer.class);
         dClass(DClassContainer.class);
+        dClass(DStruct.class);
+        dClass(DObject.class);
+        dClass(DNamed.class);
         stopSetable = cyclicObserved(DClare.<DUniverse, Boolean> method(DUniverse::stop));
     });
 
