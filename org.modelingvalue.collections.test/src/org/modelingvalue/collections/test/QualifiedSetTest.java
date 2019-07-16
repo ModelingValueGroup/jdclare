@@ -13,7 +13,9 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.RecursiveAction;
 import java.util.stream.Collectors;
@@ -42,7 +44,7 @@ public class QualifiedSetTest {
         }
 
         public static O of(String str) {
-            return new O(str, str);
+            return new O("k" + str, str);
         }
     }
 
@@ -62,7 +64,7 @@ public class QualifiedSetTest {
         qset3.forEach(obj -> assertTrue(qset4.map(a -> a.v).sequential().toSet().contains(obj.v)));
 
         qset4.forEach(obj -> qset3.contains(obj));
-        String expected = "aap" + "jet" + "mies" + "noot" + "teun";
+        String expected = "kaap" + "kjet" + "kmies" + "knoot" + "kteun";
 
         String reduce1 = qset3.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
         String reduce2 = qset4.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
@@ -71,6 +73,8 @@ public class QualifiedSetTest {
         assertEquals(expected.length(), reduce2.length());
         assertEquals(expected, reduce1);
         assertEquals(expected, reduce2);
+
+        expected = "aap" + "jet" + "mies" + "noot" + "teun";
 
         String reduce3 = qset3.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
         String reduce4 = qset4.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
