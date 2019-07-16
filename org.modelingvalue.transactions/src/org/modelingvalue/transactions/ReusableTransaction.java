@@ -20,8 +20,8 @@ public class ReusableTransaction<C extends TransactionClass, T extends Transacti
     private static final long serialVersionUID = -2818161207254622257L;
 
     @SuppressWarnings("unchecked")
-    public ReusableTransaction(UniverseTransaction iniverseTransaction) {
-        super(iniverseTransaction, (c, u) -> (T) c.newTransaction(u), (t, c, p) -> t.start(c, p), t -> t.stop(), t -> t.isOpen());
+    public ReusableTransaction(UniverseTransaction universeTransaction) {
+        super(universeTransaction, (c, u) -> (T) c.newTransaction(u), (t, c, p) -> t.start(c, p), t -> t.stop(), t -> t.isOpen());
     }
 
 }

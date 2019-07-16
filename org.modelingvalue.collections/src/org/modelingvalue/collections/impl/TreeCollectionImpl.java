@@ -44,7 +44,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     protected static final int        CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 
-    private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 32);
+    private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
 
     private static final Predicate<?> ALL_INTERNABLE   = e -> {
                                                            return e instanceof Internable && ((Internable) e).isInternable();
