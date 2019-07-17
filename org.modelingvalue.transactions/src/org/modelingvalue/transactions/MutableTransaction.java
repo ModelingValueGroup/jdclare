@@ -91,7 +91,7 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
                     }
                 } else {
                     if (this == universeTransaction()) {
-                        universeTransaction().startPriority(Priority.values()[i]);
+                        universeTransaction().startPriority(Direction.scheduled.sequence[i].priority());
                     }
                     if (sequential) {
                         for (TransactionClass t : ts[0].random()) {
@@ -116,7 +116,7 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
                         }
                     }
                     if (this == universeTransaction()) {
-                        universeTransaction().endPriority(Priority.values()[i]);
+                        universeTransaction().endPriority(Direction.scheduled.sequence[i].priority());
                     }
                     sa[0] = schedule(mutable, sa[0], Direction.forward);
                     i = 0;
