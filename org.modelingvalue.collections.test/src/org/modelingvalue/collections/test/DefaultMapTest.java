@@ -13,12 +13,61 @@
 
 package org.modelingvalue.collections.test;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
+import org.modelingvalue.collections.DefaultMap;
 
 public class DefaultMapTest {
 
+    private static String reverse(String a) {
+        return new StringBuilder(a).reverse().toString();
+    }
+
+    private static final String aap  = "aap";
+    private static final String noot = "noot";
+    private static final String mies = "mies";
+    private static final String zus  = "zus";
+    private static final String jet  = "jet";
+    private static final String teun = "teun";
+
     @Test
     public void test() throws Exception {
+        DefaultMap<String, String> dm = DefaultMap.<String, String> of((a) -> reverse(a)).//
+                put(aap, aap).//
+                put(noot, noot).//
+                put(mies, mies).//
+                put(zus, zus).//
+                put(jet, jet);
 
+        assertEquals("nuet", dm.get(teun));
+        assertEquals(aap, dm.get(aap));
+
+        dm = dm.removeKey(aap);
+        assertEquals("paa", dm.get(aap));
+
+        dm = dm.put(aap, aap);
+        assertEquals(aap, dm.get(aap));
+
+        dm = dm.add(noot, noot, (a, b) -> a + b);
+        assertEquals("nootnoot", dm.get(noot));
+
+        dm = dm.removeKey(noot);
+        dm = dm.put(noot, noot);
+
+        dm = dm.remove(noot, noot, (a, b) -> null);
+        assertEquals(null, dm.get(noot));
+
+        dm = dm.put(noot, noot);
+        assertEquals(noot, dm.get(noot));
+
+        dm = dm.remove(noot, noot, (a, b) -> a + b);
+        assertEquals("nootnoot", dm.get(noot));
+
+        dm = dm.put(noot, "toon");
+        assertEquals("toon", dm.get(noot));
+
+        dm = dm.add(noot, noot, (a, b) -> a + b);
+        assertEquals(noot, dm.get(noot));
     }
 }
