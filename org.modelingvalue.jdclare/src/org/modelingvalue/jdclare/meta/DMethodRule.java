@@ -60,7 +60,7 @@ public interface DMethodRule<O extends DObject, T> extends DRule<O>, DStruct1<Me
     @Override
     @Property(constant)
     default Direction initDirection() {
-        return method().getReturnType() == Void.TYPE ? Direction.backward : Direction.forward;
+        return method().getReturnType() == Void.TYPE || validation() ? Direction.backward : Direction.forward;
     }
 
 }
