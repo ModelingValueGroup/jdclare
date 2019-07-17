@@ -826,11 +826,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         private int                length = -1;
 
         private CompareSate() {
-            values = new Object[NR_OF_PARTS + 1][COMPARE_MAX];
-            keys = new Function[NR_OF_PARTS + 1][COMPARE_MAX];
-            keep = new boolean[NR_OF_PARTS + 1][COMPARE_MAX];
-            ids = new int[NR_OF_PARTS + 1][COMPARE_MAX];
-            masks = new long[NR_OF_PARTS + 1][COMPARE_MAX];
+            values = new Object[NR_OF_PARTS + 2][COMPARE_MAX];
+            keys = new Function[NR_OF_PARTS + 2][COMPARE_MAX];
+            keep = new boolean[NR_OF_PARTS + 2][COMPARE_MAX];
+            ids = new int[NR_OF_PARTS + 2][COMPARE_MAX];
+            masks = new long[NR_OF_PARTS + 2][COMPARE_MAX];
         }
 
         private void open(int length) {
