@@ -192,7 +192,7 @@ public class UniverseTransaction extends MutableTransaction {
 
     protected void handleException(Throwable t) {
         error = t;
-        killed = true;
+        kill();
     }
 
     protected void init() {
@@ -365,8 +365,12 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     public void kill() {
-        put(dummy);
         killed = true;
+        try {
+            inQueue.put(dummy);
+        } catch (InterruptedException e) {
+            throw new Error(e);
+        }
     }
 
     public long runCount() {
