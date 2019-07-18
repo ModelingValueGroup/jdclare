@@ -176,18 +176,23 @@ public class UniverseTransaction extends MutableTransaction {
                         }
                     }
                 } catch (Throwable t) {
-                    error = t;
-                    break;
+                    handleException(t);
                 } finally {
                     end(leaf);
                     TraceTimer.traceEnd("root");
                 }
             }
+            stop();
             history = history.append(state);
             constantState.stop();
             end(state);
         });
         init();
+    }
+
+    protected void handleException(Throwable t) {
+        error = t;
+        killed = true;
     }
 
     protected void init() {
