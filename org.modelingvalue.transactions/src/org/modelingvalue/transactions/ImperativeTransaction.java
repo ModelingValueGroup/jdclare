@@ -47,7 +47,11 @@ public class ImperativeTransaction extends LeafTransaction {
         super.start(cls, universeTransaction);
         this.scheduler = r -> scheduler.accept(() -> {
             LeafTransaction.setCurrent(this);
-            r.run();
+            try {
+                r.run();
+            } catch (Throwable t) {
+                universeTransaction.handleException(t);
+            }
         });
     }
 
