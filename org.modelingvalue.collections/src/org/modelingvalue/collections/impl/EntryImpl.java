@@ -13,24 +13,19 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.lang.reflect.Array;
 import java.util.Objects;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.Internable;
-import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.StringUtil;
 
 public final class EntryImpl<K, V> implements Entry<K, V> {
 
-    private static final long  serialVersionUID = 3714329073858453623L;
+    private static final long serialVersionUID = 3714329073858453623L;
 
-    @SuppressWarnings("rawtypes")
-    private static final Entry NULL             = Entry.of(null, null);
-
-    private final K            key;
-    private V                  value;
+    private final K           key;
+    private V                 value;
 
     public EntryImpl(K key, V value) {
         this.key = key;
@@ -45,44 +40,6 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
     @Override
     public V getValue() {
         return value;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Entry<K, V> merge(Entry<K, V>[] branches, int length) {
-        V[] vs = null;
-        K key = getKey();
-        if (getValue() != null) {
-            Class<?> vc = getValue().getClass();
-            vs = (V[]) Array.newInstance(vc, length);
-        }
-        for (int i = 0; i < length; i++) {
-            if (branches[i] != null) {
-                if (key == null) {
-                    key = branches[i].getKey();
-                }
-                if (branches[i].getValue() != null) {
-                    if (vs == null) {
-                        Class<?> vc = branches[i].getValue().getClass();
-                        vs = (V[]) Array.newInstance(vc, length);
-                    }
-                    vs[i] = branches[i].getValue();
-                }
-            }
-        }
-        V v = Mergeables.merge(getValue(), vs, length);
-        if (Objects.equals(getValue(), v) && Objects.equals(getKey(), key)) {
-            return this;
-        } else {
-            for (int i = 0; i < length; i++) {
-                if (branches[i] != null) {
-                    if (Objects.equals(branches[i].getValue(), v)) {
-                        return branches[i];
-                    }
-                }
-            }
-        }
-        return Entry.of(key, v);
     }
 
     @Override
@@ -119,12 +76,6 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
     @Override
     public String toString() {
         return "Entry[" + StringUtil.toString(key) + "," + StringUtil.toString(value) + "]";
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Entry<K, V> getMerger() {
-        return NULL;
     }
 
     @Override

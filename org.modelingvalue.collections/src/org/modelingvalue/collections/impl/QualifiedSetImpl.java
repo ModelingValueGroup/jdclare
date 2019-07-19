@@ -13,12 +13,16 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.lang.reflect.Array;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Predicate;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("serial")
@@ -152,7 +156,51 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @Override
     public QualifiedSet<K, V> merge(QualifiedSet<K, V>[] branches, int length) {
-        return hashMerge(branches, length);
+        return merge((k, v, vs, l) -> Mergeables.merge(v, vs, l), branches, length);
+    }
+
+    @Override
+    public QualifiedSet<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, QualifiedSet<K, V>[] branches, int length) {
+        return create(visit((a, l) -> {
+            Object r = a[0];
+            for (int i = 1; i < l; i++) {
+                if (!Objects.equals(a[i], a[0]) && !Objects.equals(a[i], r)) {
+                    if (!Objects.equals(a[0], r)) {
+                        return merge(merger, a, l);
+                    } else {
+                        r = a[i];
+                    }
+                }
+            }
+            return r;
+        }, branches, length));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object merge(QuadFunction<K, V, V[], Integer, V> merger, Object[] es, int el) {
+        K key = es[0] != null ? qualifier.apply((V) es[0]) : null;
+        V v = (V) es[0];
+        V[] vs = key != null ? (V[]) Array.newInstance(v.getClass(), el - 1) : null;
+        for (int i = 1; i < el; i++) {
+            if (es[i] != null) {
+                if (key == null) {
+                    key = qualifier.apply((V) es[i]);
+                    vs = (V[]) Array.newInstance(es[i].getClass(), el - 1);
+                }
+                vs[i - 1] = (V) es[i];
+            }
+        }
+        V result = merger.apply(key, v, vs, el - 1);
+        if (result == null) {
+            return null;
+        } else {
+            for (int i = 0; i < el; i++) {
+                if (es[i] != null && Objects.equals(result, es[i])) {
+                    return es[i];
+                }
+            }
+            return result;
+        }
     }
 
     @Override

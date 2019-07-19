@@ -18,7 +18,8 @@ import java.util.Objects;
 
 public interface Mergeables {
 
-    static <T> T merge(T base, T[] branches) {
+    @SafeVarargs
+    static <T> T merge(T base, T... branches) {
         return merge(base, branches, branches.length);
     }
 

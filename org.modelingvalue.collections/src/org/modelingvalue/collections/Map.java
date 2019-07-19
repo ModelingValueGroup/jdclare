@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 import org.modelingvalue.collections.impl.MapImpl;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.TriFunction;
+import org.modelingvalue.collections.util.QuadFunction;
 
 public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
 
@@ -71,8 +71,7 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     Collection<V> toValues();
 
-    @SuppressWarnings("unchecked")
-    Map<K, V> merge(TriFunction<K, Entry<K, V>, Entry<K, V>[], Entry<K, V>> merger, Map<K, V>... branches);
+    Map<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, Map<K, V>[] branches, int length);
 
     @Override
     Map<K, V> remove(Object e);

@@ -19,7 +19,6 @@ import org.junit.Test;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.Pair;
 
 public class MapTest {
@@ -75,14 +74,13 @@ public class MapTest {
         assertTrue(map == map.put("a", "1"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void nullValues() {
         Map<String, String> map0 = Map.of();
         Map<String, String> map1 = Map.of(Entry.of("AA", "aa"));
         Map<String, String> map2 = Map.of(Entry.of("AA", null));
         assertEquals(map2.size(), 1);
-        assertEquals(map0.merge((k, v, vs) -> Mergeables.merge(v, vs), map1, map2), map1);
+        assertEquals(map0.merge(map1, map2), map1);
     }
 
     @Test
@@ -149,9 +147,9 @@ public class MapTest {
         Map<EqualHashCode, String> map4 = Map.of(Entry.of(new EqualHashCode(), "dd"));
         Map<EqualHashCode, String> map5 = Map.of(Entry.of(new EqualHashCode(), "ee"));
         Map<EqualHashCode, String> map6 = Map.of(Entry.of(new EqualHashCode(), "ff"));
-        Map<EqualHashCode, String> result = map1.merge((o, s, ss) -> {
+        Map<EqualHashCode, String> result = map1.merge((o, s, ss, l) -> {
             throw new Error();
-        }, map2, map3, map4, map5, map6);
+        }, new Map[]{map2, map3, map4, map5, map6}, 5);
 
         assertEquals(result, map2.addAll(map3).addAll(map4).addAll(map5).addAll(map6));
     }

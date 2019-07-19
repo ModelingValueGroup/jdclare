@@ -687,18 +687,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return set(value, key1, identity(), merged, key2, nullFunction(), merger::apply);
     }
 
-    @SuppressWarnings("unchecked")
-    protected <R extends ContainingCollection<T>> R hashMerge(R[] branches, int length) {
-        return (R) create(visit((a, l) -> {
-            for (int i = 1; i < l; i++) {
-                if (!Objects.equals(a[i], a[0])) {
-                    return a[i];
-                }
-            }
-            return a[0];
-        }, branches, length));
-    }
-
     @Override
     @SuppressWarnings("unchecked")
     protected StreamCollection<Object[]> getCompareStream(ContainingCollection<? extends T> toCompare) {

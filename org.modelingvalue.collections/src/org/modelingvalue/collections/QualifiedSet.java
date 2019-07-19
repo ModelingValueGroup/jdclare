@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 
 import org.modelingvalue.collections.impl.QualifiedSetImpl;
 import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
 
 public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<QualifiedSet<K, V>> {
@@ -58,6 +59,8 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
     QualifiedSet<K, V> addAll(Collection<? extends V> e);
 
     Collection<K> toKeys();
+
+    QualifiedSet<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, QualifiedSet<K, V>[] branches, int length);
 
     @Override
     QualifiedSet<K, V> remove(Object e);

@@ -13,6 +13,7 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Function;
 
@@ -126,7 +127,14 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @Override
     public Set<T> merge(Set<T>[] branches, int length) {
-        return hashMerge(branches, length);
+        return create(visit((a, l) -> {
+            for (int i = 1; i < l; i++) {
+                if (!Objects.equals(a[i], a[0])) {
+                    return a[i];
+                }
+            }
+            return a[0];
+        }, branches, length));
     }
 
     @SuppressWarnings("unchecked")
