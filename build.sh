@@ -49,11 +49,14 @@ if [ "$runTests" == true ]; then
     echo "======================================================================"
     find out -type f
     echo "======================================================================"
-    cat junit*
+    ls -l
+    echo "======================================================================"
+    ant -debug -Dpath.variable.maven_repository=$mavenReposDir -f test.xml || :
     echo "======================================================================"
     ls -l
     echo "======================================================================"
-    ant -debug -Dpath.variable.maven_repository=$mavenReposDir -f test.xml
+    cat junit*
+    echo "======================================================================"
 else
     echo "...skipping tests"
 fi
