@@ -44,7 +44,8 @@ ant -f build.xml
 if [ "$runTests" == true ]; then
     echo "...testing"
     generateAntTestFile "mvg-jdclare" > test.xml
-    ant -f test.xml
+    cat test.xml
+    ant -debug -f test.xml
 else
     echo "...skipping tests"
 fi
