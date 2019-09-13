@@ -10,17 +10,15 @@ jobs:
     steps:
     - name: Setup...
       uses: actions/checkout@v1
-    - name: probeer bash
-      run: echo aap | sed 's/a/b/'
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: 9
-    - name: Build with Ant
+    - name: build
       run: >
-        ant 
-        -noinput 
-        -debug 
-        -Djdk.home.9.0=/opt/hostedtoolcache/Java/9.0.7/x64 
-        -Dpath.variable.maven_repository=~/.m2
-        -buildfile build.xml
+        ./build.sh
+        ./m2
+        /opt/hostedtoolcache/Java/9.0.7/x64
+        token
+        true
+        SNAPHOT
