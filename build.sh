@@ -44,8 +44,11 @@ ant -f build.xml
 if [ "$runTests" == true ]; then
     echo "...testing"
     generateAntTestFile "mvg-jdclare" > test.xml
+    echo "======================================================================"
     cat test.xml
-    jar tf m2/junit/junit/4.12/junit-4.12.jar
+    echo "======================================================================"
+    find out -type f
+    echo "======================================================================"
     ant -debug -Dpath.variable.maven_repository=$mavenReposDir -f test.xml
 else
     echo "...skipping tests"
