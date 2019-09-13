@@ -14,4 +14,4 @@ jobs:
       with:
         java-version: 9
     - name: Build with Ant
-      run: ant -noinput -Djdk.home.9.0=xxx -buildfile build.xml
+      run: ant -noinput -Djdk.home.9.0=$JDK_HOME -buildfile build.xml
