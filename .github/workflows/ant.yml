@@ -14,4 +14,4 @@ jobs:
       with:
         java-version: 9
     - name: Build with Ant
-      run: ant -noinput -Djdk.home.9.0=/opt/hostedtoolcache/Java/9.0.7/x64 -buildfile build.xml
+      run: ant -noinput -debug -Djdk.home.9.0=/opt/hostedtoolcache/Java/9.0.7/x64 -buildfile build.xml
