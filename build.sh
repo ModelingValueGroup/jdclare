@@ -30,29 +30,28 @@ makeAllPoms \
     "http://www.dclare-lang.org" \
     "https://github.com/ModelingValueGroup/jdclare.git" \
     "$release" \
-    "${units[@]}" \
-    >log/00-makePoms.log
+    "${units[@]}"
 
 # get our dependencies from maven:
 echo "...getting dependencies from maven"
-mvn -f out/artifacts/ALL-SNAPSHOT.pom dependency:copy-dependencies >log/01-getDeps.log
+mvn -f out/artifacts/ALL-SNAPSHOT.pom dependency:copy-dependencies
 
 # build everything:
 echo "...building"
-ant -f build.xml >log/02-build.log
+ant -f build.xml
 
 # if testing is requested: run the tests:
 if [ "$runTests" == true ]; then
     echo "...testing"
     generateAntTestFile "mvg-jdclare" > test.xml
-    ant -f test.xml >log/03-test.log
+    ant -f test.xml
 else
     echo "...skipping tests"
 fi
 
 # make the javadoc jars:
 echo "...make javadoc"
-makeAllJavaDocJars "${units[@]}" >log/04-genJavadoc.log
+makeAllJavaDocJars "${units[@]}"
 
 # if a release is requested: publish it on github:
 if [ "$release" != "" -a "$release" != SNAPHOT ]; then
@@ -61,8 +60,7 @@ if [ "$release" != "" -a "$release" != SNAPHOT ]; then
         "$release" \
         "$gitHubToken" \
         "false" \
-        "${units[@]}" \
-        >log/05-publishJarsOnGitHub.log
+        "${units[@]}"
 else
     echo "...skipping release to github"
 fi
