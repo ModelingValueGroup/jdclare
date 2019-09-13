@@ -45,7 +45,7 @@ if [ "$runTests" == true ]; then
     echo "...testing"
     generateAntTestFile "mvg-jdclare" > test.xml
     cat test.xml
-    ant -debug -f test.xml
+    ant -debug -Dpath.variable.maven_repository=$mavenReposDir -f test.xml
 else
     echo "...skipping tests"
 fi
