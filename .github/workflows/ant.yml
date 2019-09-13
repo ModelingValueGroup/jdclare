@@ -8,7 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - name: Setup...
+      uses: actions/checkout@v1
+    - name: probeer bash
+      run: echo aap | sed 's/a/b/'
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
@@ -21,5 +24,3 @@ jobs:
         -Djdk.home.9.0=/opt/hostedtoolcache/Java/9.0.7/x64 
         -Dpath.variable.maven_repository=~/.m2
         -buildfile build.xml
-    - name: Build with Maven
-      run: echo aap | sed 's/a/b/'
