@@ -48,15 +48,17 @@ if [ "$runTests" == true ]; then
       echo "======================================================================"
       echo " FAILURES DETECTED"
       echo "======================================================================"
+      cat TEST-*
+      echo "======================================================================"
       for f in $(\
             egrep '(errors|failures)="' TEST-* \
-                  | egrep -v '(errors|failures)="0"' \
+                  | egrep -v 'errors="0" failures="0"' \
                   | sed 's/:.*//'
             ); do
             [[ -f "$f" ]] && cat $f
       done
       echo "======================================================================"
-      return 99
+      exit 99
     else
       echo "...all tests ok!"
     fi
