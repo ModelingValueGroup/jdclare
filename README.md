@@ -1,4 +1,4 @@
-JDclare [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+JDclare [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) [![Actions Status](https://github.com/ModelingValueGroup/jdclare/workflows/build%20and%20test/badge.svg)](https://github.com/ModelingValueGroup/jdclare/actions)
 =====================================
 
 What is (J)Dclare?
@@ -490,5 +490,3 @@ In this example the rule for property *child* in the Element class dclares if it
 
 The property *element* in the RecursiveUniverse dclares an object Element with key 0 in the RecursiveUniverse. The constant annotation on the property means that this property never changes. 
 
-(trying out badges: 
-[![Actions Status](https://github.com/ModelingValueGroup/jdclare/workflows/build%20and%20test/badge.svg)](https://github.com/ModelingValueGroup/jdclare/actions) )
