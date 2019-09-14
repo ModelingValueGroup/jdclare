@@ -44,12 +44,22 @@ ant -f build.xml
 if [ "$runTests" == true ]; then
     echo "...testing"
     generateAntTestFile "mvg-jdclare" > test.xml
-    ant -debug -Dpath.variable.maven_repository=$mavenReposDir -f test.xml || :
-    echo "======================================================================"
-    ls -l TEST-*
-    echo "======================================================================"
-    fgrep "error" TEST-*
-    echo "======================================================================"
+    if ! ant -debug -Dpath.variable.maven_repository=$mavenReposDir -f test.xml; then
+      echo "======================================================================"
+      echo " FAILURES DETECTED"
+      echo "======================================================================"
+      for f in $(\
+            egrep '(errors|failures)="' TEST-* \
+                  | egrep -v '(errors|failures)="0"' \
+                  | sed 's/:.*//'
+            ); do
+            [[ -f "$f" ]] && cat $f
+      done
+      echo "======================================================================"
+      return 99
+    else
+      echo "...all tests ok!"
+    fi
 else
     echo "...skipping tests"
 fi
