@@ -491,4 +491,4 @@ In this example the rule for property *child* in the Element class dclares if it
 The property *element* in the RecursiveUniverse dclares an object Element with key 0 in the RecursiveUniverse. The constant annotation on the property means that this property never changes. 
 
 (trying out badges: 
-[![Actions Status](https://github.com/ModelingValueGroup/jdclare/workflows/build and test/badge.svg)](https://github.com/ModelingValueGroup/jdclare/actions) )
+[![Actions Status](https://github.com/ModelingValueGroup/jdclare/workflows/build%20and%20test/badge.svg)](https://github.com/ModelingValueGroup/jdclare/actions) )
