@@ -1,4 +1,4 @@
-JDclare [![ci-badge]][ci-actions]
+JDclare
 =====================================
 
 What is (J)Dclare?
