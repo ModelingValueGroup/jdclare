@@ -5,4 +5,13 @@ set -ue
 echo "...get our tools"
 rm -rf tools
 git clone 'https://github.com/ModelingValueGroup/tools.git'
-echo ". tools/tools.sh" >> 00-vars.sh
+( echo ". tools/tools.sh"
+  cat 00-vars.sh
+) >> 00-vars.sh-tmp
+cp 00-vars.sh-tmp 00-vars.sh
+
+echo "===================================="
+which sponge
+which yum
+which apt-get
+echo "===================================="
