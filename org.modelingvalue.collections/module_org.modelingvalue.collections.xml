@@ -53,7 +53,9 @@
   
   <target name="compile.module.org.modelingvalue.collections.production" description="Compile module org.modelingvalue.collections; production classes">
     <mkdir dir="${org.modelingvalue.collections.output.dir}"/>
-    <javac includeantruntime="false" destdir="${org.modelingvalue.collections.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.collections}/javac">
+    <javac destdir="${org.modelingvalue.collections.output.dir}" debug="${compiler.debug}"
+           nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.org.modelingvalue.collections}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.collections}"/>
       <bootclasspath refid="org.modelingvalue.collections.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.collections.module.production.classpath"/>

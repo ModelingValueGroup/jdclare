@@ -58,7 +58,9 @@
   
   <target name="compile.module.org.modelingvalue.transactions.production" depends="compile.module.org.modelingvalue.collections" description="Compile module org.modelingvalue.transactions; production classes">
     <mkdir dir="${org.modelingvalue.transactions.output.dir}"/>
-    <javac includeantruntime="false" destdir="${org.modelingvalue.transactions.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.transactions}/javac">
+    <javac destdir="${org.modelingvalue.transactions.output.dir}" debug="${compiler.debug}"
+           nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.org.modelingvalue.transactions}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.transactions}"/>
       <bootclasspath refid="org.modelingvalue.transactions.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.transactions.module.production.classpath"/>

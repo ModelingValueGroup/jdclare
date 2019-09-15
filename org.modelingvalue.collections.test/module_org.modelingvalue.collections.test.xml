@@ -64,7 +64,9 @@
   
   <target name="compile.module.org.modelingvalue.collections.test.tests" depends="compile.module.org.modelingvalue.collections.test.production" description="compile module org.modelingvalue.collections.test; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.collections.test.testoutput.dir}"/>
-    <javac includeantruntime="false" destdir="${org.modelingvalue.collections.test.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.collections.test}/javac">
+      <javac destdir="${org.modelingvalue.collections.test.testoutput.dir}" debug="${compiler.debug}"
+             nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+             executable="${module.jdk.bin.org.modelingvalue.collections.test}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.collections.test}"/>
       <bootclasspath refid="org.modelingvalue.collections.test.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.collections.test.module.classpath"/>
