@@ -12,6 +12,8 @@ export    MAVEN_OPTS="-Dmaven.repo.local=$mavenReposDir -DoutputDirectory=out/de
 export    OUR_DOMAIN="org.modelingvalue"
 export   OUR_PRODUCT="dclare"
 ################################################################
+which sponge >/dev/null || sudo apt-get -y install sponge
+################################################################
 export units=(
     collections
     transactions
