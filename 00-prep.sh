@@ -12,7 +12,7 @@ export    MAVEN_OPTS="-Dmaven.repo.local=$mavenReposDir -DoutputDirectory=out/de
 export    OUR_DOMAIN="org.modelingvalue"
 export   OUR_PRODUCT="dclare"
 ################################################################
-which sponge >/dev/null || sudo apt-get -y install sponge
+which sponge >/dev/null || sudo apt-get -y install moreutils
 ################################################################
 export units=(
     collections
