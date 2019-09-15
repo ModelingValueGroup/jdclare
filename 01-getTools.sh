@@ -9,13 +9,3 @@ git clone 'https://github.com/ModelingValueGroup/tools.git'
   cat 00-vars.sh
 ) >> 00-vars.sh-tmp
 cp 00-vars.sh-tmp 00-vars.sh
-
-echo "===================================="
-which sponge  || :
-echo "===================================="
-which yum     || :
-echo "===================================="
-which apt-get || :
-echo "===================================="
-sudo ls       || :
-echo "===================================="

@@ -12,8 +12,6 @@ export    MAVEN_OPTS="-Dmaven.repo.local=$mavenReposDir -DoutputDirectory=out/de
 export    OUR_DOMAIN="org.modelingvalue"
 export   OUR_PRODUCT="dclare"
 ################################################################
-which sponge >/dev/null || sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install moreutils
-################################################################
 export units=(
     collections
     transactions
