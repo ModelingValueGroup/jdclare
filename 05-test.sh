@@ -5,7 +5,7 @@ set -ue
 if [ "$runTests" == true ]; then
   echo "...testing"
   generateAntTestFile "mvg-jdclare" > test.xml
-  if ant -debug -Dpath.variable.maven_repository=$mavenReposDir -f test.xml; then
+  if ant -Dpath.variable.maven_repository=$mavenReposDir -f test.xml; then
     echo "...all tests ok!"
   else
     echo "======================================================================"
