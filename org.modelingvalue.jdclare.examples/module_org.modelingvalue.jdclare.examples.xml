@@ -70,7 +70,8 @@
   
   <target name="compile.module.org.modelingvalue.jdclare.examples.tests" depends="compile.module.org.modelingvalue.jdclare.examples.production" description="compile module org.modelingvalue.jdclare.examples; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.jdclare.examples.testoutput.dir}"/>
-      <javac destdir="${org.modelingvalue.jdclare.examples.testoutput.dir}" debug="${compiler.debug}"
+      <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.examples.testoutput.dir}"
+             debug="${compiler.debug}"
              nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
              executable="${module.jdk.bin.org.modelingvalue.jdclare.examples}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.jdclare.examples}"/>

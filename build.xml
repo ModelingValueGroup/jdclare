@@ -234,7 +234,7 @@
     <mkdir dir="${artifact.temp.output.collections-snapshot-sources.jar}"/>
     <jar destfile="${temp.jar.path.collections-SNAPSHOT-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.collections/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
     </jar>
     <copy file="${temp.jar.path.collections-SNAPSHOT-sources.jar}" tofile="${artifact.temp.output.collections-snapshot-sources.jar}/collections-SNAPSHOT-sources.jar"/>
   </target>
@@ -254,10 +254,10 @@
     <jar destfile="${temp.jar.path.jdclare-SNAPSHOT-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.collections/src"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.transactions/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
       <zipfileset dir="${org.modelingvalue.jdclare.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.jdclare/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.jdclare/src"/>
     </jar>
     <copy file="${temp.jar.path.jdclare-SNAPSHOT-sources.jar}" tofile="${artifact.temp.output.jdclare-snapshot-sources.jar}/jdclare-SNAPSHOT-sources.jar"/>
   </target>
@@ -279,8 +279,8 @@
     <jar destfile="${temp.jar.path.transactions-SNAPSHOT-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.collections/src"/>
-      <zipfileset dir="/Users/tom/projects/jdclare/org.modelingvalue.transactions/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
+      <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
     </jar>
     <copy file="${temp.jar.path.transactions-SNAPSHOT-sources.jar}" tofile="${artifact.temp.output.transactions-snapshot-sources.jar}/transactions-SNAPSHOT-sources.jar"/>
   </target>

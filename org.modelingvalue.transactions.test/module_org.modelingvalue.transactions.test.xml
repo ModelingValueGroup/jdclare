@@ -69,7 +69,8 @@
   
   <target name="compile.module.org.modelingvalue.transactions.test.tests" depends="compile.module.org.modelingvalue.transactions.test.production" description="compile module org.modelingvalue.transactions.test; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.transactions.test.testoutput.dir}"/>
-      <javac destdir="${org.modelingvalue.transactions.test.testoutput.dir}" debug="${compiler.debug}"
+      <javac includeantruntime="false" destdir="${org.modelingvalue.transactions.test.testoutput.dir}"
+             debug="${compiler.debug}"
              nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
              executable="${module.jdk.bin.org.modelingvalue.transactions.test}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.transactions.test}"/>
