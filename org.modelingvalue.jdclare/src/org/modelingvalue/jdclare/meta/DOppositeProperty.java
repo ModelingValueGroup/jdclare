@@ -17,7 +17,6 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.util.function.Function;
 
-import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
 import org.modelingvalue.jdclare.DObject;
@@ -113,7 +112,7 @@ public interface DOppositeProperty<O extends DObject, E extends DObject> extends
 
     @Override
     @Property(constant)
-    default DProperty<O, Collection<?>> scopeProperty() {
+    default DProperty<O, Set<?>> scopeProperty() {
         return null;
     }
 

@@ -13,8 +13,6 @@
 
 package org.modelingvalue.transactions;
 
-import java.util.function.Supplier;
-
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Set;
@@ -91,7 +89,11 @@ public abstract class Getable<O, T> implements Internable {
         return false;
     }
 
-    public Supplier<Setable<?, ?>> opposite() {
+    public Setable<?, ?> opposite() {
+        return null;
+    }
+
+    public Setable<O, Set<?>> scope() {
         return null;
     }
 

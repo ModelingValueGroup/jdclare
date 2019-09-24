@@ -46,7 +46,7 @@ public enum Direction implements Internable {
         private final Priority priority;
 
         private Queued(Priority priority) {
-            super(Pair.of(Direction.this, priority), Set.of(), false, null, null);
+            super(Pair.of(Direction.this, priority), Set.of(), false, null, null, null, false);
             this.priority = priority;
         }
 

@@ -25,8 +25,13 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
+import org.modelingvalue.transactions.Constant;
+import org.modelingvalue.transactions.Mutable;
+import org.modelingvalue.transactions.MutableClass;
+import org.modelingvalue.transactions.Observer;
+import org.modelingvalue.transactions.Setable;
 
-public interface DClass<T extends DObject> extends DStructClass<T> {
+public interface DClass<T extends DObject> extends DStructClass<T>, MutableClass {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Property(constant)
@@ -55,10 +60,10 @@ public interface DClass<T extends DObject> extends DStructClass<T> {
     }
 
     @Property(constant)
-    default Map<DProperty<T, ?>, DProperty<T, Collection<?>>> scopedProperties() {
+    default Map<DProperty<T, ?>, DProperty<T, Set<?>>> scopedProperties() {
         return allProperties().map(p -> {
-            DProperty<T, Collection<?>> scope = p.scopeProperty();
-            return scope != null ? Entry.<DProperty<T, ?>, DProperty<T, Collection<?>>> of(p, scope) : null;
+            DProperty<T, Set<?>> scope = p.scopeProperty();
+            return scope != null ? Entry.<DProperty<T, ?>, DProperty<T, Set<?>>> of(p, scope) : null;
         }).notNull().toMap(e -> e);
     }
 
@@ -79,6 +84,29 @@ public interface DClass<T extends DObject> extends DStructClass<T> {
             }
         }
         return rules;
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default Collection<? extends Observer<?>> dObservers() {
+        return (Collection) allRules().map(DRule::observer);
+    }
+
+    @Override
+    default Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
+        return allContainments().map(DClare::setable);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
+        return allConstants().map(DClare::getable).filter(Constant.class).filter(c -> ((Constant) c).deriver() != null);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    default Collection<? extends Setable<? extends Mutable, ?>> dSetables() {
+        return allProperties().map(DClare::getable).filter(Setable.class);
     }
 
 }

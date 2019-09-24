@@ -13,13 +13,16 @@
 
 package org.modelingvalue.transactions.test;
 
+import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.transactions.Constant;
+import org.modelingvalue.transactions.Mutable;
+import org.modelingvalue.transactions.MutableClass;
 import org.modelingvalue.transactions.Observer;
 import org.modelingvalue.transactions.Setable;
 
-public class DClass {
+public class DClass implements MutableClass {
 
     @SafeVarargs
     static DClass of(Object id, Observer<? extends DObject>... observers) {
@@ -50,25 +53,38 @@ public class DClass {
     private final Set<? extends Observer<?>>    observers;
     private final Set<? extends Setable<?, ?>>  containers;
     private final Set<? extends Constant<?, ?>> constants;
+    private final Set<? extends Setable<?, ?>>  setables;
 
     @SuppressWarnings("unchecked")
     protected DClass(Object id, Set<? extends Setable<?, ?>> setables, Set<? extends Observer<?>> observers) {
         this.id = id;
+        this.setables = setables;
         this.containers = setables.filter(s -> s.containment()).toSet();
         this.observers = observers;
         this.constants = (Set<? extends Constant<?, ?>>) setables.filter(s -> s instanceof Constant).toSet();
     }
 
+    @Override
     public Set<? extends Observer<?>> dObservers() {
         return observers;
     }
 
-    public Set<? extends Setable<?, ?>> dContainers() {
-        return containers;
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
+        return (Set<? extends Setable<? extends Mutable, ?>>) containers;
     }
 
-    public Set<? extends Constant<?, ?>> dConstants() {
-        return constants;
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<? extends Setable<? extends Mutable, ?>> dSetables() {
+        return (Set<? extends Setable<? extends Mutable, ?>>) setables;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
+        return (Set<? extends Constant<? extends Mutable, ?>>) constants;
     }
 
     @Override

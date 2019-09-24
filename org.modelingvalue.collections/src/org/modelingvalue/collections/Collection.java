@@ -116,6 +116,11 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
         return reduce(QualifiedSet.<K, V> of(qualifier), (s, a) -> s.add((V) a), (a, b) -> a.addAll(b));
     }
 
+    @SuppressWarnings("unchecked")
+    default <K, V> QualifiedDefaultSet<K, V> toQualifiedDefaultSet(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction) {
+        return reduce(QualifiedDefaultSet.<K, V> of(qualifier, defaultFunction), (s, a) -> s.add((V) a), (a, b) -> a.addAll(b));
+    }
+
     @SuppressWarnings("rawtypes")
     static <T> Collection<T> of(BaseStream<T, ? extends BaseStream> base) {
         return new StreamCollectionImpl<T>(base);

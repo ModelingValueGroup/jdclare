@@ -219,4 +219,9 @@ public interface SyntaxProperty<O extends Node, V> extends DMethodProperty<O, V>
         return elements;
     }
 
+    @Override
+    default boolean checkConsistency() {
+        return false;
+    }
+
 }

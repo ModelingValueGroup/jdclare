@@ -18,8 +18,8 @@ import static org.modelingvalue.jdclare.workbench.PropertiesTableColumn.*;
 
 import java.util.UUID;
 
-import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Property;
@@ -74,7 +74,7 @@ public interface PropertiesTable extends Table<DProperty<DObject, ?>, Properties
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     default List scope(DProperty<DObject, ?> p, PropertiesTableColumn ct) {
-        DProperty<DObject, Collection<?>> scopeProperty = p.scopeProperty();
+        DProperty<DObject, Set<?>> scopeProperty = p.scopeProperty();
         return scopeProperty != null ? scopeProperty.get(object()).sorted().toList() : null;
     }
 

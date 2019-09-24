@@ -19,40 +19,45 @@ import java.util.Spliterator;
 import java.util.function.Predicate;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.QualifiedSet;
+import org.modelingvalue.collections.QualifiedDefaultSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("serial")
-public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedSet<K, V> {
+public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedDefaultSet<K, V> {
 
     private SerializableFunction<V, K> qualifier;
+    private SerializableFunction<K, V> defaultFunction;
 
-    public QualifiedSetImpl(SerializableFunction<V, K> qualifier, V[] es) {
+    public QualifiedDefaultSetImpl(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction, V[] es) {
         this.qualifier = qualifier.of();
+        this.defaultFunction = defaultFunction.of();
         this.value = es.length == 1 ? es[0] : addAll(null, key(), es);
     }
 
-    public QualifiedSetImpl(SerializableFunction<V, K> qualifier, java.util.Collection<? extends V> coll) {
+    public QualifiedDefaultSetImpl(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction, java.util.Collection<? extends V> coll) {
         this.qualifier = qualifier.of();
+        this.defaultFunction = defaultFunction.of();
         this.value = coll.size() == 1 ? coll.iterator().next() : addAll(null, key(), coll);
     }
 
-    public QualifiedSetImpl(SerializableFunction<V, K> qualifier, Object value) {
+    public QualifiedDefaultSetImpl(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction, Object value) {
         this.qualifier = qualifier.of();
+        this.defaultFunction = defaultFunction.of();
         this.value = value;
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ qualifier.hashCode();
+        return super.hashCode() ^ qualifier.hashCode() ^ defaultFunction.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj) && qualifier.equals(((QualifiedSetImpl<?, ?>) obj).qualifier);
+        return super.equals(obj) && qualifier.equals(((QualifiedDefaultSetImpl<?, ?>) obj).qualifier)//
+                && defaultFunction.equals(((QualifiedDefaultSetImpl<?, ?>) obj).defaultFunction);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -63,6 +68,7 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
         s.writeObject(qualifier.original());
+        s.writeObject(defaultFunction.original());
         doSerialize(s);
     }
 
@@ -70,6 +76,8 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
         qualifier = (SerializableFunction<V, K>) s.readObject();
         qualifier = qualifier.of();
+        defaultFunction = (SerializableFunction<K, V>) s.readObject();
+        defaultFunction = defaultFunction.of();
         doDeserialize(s);
     }
 
@@ -84,47 +92,47 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     @Override
-    public QualifiedSet<K, V> add(V e) {
+    public QualifiedDefaultSet<K, V> add(V e) {
         return create(add(value, key(), e, key()));
     }
 
     @Override
-    public QualifiedSet<K, V> put(V e) {
+    public QualifiedDefaultSet<K, V> put(V e) {
         return create(put(value, key(), e, key()));
     }
 
     @Override
-    public QualifiedSet<K, V> removeKey(K k) {
+    public QualifiedDefaultSet<K, V> removeKey(K k) {
         return create(remove(value, key(), k, identity()));
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public QualifiedSet<K, V> removeAllKey(Collection<K> c) {
+    public QualifiedDefaultSet<K, V> removeAllKey(Collection<K> c) {
         return create(remove(value, key(), ((SetImpl) c.toSet()).value, identity()));
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public <X> QualifiedSet<K, V> removeAllKey(QualifiedSet<K, X> m) {
-        return create(remove(value, key(), ((QualifiedSetImpl) m).value, key()));
+    public <X> QualifiedDefaultSet<K, V> removeAllKey(QualifiedDefaultSet<K, X> m) {
+        return create(remove(value, key(), ((QualifiedDefaultSetImpl) m).value, key()));
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public QualifiedSet<K, V> addAll(QualifiedSet<? extends K, ? extends V> c) {
-        return create(add(value, key(), ((QualifiedSetImpl) c).value, key()));
+    public QualifiedDefaultSet<K, V> addAll(QualifiedDefaultSet<? extends K, ? extends V> c) {
+        return create(add(value, key(), ((QualifiedDefaultSetImpl) c).value, key()));
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public void deduplicate(QualifiedSet<K, V> other) {
-        deduplicate(value, key(), ((QualifiedSetImpl) other).value, key());
+    public void deduplicate(QualifiedDefaultSet<K, V> other) {
+        deduplicate(value, key(), ((QualifiedDefaultSetImpl) other).value, key());
     }
 
     @Override
-    public QualifiedSet<K, V> addAll(Collection<? extends V> e) {
-        return addAll(e.toQualifiedSet(qualifier));
+    public QualifiedDefaultSet<K, V> addAll(Collection<? extends V> e) {
+        return addAll(e.toQualifiedDefaultSet(qualifier, defaultFunction));
     }
 
     @Override
@@ -145,17 +153,17 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @SuppressWarnings("unchecked")
     @Override
-    protected QualifiedSetImpl<K, V> create(Object val) {
-        return val != value ? new QualifiedSetImpl<>(qualifier, val) : this;
+    protected QualifiedDefaultSetImpl<K, V> create(Object val) {
+        return val != value ? new QualifiedDefaultSetImpl<>(qualifier, defaultFunction, val) : this;
     }
 
     @Override
-    public QualifiedSet<K, V> merge(QualifiedSet<K, V>[] branches, int length) {
+    public QualifiedDefaultSet<K, V> merge(QualifiedDefaultSet<K, V>[] branches, int length) {
         return merge((k, v, vs, l) -> Mergeables.merge(v, vs, l), branches, length);
     }
 
     @Override
-    public QualifiedSet<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, QualifiedSet<K, V>[] branches, int length) {
+    public QualifiedDefaultSet<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, QualifiedDefaultSet<K, V>[] branches, int length) {
         return create(visit((a, l) -> {
             Object r = a[0];
             for (int i = 1; i < l; i++) {
@@ -199,20 +207,20 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     @Override
-    public QualifiedSet<K, V> getMerger() {
+    public QualifiedDefaultSet<K, V> getMerger() {
         return create(null);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public QualifiedSet<K, V> remove(Object e) {
+    public QualifiedDefaultSet<K, V> remove(Object e) {
         return removeKey(qualifier.apply((V) e));
     }
 
     @Override
-    public QualifiedSet<K, V> removeAll(Collection<?> e) {
+    public QualifiedDefaultSet<K, V> removeAll(Collection<?> e) {
         @SuppressWarnings("resource")
-        QualifiedSet<K, V> result = this;
+        QualifiedDefaultSet<K, V> result = this;
         for (Object r : e) {
             result = result.remove(r);
         }
@@ -225,15 +233,20 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     @Override
-    public QualifiedSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
-        return filter(v -> keyPredicate.test(qualifier.apply(v)) && valuePredicate.test(v)).toQualifiedSet(qualifier);
+    public SerializableFunction<K, V> defaultFunction() {
+        return defaultFunction;
+    }
+
+    @Override
+    public QualifiedDefaultSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
+        return filter(v -> keyPredicate.test(qualifier.apply(v)) && valuePredicate.test(v)).toQualifiedDefaultSet(qualifier, defaultFunction);
     }
 
     @SuppressWarnings("rawtypes")
     @Override
     public boolean containsAll(Collection<?> c) {
-        if (c instanceof QualifiedSetImpl) {
-            return c.size() == size(retain(value, key(), ((QualifiedSetImpl) c).value, key()));
+        if (c instanceof QualifiedDefaultSetImpl) {
+            return c.size() == size(retain(value, key(), ((QualifiedDefaultSetImpl) c).value, key()));
         } else {
             return containsAll(c.toQualifiedSet(qualifier));
         }
@@ -241,9 +254,9 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @SuppressWarnings("rawtypes")
     @Override
-    public QualifiedSet<K, V> exclusiveAll(Collection<? extends V> c) {
-        if (c instanceof QualifiedSetImpl) {
-            return create(exclusive(value, key(), ((QualifiedSetImpl) c).value, key()));
+    public QualifiedDefaultSet<K, V> exclusiveAll(Collection<? extends V> c) {
+        if (c instanceof QualifiedDefaultSetImpl) {
+            return create(exclusive(value, key(), ((QualifiedDefaultSetImpl) c).value, key()));
         } else {
             return exclusiveAll(c.toQualifiedSet(qualifier));
         }
@@ -251,9 +264,9 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @SuppressWarnings("rawtypes")
     @Override
-    public QualifiedSet<K, V> retainAll(Collection<?> c) {
-        if (c instanceof QualifiedSetImpl) {
-            return create(retain(value, key(), ((QualifiedSetImpl) c).value, key()));
+    public QualifiedDefaultSet<K, V> retainAll(Collection<?> c) {
+        if (c instanceof QualifiedDefaultSetImpl) {
+            return create(retain(value, key(), ((QualifiedDefaultSetImpl) c).value, key()));
         } else {
             return retainAll(c.toQualifiedSet(qualifier));
         }

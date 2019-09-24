@@ -19,6 +19,7 @@ import org.modelingvalue.jdclare.test.BirdUniverse.HummingBird;
 import org.modelingvalue.jdclare.test.BirdUniverse.Pheasant;
 import org.modelingvalue.jdclare.test.BirdUniverse.Pigeon;
 import org.modelingvalue.jdclare.test.BirdUniverse.Sparrow;
+import org.modelingvalue.transactions.EmptyMandatoryException;
 import org.modelingvalue.transactions.NonDeterministicException;
 import org.modelingvalue.transactions.State;
 import org.modelingvalue.transactions.TooManyChangesException;
@@ -178,7 +179,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObservedException.class, "Too many observed (1202) by 0.Pigeon::addChildren2", x -> ((TooManyObservedException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObservedException.class, "Too many observed (4802) by 0.Pigeon::addChildren2", x -> ((TooManyObservedException) x).getSimpleMessage());
         }
     }
 
@@ -192,7 +193,7 @@ public class BirdTest {
         assertEquals("Unexpected Birds: " + birds, 1, birds.size());
     }
 
-    //@Test
+    // @Test
     public void tooManyObserversException1() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
@@ -216,7 +217,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2003) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
+            assertThrowable(cause, TooManyObserversException.class, "Too many observers (2002) of 0.color", x -> ((TooManyObserversException) x).getSimpleMessage());
         }
     }
 
@@ -230,12 +231,11 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']"));
+            assertThrowable(cause, EmptyMandatoryException.class, java.util.regex.Pattern.quote("Empty mandatory property 'color' of object '0+'"));
         }
     }
 
-    //@Test
-    // TODO this test fails
+    @Test
     public void missingMandatory2() {
         try {
             DClare<BirdUniverse> dclare = of(BirdUniverse.class);
@@ -245,7 +245,7 @@ public class BirdTest {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal MANDATORY Problem 'color is empty.' on '0+']"));
+            assertThrowable(cause, EmptyMandatoryException.class, java.util.regex.Pattern.quote("Empty mandatory property 'color' of object '0+'"));
         }
     }
 

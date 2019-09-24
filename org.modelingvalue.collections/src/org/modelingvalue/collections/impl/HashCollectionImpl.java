@@ -56,7 +56,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     private static final int[]                    INDEX_MASKS                  = new int[NR_OF_PARTS];
     private static final int[]                    PART_SHIFTS                  = new int[NR_OF_PARTS];
 
-    private static final int                      COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 4);
+    private static final int                      COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 4 + 1);
     private static final HashMultiValue           DUMMY                        = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
     private static final Object[][]               SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
 

@@ -1,11 +1,10 @@
 package org.modelingvalue.transactions.test;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.transactions.Constant;
 import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Setable;
 
 public class DObject implements Mutable {
     private final Object id;
@@ -20,25 +19,9 @@ public class DObject implements Mutable {
         this.dClass = dClass;
     }
 
+    @Override
     public DClass dClass() {
         return dClass;
-    }
-
-    @Override
-    public Collection<? extends Observer<?>> dObservers() {
-        return dClass.dObservers();
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
-    public Collection<? extends Setable<Mutable, ?>> dContainers() {
-        return (Collection) dClass.dContainers();
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
-    public Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
-        return (Collection) dClass.dConstants();
     }
 
     public Object id() {
@@ -67,6 +50,11 @@ public class DObject implements Mutable {
             DObject c = (DObject) obj;
             return id.equals(c.id) && dClass.equals(c.dClass);
         }
+    }
+
+    @Override
+    public Collection<? extends Observer<?>> dMutableObservers() {
+        return Set.of();
     }
 
 }

@@ -4,6 +4,7 @@ import static java.lang.Math.*;
 import static org.modelingvalue.jdclare.DClare.*;
 
 import org.modelingvalue.jdclare.DStruct2;
+import org.modelingvalue.jdclare.Default;
 import org.modelingvalue.jdclare.Property;
 import org.modelingvalue.jdclare.Rule;
 import org.modelingvalue.jdclare.swing.draw2d.DPoint;
@@ -59,11 +60,17 @@ public interface BallBallPair extends DStruct2<Ball, Ball>, CollisionPair {
         return ball.equals(a()) ? aVelocity() : ball.equals(b()) ? bVelocity() : ball.solVelocity();
     }
 
+    @Default
     @Property
-    DPoint aVelocity();
+    default DPoint aVelocity() {
+        return DPoint.NULL;
+    }
 
+    @Default
     @Property
-    DPoint bVelocity();
+    default DPoint bVelocity() {
+        return DPoint.NULL;
+    }
 
     @Rule
     default void velocity() {

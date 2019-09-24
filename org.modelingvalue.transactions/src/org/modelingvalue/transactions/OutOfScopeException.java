@@ -11,35 +11,24 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.jdclare;
+package org.modelingvalue.transactions;
 
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
+import org.modelingvalue.collections.Set;
 
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles.Lookup;
+public final class OutOfScopeException extends RuntimeException {
 
-import org.modelingvalue.jdclare.meta.DStructClass;
+    private static final long  serialVersionUID = -6687018038130352922L;
 
-@Extend(DStructClass.class)
-public interface DStruct extends Comparable<DStruct>, Serializable {
+    public final Object        object;
+    public final Setable<?, ?> setable;
+    public final Object        value;
+    public final Set<?>        scope;
 
-    int getKeySize();
-
-    Object getKey(int i);
-
-    @Property({constant, hidden})
-    default DStructClass<DStruct> dStructClass() {
-        return DClare.dClass(DClare.jClass(this));
+    public OutOfScopeException(Object object, Setable<?, ?> setable, Object value, Set<?> scope) {
+        super("The value '" + value + "' of '" + setable + "' of object '" + object + "' is out of scope '" + scope + "'");
+        this.object = object;
+        this.setable = setable;
+        this.value = value;
+        this.scope = scope;
     }
-
-    @Override
-    default int compareTo(DStruct other) {
-        return DClare.COMPARATOR.compare(this, other);
-    }
-
-    default String asString() {
-        return DClare.toString(this);
-    }
-
-    Lookup lookup();
 }

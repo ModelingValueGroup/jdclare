@@ -118,11 +118,8 @@ public interface MySyntax extends Grammar, DStruct0 {
 
         @Override
         @Syntax(nr = 1, type = IDENTIFIER.class)
-        @Default
         @Property
-        default AField field() {
-            return dclare(CField.class, null);
-        }
+        AField field();
     }
 
     @Regex("\"[^\"]*\"")

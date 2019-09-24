@@ -28,18 +28,18 @@ public interface Mutable extends TransactionClass {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     Setable<Mutable, Set<? extends Observer<?>>> D_OBSERVERS      = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
-                                                                      Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,   //
-                                                                              added -> added.trigger(obj),                             //
+                                                                      Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                //
+                                                                              added -> added.trigger(obj),                                                          //
                                                                               removed -> removed.deObserve(obj));
                                                                   });
 
     Observer<Mutable>                            D_OBSERVERS_RULE = Observer.of("D_OBSERVERS_RULE", m -> {
-                                                                      D_OBSERVERS.set(m, m.dObservers().toSet());
+                                                                      D_OBSERVERS.set(m, Collection.concat(m.dClass().dObservers(), m.dMutableObservers()).toSet());
                                                                   }, Priority.preDepth);
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     Observer<Mutable>                            D_CONSTANTS_RULE = Observer.of("D_CONSTANTS_RULE", m -> {
-                                                                      m.dConstants().forEach(c -> ((Constant) c).get(m));
+                                                                      m.dClass().dConstants().forEach(c -> ((Constant) c).get(m));
                                                                   }, Priority.preDepth);
 
     default Mutable dParent() {
@@ -57,7 +57,7 @@ public interface Mutable extends TransactionClass {
             parent = parent.dParent();
         }
         if (parent == null) {
-            throw new EmptyMandatoryException();
+            throw new EmptyMandatoryException(this, D_PARENT);
         }
         return (C) parent;
     }
@@ -82,20 +82,18 @@ public interface Mutable extends TransactionClass {
         }
     }
 
-    Collection<? extends Observer<?>> dObservers();
+    MutableClass dClass();
 
-    Collection<? extends Setable<? extends Mutable, ?>> dContainers();
-
-    Collection<? extends Constant<? extends Mutable, ?>> dConstants();
+    Collection<? extends Observer<?>> dMutableObservers();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default Collection<? extends Mutable> dChildren() {
-        return dContainers().flatMap(c -> (Collection<? extends Mutable>) ((Setable) c).getCollection(this));
+        return dClass().dContainers().flatMap(c -> (Collection<? extends Mutable>) ((Setable) c).getCollection(this));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     default Collection<? extends Mutable> dChildren(State state) {
-        return dContainers().flatMap(c -> (Collection<? extends Mutable>) state.getCollection(this, (Setable) c));
+        return dClass().dContainers().flatMap(c -> (Collection<? extends Mutable>) state.getCollection(this, (Setable) c));
     }
 
     @Override

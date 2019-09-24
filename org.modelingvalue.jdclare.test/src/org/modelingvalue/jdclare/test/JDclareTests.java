@@ -13,11 +13,8 @@
 
 package org.modelingvalue.jdclare.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.modelingvalue.jdclare.DClare.dNative;
-import static org.modelingvalue.jdclare.DClare.of;
+import static org.junit.Assert.*;
+import static org.modelingvalue.jdclare.DClare.*;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -36,6 +33,7 @@ import org.modelingvalue.jdclare.DStruct;
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.test.PrioUniverse.Prio;
 import org.modelingvalue.transactions.Direction;
+import org.modelingvalue.transactions.OutOfScopeException;
 import org.modelingvalue.transactions.State;
 
 public class JDclareTests {
@@ -232,7 +230,7 @@ public class JDclareTests {
             Assert.fail();
         } catch (Throwable t) {
             Throwable cause = getCause(t);
-            assertThrowable(cause, Error.class, java.util.regex.Pattern.quote("Fatal problems: [fatal SCOPE Problem 'the developers Pieter Puk is not in scope.' on 'DClare']"));
+            assertThrowable(cause, OutOfScopeException.class, java.util.regex.Pattern.quote("The value 'Set[Pieter Puk]' of 'developers' of object 'DClare' is out of scope 'Set[]'"));
         }
     }
 

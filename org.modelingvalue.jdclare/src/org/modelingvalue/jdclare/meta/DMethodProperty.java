@@ -19,8 +19,8 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 import java.lang.reflect.Method;
 import java.util.function.Function;
 
-import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
@@ -176,7 +176,7 @@ public interface DMethodProperty<O extends DStruct, T> extends DProperty<O, T>, 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     @Property(constant)
-    default DProperty<O, Collection<?>> scopeProperty() {
+    default DProperty<O, Set<?>> scopeProperty() {
         Method method = method();
         State constraints = getConstraints(method);
         Method scopeProperty = constraints != null ? overridden(null, method, (s, m) -> {

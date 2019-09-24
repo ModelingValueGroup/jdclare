@@ -15,6 +15,7 @@ package org.modelingvalue.transactions;
 
 import java.util.function.Supplier;
 
+import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
@@ -27,27 +28,27 @@ public class Observed<O, T> extends Setable<O, T> {
     protected static final DefaultMap<Observed, Set<Mutable>> OBSERVED_MAP = DefaultMap.of(k -> Set.of());
 
     public static <C, V> Observed<C, V> of(Object id, V def) {
-        return new Observed<C, V>(id, def, false, null, null);
-    }
-
-    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Observed<C, V>(id, def, false, null, changed);
+        return new Observed<C, V>(id, def, false, null, null, null, true);
     }
 
     public static <C, V> Observed<C, V> of(Object id, V def, boolean containment) {
-        return new Observed<C, V>(id, def, containment, null, null);
+        return new Observed<C, V>(id, def, containment, null, null, null, true);
+    }
+
+    public static <C, V> Observed<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
+        return new Observed<C, V>(id, def, false, null, null, changed, true);
+    }
+
+    public static <C, V> Observed<C, V> of(Object id, V def, boolean containment, boolean checkConsistency) {
+        return new Observed<C, V>(id, def, containment, null, null, null, checkConsistency);
     }
 
     public static <C, V> Observed<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite) {
-        return new Observed<C, V>(id, def, false, opposite, null);
+        return new Observed<C, V>(id, def, false, opposite, null, null, true);
     }
 
-    public static <C, V> Observed<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Observed<C, V>(id, def, containment, null, changed);
-    }
-
-    public static <C, V> Observed<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Observed<C, V>(id, def, false, opposite, changed);
+    public static <C, V> Observed<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, Supplier<Setable<C, Set<?>>> scope, boolean checkConsistency) {
+        return new Observed<C, V>(id, def, false, opposite, scope, null, checkConsistency);
     }
 
     private final Setable<Object, Set<ObserverTrace>> readers      = Setable.of(Pair.of(this, "readers"), Set.of());
@@ -55,10 +56,11 @@ public class Observed<O, T> extends Setable<O, T> {
     private final Observers<O, T>[]                   observers;
     @SuppressWarnings("rawtypes")
     private final Entry<Observed, Set<Mutable>>       thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
+    private boolean                                   isReference;
 
     @SuppressWarnings("unchecked")
-    protected Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
-        this(id, def, containment, opposite, observers(id), changed);
+    protected Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Supplier<Setable<O, Set<?>>> scope, QuadConsumer<LeafTransaction, O, T, T> changed, boolean checkConsistency) {
+        this(id, def, containment, opposite, scope, observers(id), changed, checkConsistency);
     }
 
     @SuppressWarnings("rawtypes")
@@ -71,8 +73,8 @@ public class Observed<O, T> extends Setable<O, T> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed) {
-        super(id, def, containment, opposite, null);
+    private Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Supplier<Setable<O, Set<?>>> scope, Observers<O, T>[] observers, QuadConsumer<LeafTransaction, O, T, T> changed, boolean checkConsistency) {
+        super(id, def, containment, opposite, scope, null, checkConsistency);
         this.changed = (l, o, p, n) -> {
             if (changed != null) {
                 changed.accept(l, o, p, n);
@@ -87,6 +89,15 @@ public class Observed<O, T> extends Setable<O, T> {
                             l.trigger(mutable, e.getKey(), Direction.values()[ia]);
                         }
                     }
+                }
+            }
+            if (!containment && opposite == null && this != Mutable.D_PARENT && this != Mutable.D_CONTAINING && !isReference) {
+                Object v = n;
+                if (v instanceof ContainingCollection) {
+                    v = ((ContainingCollection<?>) v).isEmpty() ? null : ((ContainingCollection<?>) v).get(0);
+                }
+                if (v instanceof Mutable) {
+                    isReference = true;
                 }
             }
         };
@@ -132,7 +143,7 @@ public class Observed<O, T> extends Setable<O, T> {
         }
 
         private Observers(Object id, Direction direction) {
-            super(Pair.of(id, direction), Observer.OBSERVER_MAP, false, null, null);
+            super(Pair.of(id, direction), Observer.OBSERVER_MAP, false, null, null, null, false);
             changed = (tx, o, b, a) -> tx.checkTooManyObservers(o, observed, a);
             this.direction = direction;
         }
@@ -155,6 +166,25 @@ public class Observed<O, T> extends Setable<O, T> {
     @SuppressWarnings("rawtypes")
     protected Entry<Observed, Set<Mutable>> entry(Mutable object, Mutable self) {
         return object.equals(self) ? thisInstance : Entry.of(this, Set.of(object));
+    }
+
+    @Override
+    public boolean checkConsistency() {
+        return super.checkConsistency() || (checkConsistency && isReference);
+    }
+
+    @Override
+    public void checkConsistency(State state, O object, T pre, T post) {
+        if (super.checkConsistency()) {
+            super.checkConsistency(state, object, pre, post);
+        }
+        if (isReference) {
+            for (Mutable m : mutables(post)) {
+                if (!(m instanceof Universe) && state.get(m, Mutable.D_PARENT) == null) {
+                    throw new ReferencedOrphanException(object, this, m);
+                }
+            }
+        }
     }
 
 }

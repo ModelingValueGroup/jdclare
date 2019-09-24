@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Pair;
@@ -30,40 +31,32 @@ public class Setable<O, T> extends Getable<O, T> {
     private static final Context<Boolean> MOVING = Context.of(false);
 
     public static <C, V> Setable<C, V> of(Object id, V def) {
-        return new Setable<C, V>(id, def, false, null, null);
+        return new Setable<C, V>(id, def, false, null, null, null, true);
     }
 
     public static <C, V> Setable<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Setable<C, V>(id, def, false, null, changed);
+        return new Setable<C, V>(id, def, false, null, null, changed, true);
     }
 
     public static <C, V> Setable<C, V> of(Object id, V def, boolean containment) {
-        return new Setable<C, V>(id, def, containment, null, null);
-    }
-
-    public static <C, V> Setable<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite) {
-        return new Setable<C, V>(id, def, false, opposite, null);
-    }
-
-    public static <C, V> Setable<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Setable<C, V>(id, def, containment, null, changed);
-    }
-
-    public static <C, V> Setable<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new Setable<C, V>(id, def, false, opposite, changed);
+        return new Setable<C, V>(id, def, containment, null, null, null, true);
     }
 
     protected QuadConsumer<LeafTransaction, O, T, T>  changed;
     protected final boolean                           containment;
     private final Supplier<Setable<?, ?>>             opposite;
+    private final Supplier<Setable<O, Set<?>>>        scope;
     @SuppressWarnings("rawtypes")
     private final Constant<T, Entry<Setable, Object>> internal;
+    protected final boolean                           checkConsistency;
 
-    protected Setable(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
+    protected Setable(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Supplier<Setable<O, Set<?>>> scope, QuadConsumer<LeafTransaction, O, T, T> changed, boolean checkConsistency) {
         super(id, def);
+        this.checkConsistency = checkConsistency;
         this.containment = containment;
         this.changed = changed;
         this.opposite = opposite;
+        this.scope = scope;
         if (containment && opposite != null) {
             throw new Error("The containment setable " + this + " has an opposite");
         }
@@ -108,8 +101,13 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @Override
-    public Supplier<Setable<?, ?>> opposite() {
-        return opposite;
+    public Setable<?, ?> opposite() {
+        return opposite != null ? opposite.get() : null;
+    }
+
+    @Override
+    public Setable<O, Set<?>> scope() {
+        return scope != null ? scope.get() : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -211,6 +209,24 @@ public class Setable<O, T> extends Getable<O, T> {
                 }
             } else if (post != null) {
                 added.accept((E) post);
+            }
+        }
+    }
+
+    public boolean checkConsistency() {
+        return checkConsistency && scope != null;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void checkConsistency(State state, O object, T pre, T post) {
+        Set s = state.get(object, scope.get());
+        if (post instanceof ContainingCollection) {
+            if (!s.containsAll((ContainingCollection) post)) {
+                throw new OutOfScopeException(object, this, post, s);
+            }
+        } else if (post != null) {
+            if (!s.contains(post)) {
+                throw new OutOfScopeException(object, this, post, s);
             }
         }
     }

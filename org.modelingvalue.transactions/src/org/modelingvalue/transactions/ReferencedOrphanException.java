@@ -11,35 +11,20 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.jdclare;
+package org.modelingvalue.transactions;
 
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
+public final class ReferencedOrphanException extends RuntimeException {
 
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles.Lookup;
+    private static final long  serialVersionUID = -6687018038130352922L;
 
-import org.modelingvalue.jdclare.meta.DStructClass;
+    public final Object        object;
+    public final Setable<?, ?> setable;
+    public final Object        referenced;
 
-@Extend(DStructClass.class)
-public interface DStruct extends Comparable<DStruct>, Serializable {
-
-    int getKeySize();
-
-    Object getKey(int i);
-
-    @Property({constant, hidden})
-    default DStructClass<DStruct> dStructClass() {
-        return DClare.dClass(DClare.jClass(this));
+    public ReferencedOrphanException(Object object, Setable<?, ?> setable, Object referenced) {
+        super("Property '" + setable + "' of object '" + object + "' references orphan '" + referenced + "'");
+        this.object = object;
+        this.setable = setable;
+        this.referenced = referenced;
     }
-
-    @Override
-    default int compareTo(DStruct other) {
-        return DClare.COMPARATOR.compare(this, other);
-    }
-
-    default String asString() {
-        return DClare.toString(this);
-    }
-
-    Lookup lookup();
 }

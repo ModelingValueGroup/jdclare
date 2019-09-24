@@ -16,57 +16,76 @@ package org.modelingvalue.transactions;
 import java.util.function.Supplier;
 
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.QuadConsumer;
 
 public class MandatoryObserved<O, T> extends Observed<O, T> {
 
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def) {
-        return new MandatoryObserved<C, V>(id, def, false, null, null);
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment) {
+        return new MandatoryObserved<C, V>(id, def, containment, null, null, null, true);
     }
 
     public static <C, V> MandatoryObserved<C, V> of(Object id, V def, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new MandatoryObserved<C, V>(id, def, false, null, changed);
-    }
-
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment) {
-        return new MandatoryObserved<C, V>(id, def, containment, null, null);
+        return new MandatoryObserved<C, V>(id, def, false, null, null, changed, true);
     }
 
     public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite) {
-        return new MandatoryObserved<C, V>(id, def, false, opposite, null);
+        return new MandatoryObserved<C, V>(id, def, false, opposite, null, null, true);
     }
 
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new MandatoryObserved<C, V>(id, def, containment, null, changed);
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def) {
+        return new MandatoryObserved<C, V>(id, def, false, null, null, null, true);
     }
 
-    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, C, V, V> changed) {
-        return new MandatoryObserved<C, V>(id, def, false, opposite, changed);
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, boolean containment, boolean checkConsistency) {
+        return new MandatoryObserved<C, V>(id, def, containment, null, null, null, checkConsistency);
     }
 
-    protected MandatoryObserved(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, QuadConsumer<LeafTransaction, O, T, T> changed) {
-        super(id, def, containment, opposite, changed);
+    public static <C, V> MandatoryObserved<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite, Supplier<Setable<C, Set<?>>> scope, boolean checkConsistency) {
+        return new MandatoryObserved<C, V>(id, def, false, opposite, scope, null, checkConsistency);
     }
 
-    @SuppressWarnings("rawtypes")
+    protected MandatoryObserved(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Supplier<Setable<O, Set<?>>> scope, QuadConsumer<LeafTransaction, O, T, T> changed, boolean checkConsistency) {
+        super(id, def, containment, opposite, scope, changed, checkConsistency);
+    }
+
     @Override
     public T get(O object) {
         T result = super.get(object);
-        if (result == null || (result instanceof ContainingCollection && ((ContainingCollection) result).isEmpty())) {
-            throw new EmptyMandatoryException();
+        if (check(result)) {
+            throw new EmptyMandatoryException(object, this);
+        } else {
+            return result;
+        }
+    }
+
+    @Override
+    public T pre(O object) {
+        T result = super.pre(object);
+        if (check(result)) {
+            return get(object);
         } else {
             return result;
         }
     }
 
     @SuppressWarnings("rawtypes")
+    protected boolean check(T result) {
+        return result == null || (result instanceof ContainingCollection && ((ContainingCollection) result).isEmpty());
+    }
+
     @Override
-    public T pre(O object) {
-        T result = super.pre(object);
-        if (result == null || (result instanceof ContainingCollection && ((ContainingCollection) result).isEmpty())) {
-            throw new EmptyMandatoryException();
-        } else {
-            return result;
+    public boolean checkConsistency() {
+        return checkConsistency;
+    }
+
+    @Override
+    public void checkConsistency(State state, O object, T pre, T post) {
+        if (super.checkConsistency()) {
+            super.checkConsistency(state, object, pre, post);
+        }
+        if (check(post)) {
+            throw new EmptyMandatoryException(object, this);
         }
     }
 

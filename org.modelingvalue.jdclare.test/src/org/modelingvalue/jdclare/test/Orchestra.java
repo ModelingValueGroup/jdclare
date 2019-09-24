@@ -62,6 +62,6 @@ public interface Orchestra extends DUniverse {
     @Override
     default void init() {
         DUniverse.super.init();
-        dClare().addIntegration("pianoNative", callNativesOfClass(PianoKey.class));
+        dClare().addDiffHandler("pianoNative", callNativesOfClass(PianoKey.class));
     }
 }

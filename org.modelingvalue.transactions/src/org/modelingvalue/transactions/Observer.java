@@ -114,7 +114,7 @@ public class Observer<O extends Mutable> extends Action<O> implements Internable
 
         @SuppressWarnings("unchecked")
         private Observerds(Observer observer, Direction direction) {
-            super(Pair.of(observer, direction), Observed.OBSERVED_MAP, false, null, (tx, mutable, pre, post) -> {
+            super(Pair.of(observer, direction), Observed.OBSERVED_MAP, false, null, null, (tx, mutable, pre, post) -> {
                 for (Observed observed : Collection.concat(pre.toKeys(), post.toKeys()).distinct()) {
                     Setable<Mutable, DefaultMap<Observer, Set<Mutable>>> obs = observed.observers(direction);
                     Setable.<Set<Mutable>, Mutable> diff(pre.get(observed), post.get(observed), a -> {
@@ -125,7 +125,7 @@ public class Observer<O extends Mutable> extends Action<O> implements Internable
                         tx.set(o, obs, (m, e) -> m.remove(e, Set::removeAll), observer.entry(mutable, o));
                     });
                 }
-            });
+            }, false);
 
         }
 

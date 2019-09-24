@@ -75,7 +75,7 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     public static final Setable<Universe, Boolean>                                    STOPPED       = Setable.of("stopped", false);
-    public static final Setable<Universe, Set<ActionInstance>>                        INTEGRATIONS  = Setable.of("integrations", Set.of());
+    public static final Setable<Universe, Set<Action<Universe>>>                      POST_ACTIONS  = Setable.of("postActions", Set.of());
 
     protected final Concurrent<ReusableTransaction<Action<?>, ActionTransaction>>     actionTransactions;
     protected final Concurrent<ReusableTransaction<Observer<?>, ObserverTransaction>> observerTransactions;
@@ -166,7 +166,7 @@ public class UniverseTransaction extends MutableTransaction {
                         }
                     }
                     if (!killed) {
-                        state = state.get(() -> run(trigger(state, state.get(universe(), INTEGRATIONS), Direction.forward)));
+                        state = state.get(() -> run(trigger(state, state.get(universe(), POST_ACTIONS), Direction.forward)));
                     }
                     if (!killed && inQueue.isEmpty()) {
                         if (isStopped(state)) {
@@ -196,11 +196,39 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     protected void init() {
-        put("$init", () -> universe().init());
+        put("$init", () -> {
+            addDiffHandler("checkConsistency", checkConsistency());
+            universe().init();
+        });
+    }
+
+    private TriConsumer<State, State, Boolean> checkConsistency() {
+        return new TriConsumer<State, State, Boolean>() {
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            @Override
+            public void accept(State pre, State post, Boolean last) {
+                if (last) {
+                    pre.diff(post, o -> o instanceof Mutable).forEach(e0 -> {
+                        if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT) != null) {
+                            ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
+                                ((Setable) s).checkConsistency(post, e0.getKey(), e0.getValue().a().get(s), e0.getValue().b().get(s));
+                            });
+                        }
+                    });
+                }
+            }
+        };
     }
 
     public Universe universe() {
         return (Universe) mutable();
+    }
+
+    protected <O extends Mutable> State trigger(State state, Set<Action<Universe>> actions, Direction direction) {
+        for (Action<Universe> action : actions) {
+            state = trigger(state, universe(), action, direction);
+        }
+        return state;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -295,19 +323,21 @@ public class UniverseTransaction extends MutableTransaction {
         }
     }
 
-    public void addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler) {
-        ActionTransaction.getCurrent().set(universe(), INTEGRATIONS, Set::add, ActionInstance.of(mutable(), Action.of(id, o -> {
-            diffHandler.accept(preState(), ActionTransaction.getCurrent().state(), true);
-        }, Priority.postDepth)));
+    public void addDiffHandler(String id, TriConsumer<State, State, Boolean> diffHandler) {
+        ActionTransaction.getCurrent().set(universe(), POST_ACTIONS, Set::add, Action.<Universe> of(id, o -> {
+            LeafTransaction tx = ActionTransaction.getCurrent();
+            diffHandler.accept(tx.universeTransaction().preState(), tx.state(), true);
+        }, Priority.postDepth));
     }
 
-    public ImperativeTransaction addIntegration(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
+    public ImperativeTransaction addImperative(String id, TriConsumer<State, State, Boolean> diffHandler, Consumer<Runnable> scheduler) {
         ImperativeTransaction n = ImperativeTransaction.of(Imperative.of(id), preState, this, scheduler, diffHandler);
-        ActionTransaction.getCurrent().set(universe(), INTEGRATIONS, Set::add, ActionInstance.of(mutable(), Action.of(id, o -> {
-            State pre = ActionTransaction.getCurrent().state();
-            boolean timeTraveling = isTimeTraveling();
+        ActionTransaction.getCurrent().set(universe(), POST_ACTIONS, Set::add, Action.<Universe> of(id, o -> {
+            LeafTransaction tx = ActionTransaction.getCurrent();
+            State pre = tx.state();
+            boolean timeTraveling = tx.universeTransaction().isTimeTraveling();
             n.schedule(() -> n.commit(pre, timeTraveling));
-        }, Priority.postDepth)));
+        }, Priority.postDepth));
         return n;
     }
 

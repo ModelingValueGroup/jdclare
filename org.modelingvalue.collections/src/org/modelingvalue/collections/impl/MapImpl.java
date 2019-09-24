@@ -92,11 +92,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @SuppressWarnings("rawtypes")
     @Override
     public Map<K, V> removeAllKey(Collection<?> c) {
-        if (c instanceof SetImpl) {
-            return create(remove(value, key(), ((SetImpl) c).value, identity()));
-        } else {
-            return removeAllKey(c.toSet());
-        }
+        return create(remove(value, key(), ((SetImpl) c.toSet()).value, identity()));
     }
 
     @SuppressWarnings("rawtypes")
@@ -123,29 +119,26 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public Map<K, V> add(Entry<K, V> entry) {
-        return put(entry);
+        return add(entry, (a, b) -> Mergeables.merge(null, a, b));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Map<K, V> addAll(Collection<? extends Entry<K, V>> es) {
-        return putAll(es instanceof Map ? (Map) es : es.toMap(e -> e));
+        return addAll(es instanceof Map ? (Map) es : es.toMap(e -> e), (a, b) -> Mergeables.merge(null, a, b));
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Map<K, V> remove(Object e) {
-        return e instanceof Entry ? removeKey(((Entry<K, V>) e).getKey()) : this;
+        return e instanceof Entry ? remove((Entry) e, (a, b) -> Mergeables.merge(b, null, a)) : this;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Map<K, V> removeAll(Collection<?> e) {
-        @SuppressWarnings("resource")
-        Map<K, V> result = this;
-        for (Object r : e) {
-            result = result.remove(r);
-        }
-        return result;
+    public Map<K, V> removeAll(Collection<?> es) {
+        return removeAll(es instanceof Map ? (Map) es : es.map(e -> e instanceof Entry ? (Entry) e : null).notNull().toMap(e -> e), //
+                (a, b) -> Mergeables.merge(b, null, a));
     }
 
     @Override

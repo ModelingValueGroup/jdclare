@@ -15,9 +15,15 @@ package org.modelingvalue.transactions;
 
 public final class EmptyMandatoryException extends RuntimeException {
 
-    private static final long serialVersionUID = -6687018038130352922L;
+    private static final long  serialVersionUID = -6687018038130352922L;
 
-    public EmptyMandatoryException() {
-        super();
+    public final Object        object;
+    public final Setable<?, ?> setable;
+
+    public EmptyMandatoryException(Object object, Setable<?, ?> setable) {
+        super("Empty mandatory property '" + setable + "' of object '" + object + "'");
+        this.object = object;
+        this.setable = setable;
     }
+
 }

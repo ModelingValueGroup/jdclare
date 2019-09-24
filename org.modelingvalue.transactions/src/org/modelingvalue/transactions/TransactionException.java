@@ -13,11 +13,58 @@
 
 package org.modelingvalue.transactions;
 
+import java.util.Arrays;
+
 public final class TransactionException extends Error {
 
-    private static final long serialVersionUID = 4787416569147173605L;
+    private static final long      serialVersionUID = 4787416569147173605L;
 
-    public TransactionException(String message, Throwable cause) {
-        super(message, cause);
+    protected static final int     MAX_STACK_DEPTH  = Integer.getInteger("MAX_STACK_DEPTH", 4);
+
+    private final TransactionClass cls;
+
+    public TransactionClass getTransactionClass() {
+        return cls;
     }
+
+    public TransactionException(State state, TransactionClass cls, Throwable cause) {
+        super("Exception in transaction \"" + state.get(() -> cls.toString()) + "\"", cause);
+        this.cls = cls;
+        StackTraceElement[] est = getStackTrace();
+        setStackTrace(Arrays.copyOf(est, Math.min(est.length, MAX_STACK_DEPTH)));
+        if (!(cause instanceof TransactionException)) {
+            est = getStackTrace();
+            StackTraceElement[] tst = cause.getStackTrace();
+            cause.setStackTrace(Arrays.copyOf(tst, Math.min(tst.length, cause.getCause() instanceof TransactionException ? MAX_STACK_DEPTH : reduceStackLength(est, tst))));
+        }
+
+    }
+
+    private int reduceStackLength(StackTraceElement[] outer, StackTraceElement[] inner) {
+        for (int i = 0; i < inner.length; i++) {
+            for (int o = 0; o < outer.length; o++) {
+                if (inner[i].equals(outer[o])) {
+                    return i + 2;
+                }
+            }
+        }
+        return inner.length;
+    }
+
+    public TransactionException getTransactionCause() {
+        TransactionException t = this;
+        while (t.getCause() instanceof TransactionException) {
+            t = (TransactionException) t.getCause();
+        }
+        return t;
+    }
+
+    public Throwable getNonTransactionCause() {
+        Throwable t = this;
+        while (t instanceof TransactionException) {
+            t = t.getCause();
+        }
+        return t;
+    }
+
 }

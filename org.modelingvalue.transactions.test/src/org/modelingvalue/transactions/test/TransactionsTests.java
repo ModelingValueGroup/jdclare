@@ -14,6 +14,7 @@
 package org.modelingvalue.transactions.test;
 
 import static java.math.BigInteger.*;
+import static org.junit.Assert.*;
 import static org.modelingvalue.transactions.UniverseTransaction.*;
 
 import java.math.BigInteger;
@@ -24,8 +25,11 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
 import org.modelingvalue.transactions.Constant;
+import org.modelingvalue.transactions.EmptyMandatoryException;
+import org.modelingvalue.transactions.MandatoryObserved;
 import org.modelingvalue.transactions.Observed;
 import org.modelingvalue.transactions.Observer;
+import org.modelingvalue.transactions.ReferencedOrphanException;
 import org.modelingvalue.transactions.Setable;
 import org.modelingvalue.transactions.State;
 import org.modelingvalue.transactions.UniverseTransaction;
@@ -240,6 +244,50 @@ public class TransactionsTests {
         System.err.println(result.getObjects(DObject.class).size());
         System.err.println("********************************************************************");
         Assert.assertEquals(1_111_112, result.getObjects(DObject.class).size());
+    }
+
+    @Test
+    public void emptyMandatoryTest() throws Exception {
+        Observed<DUniverse, DObject> child = Observed.of("child", null, true);
+        Observed<DUniverse, String> mand = MandatoryObserved.of("mandatory", null);
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", child));
+        UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);
+        DClass dClass = DClass.of("Object", mand);
+        universeTransaction.put("init", () -> child.set(universe, DObject.of("object", dClass)));
+        universeTransaction.stop();
+        try {
+            universeTransaction.waitForEnd();
+            assertTrue(false);
+        } catch (Throwable t) {
+            t = getCause(t);
+            assertEquals(t.getClass(), EmptyMandatoryException.class);
+        }
+    }
+
+    @Test
+    public void orphanReferenceTest() throws Exception {
+        Observed<DUniverse, DObject> child = Observed.of("child", null, true);
+        Observed<DObject, DObject> ref = Observed.of("ref", null);
+        DUniverse universe = DUniverse.of("universe", DClass.of("Universe", child));
+        UniverseTransaction universeTransaction = UniverseTransaction.of(universe, THE_POOL);
+        DClass dClass = DClass.of("Object", ref);
+        universeTransaction.put("init", () -> child.set(universe, DObject.of("object", dClass)));
+        universeTransaction.put("orphan", () -> ref.set(DObject.of("object", dClass), DObject.of("orphan", dClass)));
+        universeTransaction.stop();
+        try {
+            universeTransaction.waitForEnd();
+            assertTrue(false);
+        } catch (Throwable t) {
+            t = getCause(t);
+            assertEquals(t.getClass(), ReferencedOrphanException.class);
+        }
+    }
+
+    private Throwable getCause(Throwable t) {
+        while (t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t;
     }
 
 }

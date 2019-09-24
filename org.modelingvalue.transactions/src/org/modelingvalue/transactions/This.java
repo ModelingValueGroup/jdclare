@@ -21,7 +21,31 @@ import org.modelingvalue.collections.util.Internable;
 
 public final class This implements Mutable, Internable, Serializable {
 
-    private static final long serialVersionUID = 5000610308072466985L;
+    private static final long         serialVersionUID = 5000610308072466985L;
+
+    private static final MutableClass THIS_CLASS       = new MutableClass() {
+
+                                                           @Override
+                                                           public Collection<? extends Observer<?>> dObservers() {
+                                                               return Set.of();
+                                                           }
+
+                                                           @Override
+                                                           public Collection<? extends Setable<? extends Mutable, ?>> dSetables() {
+                                                               return Set.of();
+                                                           }
+
+                                                           @Override
+                                                           public Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
+                                                               return Set.of();
+                                                           }
+
+                                                           @Override
+                                                           public Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
+                                                               return Set.of();
+                                                           }
+
+                                                       };
 
     public This() {
         super();
@@ -33,23 +57,18 @@ public final class This implements Mutable, Internable, Serializable {
     }
 
     @Override
-    public Collection<? extends Observer<?>> dObservers() {
-        return Set.of();
-    }
-
-    @Override
-    public Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
-        return Set.of();
-    }
-
-    @Override
-    public Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
-        return Set.of();
+    public MutableClass dClass() {
+        return THIS_CLASS;
     }
 
     @Override
     public final Mutable resolve(Mutable self) {
         return self;
+    }
+
+    @Override
+    public Collection<? extends Observer<?>> dMutableObservers() {
+        return Set.of();
     }
 
 }

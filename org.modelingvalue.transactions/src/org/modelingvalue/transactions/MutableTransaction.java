@@ -29,18 +29,16 @@ import org.modelingvalue.transactions.Observed.Observers;
 
 public class MutableTransaction extends Transaction implements StateMergeHandler {
 
-    private static final int                                MAX_STACK_DEPTH = Integer.getInteger("MAX_STACK_DEPTH", 4);
-
     @SuppressWarnings("rawtypes")
     private final Concurrent<Map<Observer, Set<Mutable>>>[] triggeredActions;
     private final Concurrent<Set<Mutable>>[]                triggeredMutables;
     @SuppressWarnings("unchecked")
-    private final Set<TransactionClass>[]                   ts              = new Set[1];
-    private final State[]                                   sa              = new State[1];
+    private final Set<TransactionClass>[]                   ts = new Set[1];
+    private final State[]                                   sa = new State[1];
     @SuppressWarnings("unchecked")
-    private final Set<Mutable>[]                            cs              = new Set[1];
+    private final Set<Mutable>[]                            cs = new Set[1];
     @SuppressWarnings("unchecked")
-    private final Set<Action<?>>[]                          ls              = new Set[1];
+    private final Set<Action<?>>[]                          ls = new Set[1];
 
     @SuppressWarnings("unchecked")
 
@@ -126,15 +124,7 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
         } catch (TooManyChangesException | TooManyObservedException | TooManyObserversException tme) {
             throw tme;
         } catch (Throwable t) {
-            Error error = new TransactionException("Exception in transaction \"" + state.get(() -> toString()) + "\"", t);
-            StackTraceElement[] est = error.getStackTrace();
-            error.setStackTrace(Arrays.copyOf(est, Math.min(est.length, MAX_STACK_DEPTH)));
-            if (!(t instanceof TransactionException)) {
-                est = error.getStackTrace();
-                StackTraceElement[] tst = t.getStackTrace();
-                t.setStackTrace(Arrays.copyOf(tst, Math.min(tst.length, t.getCause() instanceof TransactionException ? MAX_STACK_DEPTH : reduceStackLength(est, tst))));
-            }
-            throw error;
+            throw new TransactionException(state, mutable(), t);
         } finally {
             sa[0] = null;
             ts[0] = null;
@@ -142,17 +132,6 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
             ls[0] = null;
             TraceTimer.traceEnd("compound");
         }
-    }
-
-    private int reduceStackLength(StackTraceElement[] outer, StackTraceElement[] inner) {
-        for (int i = 0; i < inner.length; i++) {
-            for (int o = 0; o < outer.length; o++) {
-                if (inner[i].equals(outer[o])) {
-                    return i + 2;
-                }
-            }
-        }
-        return inner.length;
     }
 
     private State schedule(Mutable mutable, State state, Direction direction) {
@@ -251,14 +230,6 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
         return state;
     }
 
-    @SuppressWarnings("unchecked")
-    protected State trigger(State state, Set<ActionInstance> leafs, Direction direction) {
-        for (ActionInstance leaf : leafs) {
-            state = trigger(state, leaf.mutable(), leaf.action(), direction);
-        }
-        return state;
-    }
-
     private State triggerMutables(State state, Set<Mutable> mutables, Direction direction) {
         for (Mutable mutable : mutables) {
             state = trigger(state, mutable, null, direction);
@@ -266,10 +237,10 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
         return state;
     }
 
-    protected <O extends Mutable> State trigger(State state, O mutable, Action<O> leaf, Direction direction) {
+    protected <O extends Mutable> State trigger(State state, O mutable, Action<O> action, Direction direction) {
         Mutable object = mutable;
-        if (leaf != null) {
-            state = state.set(object, direction.priorities[leaf.priority().nr], Set::add, leaf);
+        if (action != null) {
+            state = state.set(object, direction.priorities[action.priority().nr], Set::add, action);
         }
         Mutable parent = state.get(object, Mutable.D_PARENT);
         while (parent != null && (Direction.backward == direction || !mutable().equals(object))) {

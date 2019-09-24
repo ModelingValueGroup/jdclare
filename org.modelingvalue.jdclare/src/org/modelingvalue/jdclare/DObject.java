@@ -13,14 +13,12 @@
 
 package org.modelingvalue.jdclare;
 
-import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
@@ -30,8 +28,6 @@ import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.meta.DStructClass;
-import org.modelingvalue.transactions.Constant;
-import org.modelingvalue.transactions.EmptyMandatoryException;
 import org.modelingvalue.transactions.Mutable;
 import org.modelingvalue.transactions.MutableTransaction;
 import org.modelingvalue.transactions.Observer;
@@ -69,21 +65,10 @@ public interface DObject extends DStruct, Mutable {
         return (Collection<DObject>) Mutable.super.dChildren(state);
     }
 
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
-    default Collection<? extends Observer<?>> dObservers() {
-        return (Collection) Collection.concat(dClare().bootsTrap(this), dClass().allRules(), dObjectRules()).map(DRule::observer);
-    }
-
-    @Override
-    default Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
-        return dClass().allContainments().map(DClare::setable);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
-    default Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
-        return dClass().allConstants().map(DClare::getable).filter(Constant.class).filter(c -> ((Constant) c).deriver() != null);
+    default Collection<? extends Observer<?>> dMutableObservers() {
+        return (Collection) dObjectRules().map(DRule::observer);
     }
 
     @Override
@@ -131,11 +116,12 @@ public interface DObject extends DStruct, Mutable {
         return Mutable.super.newTransaction(universeTransaction);
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Property({constant, hidden})
-    default <T extends DObject> DClass<T> dClass() {
+    default DClass<DObject> dClass() {
         DStructClass<DStruct> dStructClass = dStructClass();
-        return (DClass<T>) (DStruct) dStructClass;
+        return (DClass) dStructClass;
     }
 
     @Property(hidden)
@@ -207,67 +193,6 @@ public interface DObject extends DStruct, Mutable {
             writer.println(prefix + this + " (???) {");
         }
         writer.println(prefix + "}");
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Property({containment, hidden})
-    private Set<ScopeChecker> scopeCheckers() {
-        return dClass().scopedProperties().map(p -> dclare(ScopeChecker.class, this, p.getKey(), p.getValue())).toSet();
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Property({containment, hidden})
-    private Set<MandatoryChecker> mandatoryCheckers() {
-        return dClass().mandatoryProperties().map(p -> dclare(MandatoryChecker.class, this, p)).toSet();
-    }
-
-    interface ScopeChecker<T extends DObject> extends DObject, DStruct3<T, DProperty<T, ?>, DProperty<T, Collection<?>>> {
-
-        @Property(key = 0)
-        T object();
-
-        @Property(key = 1)
-        DProperty<T, ?> property();
-
-        @Property(key = 2)
-        DProperty<T, Collection<?>> scope();
-
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        @Property({validation, hidden})
-        default Set<DProblem> scopeProblems() {
-            DProperty<T, ?> p = property();
-            Object v = p.get(object());
-            Set s = scope().get(object()).toSet();
-            if (v instanceof ContainingCollection) {
-                return ((Collection) v).filter(e -> !s.contains(e)).map(e -> //
-                dclare(DProblem.class, object(), "SCOPE", DSeverity.fatal, "the " + p.name() + " " + e + " is not in scope.")).toSet();
-            } else if (v != null && !s.contains(v)) {
-                return Set.of(dclare(DProblem.class, object(), "SCOPE", DSeverity.fatal, p.name() + " " + v + " is not in scope."));
-            }
-            return Set.of();
-        }
-
-    }
-
-    interface MandatoryChecker<T extends DObject> extends DObject, DStruct2<T, DProperty<T, ?>> {
-
-        @Property(key = 0)
-        T object();
-
-        @Property(key = 1)
-        DProperty<T, ?> property();
-
-        @Property({validation, hidden})
-        default DProblem mandatoryProblem() {
-            DProperty<T, ?> p = property();
-            try {
-                p.get(object());
-            } catch (EmptyMandatoryException ooe) {
-                return dclare(DProblem.class, object(), "MANDATORY", DSeverity.fatal, p.name() + " is empty.");
-            }
-            return null;
-        }
-
     }
 
 }

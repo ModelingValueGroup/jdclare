@@ -19,6 +19,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.Abstract;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNamed;
@@ -71,7 +72,7 @@ public interface DProperty<O extends DStruct, V> extends DNamed {
     DProperty<?, ?> opposite();
 
     @Property(optional)
-    DProperty<O, Collection<?>> scopeProperty();
+    DProperty<O, Set<?>> scopeProperty();
 
     @SuppressWarnings("rawtypes")
     @Property
@@ -91,6 +92,10 @@ public interface DProperty<O extends DStruct, V> extends DNamed {
     @Default
     @Property
     default boolean visible() {
+        return true;
+    }
+
+    default boolean checkConsistency() {
         return true;
     }
 

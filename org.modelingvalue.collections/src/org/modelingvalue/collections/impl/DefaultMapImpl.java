@@ -105,11 +105,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @SuppressWarnings("rawtypes")
     @Override
     public DefaultMap<K, V> removeAllKey(Collection<?> c) {
-        if (c instanceof SetImpl) {
-            return create(remove(value, key(), ((SetImpl) c).value, identity()));
-        } else {
-            return removeAllKey(c.toSet());
-        }
+        return create(remove(value, key(), ((SetImpl) c.toSet()).value, identity()));
     }
 
     @SuppressWarnings("rawtypes")
@@ -179,7 +175,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return create(remove(value, key(), ((DefaultMapImpl) c).value, key(), (e1, e2) -> mergeEntry(create(e1), create(e2), merger)));
     }
 
-    protected Object mergeEntry(DefaultMap<K, V> map1, DefaultMap<K, V> map2, BinaryOperator<V> merger) {
+    private Object mergeEntry(DefaultMap<K, V> map1, DefaultMap<K, V> map2, BinaryOperator<V> merger) {
         return ((DefaultMapImpl<K, V>) map1.map(e1 -> {
             Entry<K, V> e2 = map2.getEntry(e1.getKey());
             V val = merger.apply(e1.getValue(), e2.getValue());

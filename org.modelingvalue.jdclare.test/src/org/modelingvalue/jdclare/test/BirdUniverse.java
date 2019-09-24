@@ -1,12 +1,7 @@
 package org.modelingvalue.jdclare.test;
 
-import static org.modelingvalue.jdclare.DClare.dUniverse;
-import static org.modelingvalue.jdclare.DClare.dclare;
-import static org.modelingvalue.jdclare.DClare.rule;
-import static org.modelingvalue.jdclare.DClare.set;
-import static org.modelingvalue.jdclare.PropertyQualifier.constant;
-import static org.modelingvalue.jdclare.PropertyQualifier.containment;
-import static org.modelingvalue.jdclare.PropertyQualifier.optional;
+import static org.modelingvalue.jdclare.DClare.*;
+import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.DClare;
@@ -41,6 +36,9 @@ public interface BirdUniverse extends DUniverse {
 
         @Property(optional)
         String wingColor();
+
+        @Property(optional)
+        String childrenName();
 
         @Property(containment)
         Set<Wing> wings();
@@ -178,18 +176,32 @@ public interface BirdUniverse extends DUniverse {
         }
 
         @Rule
+        default void setGreyChildrenName() {
+            if ("grey".equals(color())) {
+                set(this, Bird::childrenName, children().reduce("", (n, b) -> n + b.name(), (a, b) -> a + b));
+            }
+        }
+
+        @Rule
         default void addChildren2() {
             if ("yellow".equals(color())) {
                 for (int i = 0; i < 400; i++) {
                     Sparrow child = dclare(Sparrow.class, this, name() + i);
                     set(child, Bird::color, "notyellow");
                     set(this, Bird::children, Set::add, child);
-                    for (int j = 0; j < 1; j++) {
+                    for (int j = 0; j < 10; j++) {
                         Sparrow grandChild = dclare(Sparrow.class, child, name() + j + "gc"); //
                         set(grandChild, Bird::color, "notyellow");
                         set(child, Bird::children, Set::add, grandChild);
                     }
                 }
+            }
+        }
+
+        @Rule
+        default void setYellowChildrenName() {
+            if ("yellow".equals(color())) {
+                set(this, Bird::childrenName, children().flatMap(c -> c.children()).reduce("", (n, b) -> n + b.name(), (a, b) -> a + b));
             }
         }
 
@@ -283,17 +295,12 @@ public interface BirdUniverse extends DUniverse {
             }
         }
 
-        @SuppressWarnings("null")
         @Rule
         default void nullPointerInMandatoryProperty() {
             if ("blue".equals(color())) {
                 Bird child = dclare(HummingBird.class, this, this.name() + "+");
                 set(child, Bird::color, null);
                 set(this, Bird::children, Set::add, child);
-                String color = child.color();
-                if (color == null) {
-                    System.err.println(color.length());
-                }
             }
         }
 
