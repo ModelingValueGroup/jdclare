@@ -118,6 +118,12 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
         return pre;
     }
 
+    @Override
+    public <O> void clear(O object) {
+        super.clear(object);
+        setted.change(s -> s.set(object, State.EMPTY_SETABLES_MAP));
+    }
+
     private final class Setted extends Concurrent<State> {
         @Override
         protected State merge(State base, State[] branches, int length) {

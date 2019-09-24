@@ -16,8 +16,10 @@ package org.modelingvalue.transactions;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
@@ -213,6 +215,8 @@ public class UniverseTransaction extends MutableTransaction {
                             ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
                                 ((Setable) s).checkConsistency(post, e0.getKey(), e0.getValue().a().get(s), e0.getValue().b().get(s));
                             });
+                        } else if (!e0.getValue().b().isEmpty()) {
+                            throw new Error("Orphan '" + e0.getKey() + "' has state '" + e0.getValue().b() + "'");
                         }
                     });
                 }
@@ -252,12 +256,17 @@ public class UniverseTransaction extends MutableTransaction {
         return state;
     }
 
+    @SuppressWarnings("rawtypes")
     protected void clearOrphans(Universe universe) {
         LeafTransaction tx = LeafTransaction.getCurrent();
-        preState().diff(tx.state(), o -> o instanceof Mutable, s -> true).forEach(e0 -> {
-            if (!(e0.getKey() instanceof Universe) && tx.state().get((Mutable) e0.getKey(), Mutable.D_PARENT) == null) {
-                clear(tx, (Mutable) e0.getKey());
-            }
+        State st = tx.state();
+        Map<Object, Map<Setable, Pair<Object, Object>>> changed = //
+                preState().diff(st, o -> o instanceof Mutable && !(o instanceof Universe) && st.get((Mutable) o, Mutable.D_PARENT) == null, s -> true).toMap(Function.identity());
+        changed.forEach(e0 -> {
+            clear(tx, (Mutable) e0.getKey());
+        });
+        changed.forEach(e0 -> {
+            clear(tx, (Mutable) e0.getKey());
         });
     }
 

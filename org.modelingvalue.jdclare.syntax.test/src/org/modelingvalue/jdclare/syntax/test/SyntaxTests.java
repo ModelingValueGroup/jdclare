@@ -109,7 +109,6 @@ public class SyntaxTests {
     }
 
     private void test(State result) {
-        // assertEquals("No Transaction:", Set.of(), result.getObjects(DObject.class).filter(o -> DClare.TRANSACTION.get(o) == null).toSet());
         assertTrue("No Root", result.getObjects(TextUniverse.class).allMatch(t -> t.text().root() != null));
         assertTrue("Problems", result.getObjects(TextUniverse.class).allMatch(t -> t.dAllProblems().isEmpty()));
     }
