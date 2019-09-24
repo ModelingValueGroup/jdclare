@@ -56,9 +56,9 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     private static final int[]                    INDEX_MASKS                  = new int[NR_OF_PARTS];
     private static final int[]                    PART_SHIFTS                  = new int[NR_OF_PARTS];
 
-    private static final int                      COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 4 + 4);
+    private static final int                      COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
     private static final HashMultiValue           DUMMY                        = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
-    private static final Object[][]               SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
+    private static Object[][]                     SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
 
     private static final Concurrent<CompareSates> COMPARE_STATES               = Concurrent.of(() -> new CompareSates());
 
@@ -805,13 +805,13 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
     @SuppressWarnings("rawtypes")
     private static final class CompareSate {
-        private final Object[][]   values;
-        private final Function[][] keys;
-        private final boolean[][]  keep;
-        private final int[][]      ids;
-        private final long[][]     masks;
+        private Object[][]   values;
+        private Function[][] keys;
+        private boolean[][]  keep;
+        private int[][]      ids;
+        private long[][]     masks;
 
-        private int                length = -1;
+        private int          length = -1;
 
         private CompareSate() {
             values = new Object[NR_OF_PARTS + 2][COMPARE_MAX];
@@ -822,6 +822,20 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
 
         private void open(int length) {
+            if (length > values[0].length) {
+                values = new Object[NR_OF_PARTS + 2][length];
+                keys = new Function[NR_OF_PARTS + 2][length];
+                keep = new boolean[NR_OF_PARTS + 2][length];
+                ids = new int[NR_OF_PARTS + 2][length];
+                masks = new long[NR_OF_PARTS + 2][length];
+                if (length > SINGLES.length) {
+                    Object[][] singles = new Object[length][length];
+                    for (int i = 0; i < length; i++) {
+                        singles[i][i] = DUMMY;
+                    }
+                    SINGLES = singles;
+                }
+            }
             this.length = length;
         }
 
