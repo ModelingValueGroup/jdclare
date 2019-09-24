@@ -32,14 +32,15 @@
     <exclude name="**/rcs/**"/>
   </patternset>
   <patternset id="library.patterns">
-    <include name="*.war"/>
-    <include name="*.swc"/>
-    <include name="*.apk"/>
-    <include name="*.zip"/>
     <include name="*.egg"/>
-    <include name="*.ane"/>
     <include name="*.jar"/>
     <include name="*.ear"/>
+    <include name="*.ane"/>
+    <include name="*.klib"/>
+    <include name="*.apk"/>
+    <include name="*.swc"/>
+    <include name="*.war"/>
+    <include name="*.zip"/>
   </patternset>
   <patternset id="compiler.resources">
     <include name="**/?*.properties"/>
@@ -56,9 +57,9 @@
   
   <!-- JDK definitions -->
   
-  <property name="jdk.bin.9.0" value="${jdk.home.9.0}/bin"/>
-  <path id="jdk.classpath.9.0">
-    <fileset dir="${jdk.home.9.0}">
+  <property name="jdk.bin.9.0.4" value="${jdk.home.9.0.4}/bin"/>
+  <path id="jdk.classpath.9.0.4">
+    <fileset dir="${jdk.home.9.0.4}">
       <include name="../Home!/java.activation"/>
       <include name="../Home!/java.base"/>
       <include name="../Home!/java.compiler"/>
@@ -159,9 +160,9 @@
     </fileset>
   </path>
   
-  <property name="project.jdk.home" value="${jdk.home.9.0}"/>
-  <property name="project.jdk.bin" value="${jdk.bin.9.0}"/>
-  <property name="project.jdk.classpath" value="jdk.classpath.9.0"/>
+  <property name="project.jdk.home" value="${jdk.home.9.0.4}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.9.0.4}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.9.0.4"/>
   
   
   <!-- Project Libraries -->

@@ -1,4 +1,4 @@
-JDclare
+JDclare [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) [![Actions Status](https://github.com/ModelingValueGroup/jdclare/workflows/build%20and%20test/badge.svg)](https://github.com/ModelingValueGroup/jdclare/actions)
 =====================================
 
 What is (J)Dclare?

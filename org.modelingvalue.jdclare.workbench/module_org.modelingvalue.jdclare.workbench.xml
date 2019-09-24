@@ -83,7 +83,10 @@
   
   <target name="compile.module.org.modelingvalue.jdclare.workbench.tests" depends="compile.module.org.modelingvalue.jdclare.workbench.production" description="compile module org.modelingvalue.jdclare.workbench; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.jdclare.workbench.testoutput.dir}"/>
-    <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.workbench.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.org.modelingvalue.jdclare.workbench}/javac">
+      <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.workbench.testoutput.dir}"
+             debug="${compiler.debug}"
+             nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+             executable="${module.jdk.bin.org.modelingvalue.jdclare.workbench}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.jdclare.workbench}"/>
       <bootclasspath refid="org.modelingvalue.jdclare.workbench.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.jdclare.workbench.module.classpath"/>
