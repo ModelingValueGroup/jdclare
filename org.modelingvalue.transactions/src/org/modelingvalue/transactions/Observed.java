@@ -180,11 +180,15 @@ public class Observed<O, T> extends Setable<O, T> {
         }
         if (isReference) {
             for (Mutable m : mutables(post)) {
-                if (!(m instanceof Universe) && state.get(m, Mutable.D_PARENT) == null) {
+                if (isOrphan(state, m)) {
                     throw new ReferencedOrphanException(object, this, m);
                 }
             }
         }
+    }
+
+    protected boolean isOrphan(State state, Mutable m) {
+        return !(m instanceof Universe) && state.get(m, Mutable.D_PARENT) == null;
     }
 
 }

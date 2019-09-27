@@ -199,29 +199,26 @@ public class UniverseTransaction extends MutableTransaction {
 
     protected void init() {
         put("$init", () -> {
-            addDiffHandler("checkConsistency", checkConsistency());
+            addDiffHandler("checkConsistency", (pre, post, last) -> {
+                if (last) {
+                    checkConsistemcy(pre, post);
+                }
+            });
             universe().init();
         });
     }
 
-    private TriConsumer<State, State, Boolean> checkConsistency() {
-        return new TriConsumer<State, State, Boolean>() {
-            @SuppressWarnings({"unchecked", "rawtypes"})
-            @Override
-            public void accept(State pre, State post, Boolean last) {
-                if (last) {
-                    pre.diff(post, o -> o instanceof Mutable).forEach(e0 -> {
-                        if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT) != null) {
-                            ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
-                                ((Setable) s).checkConsistency(post, e0.getKey(), e0.getValue().a().get(s), e0.getValue().b().get(s));
-                            });
-                        } else if (!e0.getValue().b().isEmpty()) {
-                            throw new Error("Orphan '" + e0.getKey() + "' has state '" + e0.getValue().b() + "'");
-                        }
-                    });
-                }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected void checkConsistemcy(State pre, State post) {
+        pre.diff(post, o -> o instanceof Mutable).forEach(e0 -> {
+            if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT) != null) {
+                ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
+                    ((Setable) s).checkConsistency(post, e0.getKey(), e0.getValue().a().get(s), e0.getValue().b().get(s));
+                });
+            } else if (!e0.getValue().b().isEmpty()) {
+                throw new Error("Orphan '" + e0.getKey() + "' has state '" + e0.getValue().b() + "'");
             }
-        };
+        });
     }
 
     public Universe universe() {
