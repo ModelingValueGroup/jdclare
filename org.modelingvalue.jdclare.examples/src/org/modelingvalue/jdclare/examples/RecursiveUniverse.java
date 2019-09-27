@@ -53,7 +53,7 @@ public interface RecursiveUniverse extends DUniverse {
 
     @Override
     default IOString output() {
-        return IOString.of(element().dString());
+        return IOString.of(element().dString() + "> ");
     }
 
     @Rule

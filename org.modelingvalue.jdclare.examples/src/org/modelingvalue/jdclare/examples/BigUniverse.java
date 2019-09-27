@@ -55,7 +55,7 @@ public interface BigUniverse extends DUniverse {
 
     @Override
     default IOString output() {
-        return IOString.of(elements());
+        return IOString.of(elements() + System.lineSeparator() + "> ");
     }
 
     @Rule

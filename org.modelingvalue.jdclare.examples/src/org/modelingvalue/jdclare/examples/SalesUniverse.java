@@ -92,7 +92,7 @@ public interface SalesUniverse extends DUniverse {
 
     @Override
     default IOString output() {
-        return IOString.ofln(orders().reduce("", (s, o) -> o.customer() + "=" + o.price(), (a, b) -> a + " " + b));
+        return IOString.of(orders().reduce("", (s, o) -> o.customer() + "=" + o.price(), (a, b) -> a + " " + b) + System.lineSeparator() + "> ");
     }
 
     @Rule
