@@ -19,19 +19,18 @@ import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Set;
 
 @SuppressWarnings("rawtypes")
-public final class TooManyObserversException extends Error {
+public final class TooManyObserversException extends ConsistencyError {
 
     private static final long                        serialVersionUID = -1059588522731393631L;
 
     private final DefaultMap<Observer, Set<Mutable>> observers;
-    private final Object                             object;
-    private final Observed                           observed;
     private final UniverseTransaction                universeTransaction;
 
     public TooManyObserversException(Object object, Observed observed, DefaultMap<Observer, Set<Mutable>> observers, UniverseTransaction universeTransaction) {
+        super(object, observed, universeTransaction.preState().get(() -> {
+            return "Too many observers (" + LeafTransaction.size(observers) + ") of " + object + "." + observed;
+        }));
         this.observers = observers;
-        this.object = object;
-        this.observed = observed;
         this.universeTransaction = universeTransaction;
     }
 
@@ -44,9 +43,7 @@ public final class TooManyObserversException extends Error {
     }
 
     public String getSimpleMessage() {
-        return universeTransaction.preState().get(() -> {
-            return "Too many observers (" + LeafTransaction.size(observers) + ") of " + object + "." + observed;
-        });
+        return super.getMessage();
     }
 
     public int getNrOfObservers() {
@@ -55,14 +52,6 @@ public final class TooManyObserversException extends Error {
 
     public DefaultMap<Observer, Set<Mutable>> getObservers() {
         return observers;
-    }
-
-    public Object getObject() {
-        return object;
-    }
-
-    public Observed getObserved() {
-        return observed;
     }
 
 }

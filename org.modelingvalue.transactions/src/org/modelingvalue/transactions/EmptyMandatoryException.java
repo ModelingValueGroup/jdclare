@@ -13,17 +13,12 @@
 
 package org.modelingvalue.transactions;
 
-public final class EmptyMandatoryException extends RuntimeException {
+public final class EmptyMandatoryException extends ConsistencyError {
 
-    private static final long  serialVersionUID = -6687018038130352922L;
-
-    public final Object        object;
-    public final Setable<?, ?> setable;
+    private static final long serialVersionUID = -6687018038130352922L;
 
     public EmptyMandatoryException(Object object, Setable<?, ?> setable) {
-        super("Empty mandatory property '" + setable + "' of object '" + object + "'");
-        this.object = object;
-        this.setable = setable;
+        super(object, setable, "Empty mandatory property '" + setable + "' of object '" + object + "'");
     }
 
 }

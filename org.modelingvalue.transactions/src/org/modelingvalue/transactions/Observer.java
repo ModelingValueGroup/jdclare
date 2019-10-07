@@ -23,7 +23,7 @@ import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.transactions.Direction.Queued;
 
-public class Observer<O extends Mutable> extends Action<O> implements Internable {
+public class Observer<O extends Mutable> extends Action<O> implements Feature, Internable {
 
     @SuppressWarnings("rawtypes")
     protected static final DefaultMap<Observer, Set<Mutable>> OBSERVER_MAP = DefaultMap.of(k -> Set.of());

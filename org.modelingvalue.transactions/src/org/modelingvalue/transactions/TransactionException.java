@@ -15,17 +15,13 @@ package org.modelingvalue.transactions;
 
 import java.util.Arrays;
 
-public final class TransactionException extends Error {
+public final class TransactionException extends RuntimeException {
 
     private static final long      serialVersionUID = 4787416569147173605L;
 
     protected static final int     MAX_STACK_DEPTH  = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
     private final TransactionClass cls;
-
-    public TransactionClass getTransactionClass() {
-        return cls;
-    }
 
     public TransactionException(State state, TransactionClass cls, Throwable cause) {
         super("Exception in transaction \"" + state.get(() -> cls.toString()) + "\"", cause);
@@ -38,6 +34,10 @@ public final class TransactionException extends Error {
             cause.setStackTrace(Arrays.copyOf(tst, Math.min(tst.length, cause.getCause() instanceof TransactionException ? MAX_STACK_DEPTH : reduceStackLength(est, tst))));
         }
 
+    }
+
+    public TransactionClass getTransactionClass() {
+        return cls;
     }
 
     private int reduceStackLength(StackTraceElement[] outer, StackTraceElement[] inner) {

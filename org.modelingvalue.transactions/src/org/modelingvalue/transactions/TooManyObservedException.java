@@ -19,11 +19,10 @@ import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 
-public final class TooManyObservedException extends Error {
+public final class TooManyObservedException extends ConsistencyError {
 
     private static final long                        serialVersionUID = 2091236807252565002L;
 
-    private final Mutable                            mutable;
     private final Observer<?>                        observer;
     @SuppressWarnings("rawtypes")
     private final DefaultMap<Observed, Set<Mutable>> observed;
@@ -31,7 +30,9 @@ public final class TooManyObservedException extends Error {
 
     @SuppressWarnings("rawtypes")
     public TooManyObservedException(Mutable mutable, Observer<?> observer, DefaultMap<Observed, Set<Mutable>> observed, UniverseTransaction universeTransaction) {
-        this.mutable = mutable;
+        super(mutable, observer, universeTransaction.preState().get(() -> {
+            return "Too many observed (" + LeafTransaction.size(observed) + ") by " + StringUtil.toString(mutable) + "." + StringUtil.toString(observer);
+        }));
         this.observer = observer;
         this.observed = observed;
         this.universeTransaction = universeTransaction;
@@ -46,17 +47,11 @@ public final class TooManyObservedException extends Error {
     }
 
     public String getSimpleMessage() {
-        return universeTransaction.preState().get(() -> {
-            return "Too many observed (" + LeafTransaction.size(observed) + ") by " + StringUtil.toString(mutable) + "." + StringUtil.toString(observer);
-        });
+        return super.getMessage();
     }
 
     public int getNrOfObserved() {
         return LeafTransaction.size(observed);
-    }
-
-    public Mutable getMutable() {
-        return mutable;
     }
 
     public Observer<?> getObserver() {

@@ -15,20 +15,25 @@ package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.Set;
 
-public final class OutOfScopeException extends RuntimeException {
+public final class OutOfScopeException extends ConsistencyError {
 
-    private static final long  serialVersionUID = -6687018038130352922L;
+    private static final long serialVersionUID = -6687018038130352922L;
 
-    public final Object        object;
-    public final Setable<?, ?> setable;
-    public final Object        value;
-    public final Set<?>        scope;
+    private final Object      value;
+    private final Set<?>      scope;
 
     public OutOfScopeException(Object object, Setable<?, ?> setable, Object value, Set<?> scope) {
-        super("The value '" + value + "' of '" + setable + "' of object '" + object + "' is out of scope '" + scope + "'");
-        this.object = object;
-        this.setable = setable;
+        super(object, setable, "The value '" + value + "' of '" + setable + "' of object '" + object + "' is out of scope '" + scope + "'");
         this.value = value;
         this.scope = scope;
     }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public Set<?> getScope() {
+        return scope;
+    }
+
 }

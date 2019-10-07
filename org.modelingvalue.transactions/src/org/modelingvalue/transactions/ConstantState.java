@@ -116,7 +116,7 @@ public class ConstantState {
                 ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll, forced);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
-                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
+                throw new NonDeterministicException(object, constant, "Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
             }
             return constant.getDefault();
         }
@@ -130,7 +130,7 @@ public class ConstantState {
                 ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll, false);
             }
             if (!Objects.equals(ist == NULL ? null : ist, soll)) {
-                throw new NonDeterministicException("Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
+                throw new NonDeterministicException(object, constant, "Constant is not consistent " + StringUtil.toString(object) + "." + constant + "=" + StringUtil.toString(ist) + "!=" + StringUtil.toString(soll));
             }
             return ist == NULL ? null : ist;
         }
@@ -180,7 +180,7 @@ public class ConstantState {
                             for (Pair<Object, Constant> lazy : list) {
                                 if (constant.equals(lazy.b()) && object.equals(lazy.a())) {
                                     Pair<Object, Constant> me = Pair.of(object, constant);
-                                    throw new NonDeterministicException("Circular constant definition: " + list.sublist(list.lastIndexOf(me), list.size()).add(me));
+                                    throw new NonDeterministicException(object, constant, "Circular constant definition: " + list.sublist(list.lastIndexOf(me), list.size()).add(me));
                                 }
                                 ConstantState.this.get(leafTransaction, lazy.a(), lazy.b());
                             }

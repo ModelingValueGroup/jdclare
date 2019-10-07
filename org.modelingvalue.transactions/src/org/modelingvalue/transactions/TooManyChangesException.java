@@ -13,7 +13,8 @@
 
 package org.modelingvalue.transactions;
 
-public final class TooManyChangesException extends Error {
+public final class TooManyChangesException extends ConsistencyError {
+
     private static final long   serialVersionUID = 7857822332170335179L;
 
     private final State         state;
@@ -21,6 +22,7 @@ public final class TooManyChangesException extends Error {
     private final ObserverTrace last;
 
     public TooManyChangesException(State state, ObserverTrace last, int nrOfChanges) {
+        super(last.mutable(), last.observer(), "Too many changes " + nrOfChanges);
         this.state = state;
         this.last = last;
         this.nrOfChanges = nrOfChanges;
@@ -34,10 +36,6 @@ public final class TooManyChangesException extends Error {
 
     public State getState() {
         return state;
-    }
-
-    public Mutable getMutable() {
-        return last.mutable();
     }
 
     public Observer<?> getObserver() {

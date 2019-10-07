@@ -13,18 +13,19 @@
 
 package org.modelingvalue.transactions;
 
-public final class ReferencedOrphanException extends RuntimeException {
+public final class ReferencedOrphanException extends ConsistencyError {
 
-    private static final long  serialVersionUID = -6687018038130352922L;
+    private static final long serialVersionUID = -6687018038130352922L;
 
-    public final Object        object;
-    public final Setable<?, ?> setable;
-    public final Object        referenced;
+    private final Object      referenced;
 
     public ReferencedOrphanException(Object object, Setable<?, ?> setable, Object referenced) {
-        super("Property '" + setable + "' of object '" + object + "' references orphan '" + referenced + "'");
-        this.object = object;
-        this.setable = setable;
+        super(object, setable, "Property '" + setable + "' of object '" + object + "' references orphan '" + referenced + "'");
         this.referenced = referenced;
     }
+
+    public Object getReferenced() {
+        return referenced;
+    }
+
 }

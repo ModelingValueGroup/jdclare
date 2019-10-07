@@ -53,7 +53,7 @@ public class MandatoryObserved<O, T> extends Observed<O, T> {
     public T get(O object) {
         T result = super.get(object);
         if (check(result)) {
-            throw new EmptyMandatoryException(object, this);
+            throw new DeferException();
         } else {
             return result;
         }

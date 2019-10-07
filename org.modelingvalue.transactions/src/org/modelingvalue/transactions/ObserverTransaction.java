@@ -68,7 +68,7 @@ public class ObserverTransaction extends ActionTransaction {
                 checkTooManyChanges(pre, sets, gets);
             }
             observe(observer, sets, gets);
-        } catch (EmptyMandatoryException soe) {
+        } catch (DeferException soe) {
             clear();
             init(pre);
             observe(observer, setted.result(), getted.result());
@@ -161,7 +161,7 @@ public class ObserverTransaction extends ActionTransaction {
     @Override
     public <O, T> T get(O object, Getable<O, T> property) {
         if (property instanceof Observed && Constant.DERIVED.get() != null && ObserverTransaction.OBSERVE.get()) {
-            throw new NonDeterministicException("Reading observed '" + property + "' while initializing constant '" + Constant.DERIVED.get() + "'");
+            throw new NonDeterministicException(object, property, "Reading observed '" + property + "' while initializing constant '" + Constant.DERIVED.get() + "'");
         }
         observe(object, property, false);
         return super.get(object, property);

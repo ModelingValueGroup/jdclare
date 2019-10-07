@@ -57,7 +57,7 @@ public interface Mutable extends TransactionClass {
             parent = parent.dParent();
         }
         if (parent == null) {
-            throw new EmptyMandatoryException(this, D_PARENT);
+            throw new DeferException();
         }
         return (C) parent;
     }
