@@ -18,6 +18,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.modelingvalue.collections.DefaultMap;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
@@ -219,10 +221,17 @@ public class UniverseTransaction extends MutableTransaction {
                 ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
                     ((Setable) s).checkConsistency(post, e0.getKey(), e0.getValue().a().get(s), e0.getValue().b().get(s));
                 });
-            } else if (!e0.getValue().b().isEmpty()) {
-                throw new Error("Orphan '" + e0.getKey() + "' has state '" + e0.getValue().b() + "'");
+            } else {
+                checkOrphanState(e0);
             }
         });
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected void checkOrphanState(Entry<Object, Pair<DefaultMap<Setable, Object>, DefaultMap<Setable, Object>>> e0) {
+        if (!e0.getValue().b().isEmpty()) {
+            throw new Error("Orphan '" + e0.getKey() + "' has state '" + e0.getValue().b() + "'");
+        }
     }
 
     public Universe universe() {
