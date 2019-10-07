@@ -50,8 +50,6 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
         try {
             CURRENT.run(this, () -> run(state, universeTransaction()));
             return result();
-        } catch (TooManyChangesException | TooManyObservedException | TooManyObserversException tme) {
-            throw tme;
         } catch (Throwable t) {
             throw new TransactionException(state, action(), t);
         } finally {

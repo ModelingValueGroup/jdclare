@@ -178,7 +178,10 @@ public class UniverseTransaction extends MutableTransaction {
                         }
                     }
                 } catch (Throwable t) {
-                    handleException(t);
+                    if (t instanceof TransactionException) {
+                        state = ((TransactionException) t).getState();
+                    }
+                    state = handleException(state, t);
                 } finally {
                     end(leaf);
                     TraceTimer.traceEnd("root");
@@ -192,16 +195,17 @@ public class UniverseTransaction extends MutableTransaction {
         init();
     }
 
-    protected void handleException(Throwable t) {
+    protected State handleException(State state, Throwable t) {
         error = t;
         kill();
+        return state;
     }
 
     protected void init() {
         put("$init", () -> {
-            addDiffHandler("checkConsistency", (pre, post, last) -> {
+            addDiffHandler("$checkConsistency", (pre, post, last) -> {
                 if (last) {
-                    checkConsistemcy(pre, post);
+                    checkConsistency(pre, post);
                 }
             });
             universe().init();
@@ -209,7 +213,7 @@ public class UniverseTransaction extends MutableTransaction {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected void checkConsistemcy(State pre, State post) {
+    protected void checkConsistency(State pre, State post) {
         pre.diff(post, o -> o instanceof Mutable).forEach(e0 -> {
             if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT) != null) {
                 ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {

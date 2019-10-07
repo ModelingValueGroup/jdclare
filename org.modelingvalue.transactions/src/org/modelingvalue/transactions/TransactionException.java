@@ -22,9 +22,11 @@ public final class TransactionException extends RuntimeException {
     protected static final int     MAX_STACK_DEPTH  = Integer.getInteger("MAX_STACK_DEPTH", 4);
 
     private final TransactionClass cls;
+    private final State            state;
 
     public TransactionException(State state, TransactionClass cls, Throwable cause) {
         super("Exception in transaction \"" + state.get(() -> cls.toString()) + "\"", cause);
+        this.state = state;
         this.cls = cls;
         StackTraceElement[] est = getStackTrace();
         setStackTrace(Arrays.copyOf(est, Math.min(est.length, MAX_STACK_DEPTH)));
@@ -38,6 +40,10 @@ public final class TransactionException extends RuntimeException {
 
     public TransactionClass getTransactionClass() {
         return cls;
+    }
+
+    public State getState() {
+        return state;
     }
 
     private int reduceStackLength(StackTraceElement[] outer, StackTraceElement[] inner) {
