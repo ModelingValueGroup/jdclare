@@ -84,7 +84,7 @@ public class UniverseTransaction extends MutableTransaction {
     protected final Concurrent<ReusableTransaction<Mutable, MutableTransaction>>      mutableTransactions;
     protected final Concurrent<ReusableTransaction<ReadOnly, ReadOnlyTransaction>>    readOnlys;
 
-    private final Action<Universe>                                                    pre;
+    private final Action<Universe>                                                    cycle;
     private final Action<Universe>                                                    dummy;
     private final Action<Universe>                                                    stop;
     private final Action<Universe>                                                    backward;
@@ -130,7 +130,7 @@ public class UniverseTransaction extends MutableTransaction {
         });
         this.forward = Action.of("$forward", o -> {
         });
-        this.pre = cycle != null ? Action.of("$cycle", o -> cycle.accept(this)) : null;
+        this.cycle = cycle != null ? Action.of("$cycle", o -> cycle.accept(this)) : null;
         this.clearOrphans = Action.of("$clearOrphans", o -> clearOrphans(o));
         start(universe, null);
         pool.execute(() -> {
@@ -173,8 +173,8 @@ public class UniverseTransaction extends MutableTransaction {
                     if (!killed && inQueue.isEmpty()) {
                         if (isStopped(state)) {
                             break;
-                        } else if (pre != null) {
-                            put(pre);
+                        } else if (this.cycle != null) {
+                            put(this.cycle);
                         }
                     }
                 } catch (Throwable t) {
