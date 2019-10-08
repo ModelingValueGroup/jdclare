@@ -15,39 +15,40 @@ package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Pair;
 
 public interface Mutable extends TransactionClass {
 
-    Mutable                                      THIS             = new This();
+    Mutable                                               THIS                = new This();
 
-    Set<Mutable>                                 THIS_SINGLETON   = Set.of(THIS);
+    Set<Mutable>                                          THIS_SINGLETON      = Set.of(THIS);
 
-    Observed<Mutable, Setable<Mutable, ?>>       D_CONTAINING     = Observed.of("D_CONTAINING", null);
-
-    Observed<Mutable, Mutable>                   D_PARENT         = Observed.of("D_PARENT", null);
+    Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>> D_PARENT_CONTAINING = Observed.of("D_PARENT_CONTAINING", null);
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    Setable<Mutable, Set<? extends Observer<?>>> D_OBSERVERS      = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
-                                                                      Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                //
-                                                                              added -> added.trigger(obj),                                                          //
-                                                                              removed -> removed.deObserve(obj));
-                                                                  });
+    Setable<Mutable, Set<? extends Observer<?>>>          D_OBSERVERS         = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
+                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                //
+                                                                                          added -> added.trigger(obj),                                                          //
+                                                                                          removed -> removed.deObserve(obj));
+                                                                              });
 
-    Observer<Mutable>                            D_OBSERVERS_RULE = Observer.of("D_OBSERVERS_RULE", m -> {
-                                                                      D_OBSERVERS.set(m, Collection.concat(m.dClass().dObservers(), m.dMutableObservers()).toSet());
-                                                                  }, Priority.preDepth);
+    Observer<Mutable>                                     D_OBSERVERS_RULE    = Observer.of("D_OBSERVERS_RULE", m -> {
+                                                                                  D_OBSERVERS.set(m, Collection.concat(m.dClass().dObservers(), m.dMutableObservers()).toSet());
+                                                                              }, Priority.preDepth);
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    Observer<Mutable>                            D_CONSTANTS_RULE = Observer.of("D_CONSTANTS_RULE", m -> {
-                                                                      m.dClass().dConstants().forEach(c -> ((Constant) c).get(m));
-                                                                  }, Priority.preDepth);
+    Observer<Mutable>                                     D_CONSTANTS_RULE    = Observer.of("D_CONSTANTS_RULE", m -> {
+                                                                                  m.dClass().dConstants().forEach(c -> ((Constant) c).get(m));
+                                                                              }, Priority.preDepth);
 
     default Mutable dParent() {
-        return D_PARENT.get(this);
+        Pair<Mutable, Setable<Mutable, ?>> pair = D_PARENT_CONTAINING.get(this);
+        return pair != null ? pair.a() : null;
     }
 
     default Setable<Mutable, ?> dContaining() {
-        return D_CONTAINING.get(this);
+        Pair<Mutable, Setable<Mutable, ?>> pair = D_PARENT_CONTAINING.get(this);
+        return pair != null ? pair.b() : null;
     }
 
     @SuppressWarnings("unchecked")

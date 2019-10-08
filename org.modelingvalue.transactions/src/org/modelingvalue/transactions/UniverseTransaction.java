@@ -217,7 +217,7 @@ public class UniverseTransaction extends MutableTransaction {
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected void checkConsistency(State pre, State post) {
         pre.diff(post, o -> o instanceof Mutable).forEach(e0 -> {
-            if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT) != null) {
+            if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT_CONTAINING) != null) {
                 ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
                     ((Setable) s).checkConsistency(post, e0.getKey(), e0.getValue().a().get(s), e0.getValue().b().get(s));
                 });
@@ -271,7 +271,7 @@ public class UniverseTransaction extends MutableTransaction {
         LeafTransaction tx = LeafTransaction.getCurrent();
         State st = tx.state();
         Map<Object, Map<Setable, Pair<Object, Object>>> changed = //
-                preState().diff(st, o -> o instanceof Mutable && !(o instanceof Universe) && st.get((Mutable) o, Mutable.D_PARENT) == null, s -> true).toMap(Function.identity());
+                preState().diff(st, o -> o instanceof Mutable && !(o instanceof Universe) && st.get((Mutable) o, Mutable.D_PARENT_CONTAINING) == null, s -> true).toMap(Function.identity());
         changed.forEach(e0 -> {
             clear(tx, (Mutable) e0.getKey());
         });

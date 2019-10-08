@@ -205,9 +205,9 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
                 Set<Mutable> depth = (Set<Mutable>) p.getValue();
                 depth = depth.removeAll(State.get(ps, ds));
                 if (!depth.isEmpty()) {
-                    Mutable baseParent = State.get(ps, Mutable.D_PARENT);
+                    Mutable baseParent = State.getA(ps, Mutable.D_PARENT_CONTAINING);
                     for (DefaultMap<Setable, Object> psb : psbs) {
-                        Mutable branchParent = State.get(psb, Mutable.D_PARENT);
+                        Mutable branchParent = State.getA(psb, Mutable.D_PARENT_CONTAINING);
                         if (!Objects.equals(branchParent, baseParent)) {
                             Set<Mutable> addedDepth = depth.removeAll(State.get(psb, ds));
                             if (!addedDepth.isEmpty()) {
@@ -242,11 +242,11 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
         if (action != null) {
             state = state.set(object, direction.priorities[action.priority().nr], Set::add, action);
         }
-        Mutable parent = state.get(object, Mutable.D_PARENT);
+        Mutable parent = state.getA(object, Mutable.D_PARENT_CONTAINING);
         while (parent != null && (Direction.backward == direction || !mutable().equals(object))) {
             state = state.set(parent, direction.depth, Set::add, object);
             object = parent;
-            parent = state.get(object, Mutable.D_PARENT);
+            parent = state.getA(object, Mutable.D_PARENT_CONTAINING);
         }
         return state;
     }

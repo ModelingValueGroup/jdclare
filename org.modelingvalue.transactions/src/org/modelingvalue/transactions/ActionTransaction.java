@@ -142,7 +142,7 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
 
     @Override
     protected Mutable dParent(Mutable object) {
-        return setted.get().get(object, Mutable.D_PARENT);
+        return setted.get().getA(object, Mutable.D_PARENT_CONTAINING);
     }
 
     @Override

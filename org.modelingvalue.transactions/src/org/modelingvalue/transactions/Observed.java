@@ -91,7 +91,7 @@ public class Observed<O, T> extends Setable<O, T> {
                     }
                 }
             }
-            if (!containment && opposite == null && this != Mutable.D_PARENT && this != Mutable.D_CONTAINING && !isReference) {
+            if (!containment && opposite == null && this != Mutable.D_PARENT_CONTAINING && !isReference) {
                 Object v = n;
                 if (v instanceof ContainingCollection) {
                     v = ((ContainingCollection<?>) v).isEmpty() ? null : ((ContainingCollection<?>) v).get(0);
@@ -188,7 +188,7 @@ public class Observed<O, T> extends Setable<O, T> {
     }
 
     protected boolean isOrphan(State state, Mutable m) {
-        return !(m instanceof Universe) && state.get(m, Mutable.D_PARENT) == null;
+        return !(m instanceof Universe) && state.get(m, Mutable.D_PARENT_CONTAINING) == null;
     }
 
 }

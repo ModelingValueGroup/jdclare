@@ -117,21 +117,18 @@ public class Setable<O, T> extends Getable<O, T> {
         }
         if (containment) {
             Setable.<T, Mutable> diff(preValue, postValue, added -> {
-                Mutable preParent = Mutable.D_PARENT.get(added);
-                Setable<Mutable, ?> preContaining = Mutable.D_CONTAINING.get(added);
-                if (preParent != null) {
-                    MOVING.run(true, () -> preContaining.remove(preParent, added));
+                Pair<Mutable, Setable<Mutable, ?>> prePair = Mutable.D_PARENT_CONTAINING.get(added);
+                if (prePair != null) {
+                    MOVING.run(true, () -> prePair.b().remove(prePair.a(), added));
                 }
-                Mutable.D_PARENT.set(added, (Mutable) object);
-                Mutable.D_CONTAINING.set(added, (Setable<Mutable, ?>) this);
-                if (preParent == null) {
+                Mutable.D_PARENT_CONTAINING.set(added, Pair.of((Mutable) object, (Setable<Mutable, ?>) this));
+                if (prePair == null) {
                     added.dActivate();
                 }
             }, removed -> {
                 if (!MOVING.get()) {
                     removed.dDeactivate();
-                    Mutable.D_PARENT.set(removed, null);
-                    Mutable.D_CONTAINING.set(removed, null);
+                    Mutable.D_PARENT_CONTAINING.set(removed, null);
                 }
             });
         } else if (opposite != null) {

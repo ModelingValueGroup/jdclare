@@ -1064,10 +1064,10 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                         o -> filterClass.isInstance(o), p -> true).forEachOrdered(e0 -> {
                             DObject dObject = (DObject) e0.getKey();
                             DNative no = NATIVE.get(dObject);
-                            Pair<Object, Object> diff = e0.getValue().get(Mutable.D_PARENT);
+                            Pair<Pair, Pair> diff = (Pair) e0.getValue().get(Mutable.D_PARENT_CONTAINING);
                             if (diff != null) {
                                 if (diff.a() == null) {
-                                    no.init((DObject) diff.b());
+                                    no.init((DObject) diff.b().a());
                                     dObject.dClass().allProperties().forEachOrdered(p -> {
                                         ChangeHandler nch = p.nativeChangeHandler();
                                         if (nch != null) {
@@ -1075,9 +1075,9 @@ public final class DClare<U extends DUniverse> extends UniverseTransaction {
                                         }
                                     });
                                 } else if (diff.b() == null) {
-                                    no.exit((DObject) diff.a());
+                                    no.exit((DObject) diff.a().a());
                                 }
-                            } else if (Mutable.D_PARENT.get(dObject) != null) {
+                            } else if (Mutable.D_PARENT_CONTAINING.get(dObject) != null) {
                                 e0.getValue().forEachOrdered(e1 -> {
                                     if (e1.getKey().id() instanceof DProperty) {
                                         DProperty<DStruct, Object> p = (DProperty) e1.getKey().id();

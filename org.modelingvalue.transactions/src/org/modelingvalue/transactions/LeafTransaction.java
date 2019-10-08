@@ -88,7 +88,7 @@ public abstract class LeafTransaction extends Transaction {
     }
 
     protected Mutable dParent(Mutable object) {
-        return state().get(object, Mutable.D_PARENT);
+        return state().getA(object, Mutable.D_PARENT_CONTAINING);
     }
 
     public void runNonObserving(Runnable action) {

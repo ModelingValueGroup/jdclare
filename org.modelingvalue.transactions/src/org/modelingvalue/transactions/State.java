@@ -60,6 +60,14 @@ public class State implements Serializable {
         return get(getProperties(object), (Setable<O, T>) property);
     }
 
+    public <O, A, B> A getA(O object, Getable<O, Pair<A, B>> property) {
+        return getA(getProperties(object), (Setable<O, Pair<A, B>>) property);
+    }
+
+    public <O, A, B> B getB(O object, Getable<O, Pair<A, B>> property) {
+        return getB(getProperties(object), (Setable<O, Pair<A, B>>) property);
+    }
+
     @SuppressWarnings("unchecked")
     public <O, E, T> Collection<E> getCollection(O object, Getable<O, T> property) {
         T v = get(object, property);
@@ -110,6 +118,18 @@ public class State implements Serializable {
     @SuppressWarnings({"unchecked", "rawtypes"})
     static <O, T> T get(DefaultMap<Setable, Object> props, Setable<O, T> property) {
         return (T) props.get(property);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static <O, A, B> A getA(DefaultMap<Setable, Object> props, Setable<O, Pair<A, B>> property) {
+        Pair<A, B> pair = (Pair<A, B>) props.get(property);
+        return pair != null ? pair.a() : null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static <O, A, B> B getB(DefaultMap<Setable, Object> props, Setable<O, Pair<A, B>> property) {
+        Pair<A, B> pair = (Pair<A, B>) props.get(property);
+        return pair != null ? pair.b() : null;
     }
 
     @SuppressWarnings("rawtypes")
