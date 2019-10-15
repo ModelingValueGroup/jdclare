@@ -48,7 +48,7 @@ public interface LineMode extends CanvasMode {
         }
     }
 
-    @Property
+    @Property(optional)
     default DShape findClickedShape() {
         DCanvas c = dAncestor(DCanvas.class);
         InputDeviceData di = c.deviceInput();
