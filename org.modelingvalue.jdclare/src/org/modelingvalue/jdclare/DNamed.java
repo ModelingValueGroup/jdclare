@@ -13,27 +13,14 @@
 
 package org.modelingvalue.jdclare;
 
-import static org.modelingvalue.jdclare.DClare.*;
-import static org.modelingvalue.jdclare.PropertyQualifier.*;
-
 public interface DNamed extends DObject {
 
-    String NO_NAME = "<no name>";
-
-    @Default
     @Property
-    default String name() {
-        return NO_NAME;
-    }
+    String name();
 
     @Override
     default String asString() {
         return name();
-    }
-
-    @Property({validation, hidden})
-    default DProblem noName() {
-        return name() == NO_NAME ? dclare(DProblem.class, this, "NO_NAME", DSeverity.fatal, "No Name") : null;
     }
 
 }

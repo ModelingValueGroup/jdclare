@@ -16,10 +16,9 @@ package org.modelingvalue.jdclare.syntax.test.simple;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.Property;
 
-public interface AClass extends DNamed {
+public interface AClass extends ANamed {
 
     @Property(containment)
     Set<AField> fields();

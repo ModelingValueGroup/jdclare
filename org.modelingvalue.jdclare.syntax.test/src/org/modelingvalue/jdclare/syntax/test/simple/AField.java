@@ -19,7 +19,6 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.jdclare.Constraints;
-import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DProblem;
 import org.modelingvalue.jdclare.DSeverity;
 import org.modelingvalue.jdclare.Property;
@@ -28,7 +27,7 @@ import org.modelingvalue.jdclare.syntax.test.types.ANumberType;
 import org.modelingvalue.jdclare.syntax.test.types.AStringType;
 import org.modelingvalue.jdclare.syntax.test.types.AType;
 
-public interface AField extends DNamed, ATyped {
+public interface AField extends ANamed, ATyped {
 
     @Property({containment, optional})
     AExpression expression();

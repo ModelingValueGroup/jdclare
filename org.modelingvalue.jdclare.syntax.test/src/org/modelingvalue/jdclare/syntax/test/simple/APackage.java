@@ -16,11 +16,10 @@ package org.modelingvalue.jdclare.syntax.test.simple;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DUUObject;
 import org.modelingvalue.jdclare.Property;
 
-public interface APackage extends DUUObject, DNamed, APackageContainer {
+public interface APackage extends DUUObject, ANamed, APackageContainer {
 
     @Property(containment)
     Set<AClass> classes();
