@@ -77,6 +77,10 @@ public interface Table<R, C, V> extends DComponent {
         return 100 / columns().size();
     }
 
+    default int preferredHeight(R row) {
+        return 100 / rows().size();
+    }
+
     @SuppressWarnings("unchecked")
     default Row<R, C, V> row(R object, int i) {
         return dclare(Row.class, this, object, i);
@@ -159,13 +163,19 @@ public interface Table<R, C, V> extends DComponent {
 
         private void resetWidths() {
             SwingUtilities.invokeLater(() -> {
-                int total = swing.getWidth();
-                if (total > 0) {
+                int wTotal = swing.getWidth();
+                int hTtotal = swing.getHeight();
+                if (wTotal > 0 && hTtotal > 0) {
                     TableColumnModel cModel = swing.getColumnModel();
                     int i = 0;
                     for (Column<R, C, V> c : visible.columns()) {
-                        int width = total * visible.preferredWidth(c.object()) / 100;
+                        int width = wTotal * visible.preferredWidth(c.object()) / 100;
                         cModel.getColumn(i++).setPreferredWidth(width);
+                    }
+                    i = 0;
+                    for (Row<R, C, V> r : visible.rows()) {
+                        int width = hTtotal * visible.preferredHeight(r.object()) / 100;
+                        swing.setRowHeight(i++, width);
                     }
                 }
             });

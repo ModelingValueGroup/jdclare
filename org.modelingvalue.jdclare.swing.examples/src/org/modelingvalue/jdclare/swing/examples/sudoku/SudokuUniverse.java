@@ -11,79 +11,31 @@
 //     Wim Bast, Carel Bast, Tom Brus, Arjan Kok, Ronald Krijgsheld                                                    ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.jdclare.swing.examples.newton;
+package org.modelingvalue.jdclare.swing.examples.sudoku;
 
 import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
-import java.awt.BorderLayout;
-import java.awt.LayoutManager;
-
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.jdclare.DStruct1;
-import org.modelingvalue.jdclare.Default;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.jdclare.swing.DComponent;
-import org.modelingvalue.jdclare.swing.Frame;
 import org.modelingvalue.jdclare.swing.GuiUniverse;
-import org.modelingvalue.jdclare.swing.Panel;
-import org.modelingvalue.jdclare.swing.draw2d.DDimension;
-import org.modelingvalue.jdclare.swing.draw2d.DPoint;
 
-public interface BilliardUniverse extends GuiUniverse {
+public interface SudokuUniverse extends GuiUniverse {
+
+    @Property({containment, constant})
+    default Sudoku sudoku() {
+        return dclareUU(Sudoku.class);
+    }
 
     @Override
     default void init() {
         GuiUniverse.super.init();
-        set(this, GuiUniverse::frames, Set.of(dclare(BilliardFrame.class, this)));
+        set(this, GuiUniverse::frames, Set.of(dclare(SudokuFrame.class, this)));
 
-    }
-
-    interface BilliardFrame extends Frame, DStruct1<BilliardUniverse> {
-        @Property(key = 0)
-        BilliardUniverse universe();
-
-        @Override
-        @Property(constant)
-        default DComponent contentPane() {
-            return dclare(BilliardPanel.class, universe());
-        }
-
-        @Override
-        @Default
-        @Property
-        default DPoint location() {
-            return dclare(DPoint.class, 50.0, 50.0);
-        }
-
-        @Override
-        @Default
-        @Property
-        default DDimension preferredSize() {
-            return dclare(DDimension.class, 1050.0, 550.0);
-        }
-    }
-
-    interface BilliardPanel extends Panel, DStruct1<BilliardUniverse> {
-        @Property(key = 0)
-        BilliardUniverse universe();
-
-        @Override
-        @Property(constant)
-        default Map<DComponent, Object> content() {
-            return Map.<DComponent, Object> of()//
-                    .put(dclare(BilliardPane.class, universe()), BorderLayout.CENTER);
-        }
-
-        @Override
-        default LayoutManager layoutManager() {
-            return new BorderLayout();
-        }
     }
 
     static void main(String[] args) {
-        start(BilliardUniverse.class, false).waitForEnd();
+        start(SudokuUniverse.class, false).waitForEnd();
     }
 
 }
