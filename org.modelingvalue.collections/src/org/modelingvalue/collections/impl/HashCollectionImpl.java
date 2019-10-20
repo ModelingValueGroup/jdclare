@@ -775,22 +775,24 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         len++;
         CompareSates css = COMPARE_STATES.get();
         CompareSate cs = css.open(null, len);
-        cs.values[0][0] = value;
-        cs.keys[0][0] = key();
-        cs.ids[0][0] = index(value, key());
-        byte maxLevel = level(value);
-        cs.keep[0][0] = visitor.apply(SINGLES[0], len) == DUMMY;
-        for (int i = 1; i < len; i++) {
-            HashCollectionImpl<T> other = (HashCollectionImpl<T>) others[i - 1];
-            cs.values[0][i] = other.value;
-            cs.keys[0][i] = other.key();
-            cs.ids[0][i] = index(other.value, other.key());
-            maxLevel = min(maxLevel, level(other.value));
-            cs.keep[0][i] = visitor.apply(SINGLES[i], len) == DUMMY;
+        try {
+            cs.values[0][0] = value;
+            cs.keys[0][0] = key();
+            cs.ids[0][0] = index(value, key());
+            byte maxLevel = level(value);
+            cs.keep[0][0] = visitor.apply(SINGLES[0], len) == DUMMY;
+            for (int i = 1; i < len; i++) {
+                HashCollectionImpl<T> other = (HashCollectionImpl<T>) others[i - 1];
+                cs.values[0][i] = other.value;
+                cs.keys[0][i] = other.key();
+                cs.ids[0][i] = index(other.value, other.key());
+                maxLevel = min(maxLevel, level(other.value));
+                cs.keep[0][i] = visitor.apply(SINGLES[i], len) == DUMMY;
+            }
+            return cs.visit(visitor, maxLevel, (byte) 0, 0, len, (byte) 0);
+        } finally {
+            css.close(cs);
         }
-        Object result = cs.visit(visitor, maxLevel, (byte) 0, 0, len, (byte) 0);
-        css.close(cs);
-        return result;
     }
 
     private static final class CompareSates extends Reusable<Object, Object, CompareSate, Integer> {
