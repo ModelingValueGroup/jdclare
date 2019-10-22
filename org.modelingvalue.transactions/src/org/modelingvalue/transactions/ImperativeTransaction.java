@@ -50,7 +50,9 @@ public class ImperativeTransaction extends LeafTransaction {
             try {
                 r.run();
             } catch (Throwable t) {
-                pre = universeTransaction.handleException(pre, t);
+                if (pre != null) {
+                    pre = universeTransaction.handleException(pre, t);
+                }
             }
         });
     }
@@ -62,7 +64,9 @@ public class ImperativeTransaction extends LeafTransaction {
         state = null;
         setted = null;
         diffHandler = null;
-        LeafTransaction.setCurrent(null);
+        if (LeafTransaction.getCurrent() == this) {
+            LeafTransaction.setCurrent(null);
+        }
     }
 
     public void schedule(Runnable action) {
