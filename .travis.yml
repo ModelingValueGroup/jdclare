@@ -1,1 +1,6 @@
 language: java
+jdk:
+  - openjdk11
+script:
+  - jdk_switcher use oraclejdk11
+  - echo "jaja zozo"
