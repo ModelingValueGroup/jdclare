@@ -2,4 +2,4 @@ language: java
 jdk:
   - openjdk11
 script:
-  - ./build.sh
+  - ./build.sh "m2" "$JDK_HOME" "no-token" false false
