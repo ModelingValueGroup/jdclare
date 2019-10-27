@@ -2,5 +2,5 @@ language: java
 jdk:
   - openjdk11
 script:
-  - jdk_switcher use oraclejdk11
-  - echo "jaja zozo"
+  - jdk_switcher use openjdk11
+  - ./build.sh
