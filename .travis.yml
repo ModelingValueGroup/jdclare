@@ -6,24 +6,14 @@ addons:
     packages:
     - ant
     - ant-optional
-jobs:
-  include:
-      - stage: cpu...
-        script: lscpu
+script:
+      - lscpu
       -
-      - stage: prepare...
-        script: ./00-prep.sh
-      - stage: get tools
-        script: ./01-getTools.sh
-      - stage: make poms
-        script: ./02-makePoms.sh
-      - stage: get dependencies
-        script: ./03-getDependencies.sh
-      - stage: build
-        script: ./04-build.sh
-      - stage: test
-        script: ./05-test.sh
-      - stage: generate javadoc
-        script: ./06-javadoc.sh
-      - stage: publish
-        script: ./07-publish.sh
+      - ./00-prep.sh
+      - ./01-getTools.sh
+      - ./02-makePoms.sh
+      - ./03-getDependencies.sh
+      - ./04-build.sh
+      - ./05-test.sh
+      - ./06-javadoc.sh
+      - ./07-publish.sh
