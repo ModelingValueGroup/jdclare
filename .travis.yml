@@ -1,0 +1,9 @@
+language: java
+jdk:
+  - openjdk11
+addons:
+  apt:
+    packages:
+    - ant
+script:
+  - ./build.sh
