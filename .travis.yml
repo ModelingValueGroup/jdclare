@@ -7,5 +7,4 @@ addons:
     - ant
     - ant-optional
 script:
-  - sudo apt list --installed
-  - ./build.sh
+  - travis_wait ./build.sh
