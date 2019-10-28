@@ -7,4 +7,4 @@ addons:
     - ant
     - ant-optional
 script:
-  - travis_wait ./build.sh
+  - travis_wait 40 ./build.sh
