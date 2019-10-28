@@ -1,5 +1,9 @@
 language: java
 jdk:
   - openjdk11
+addons:
+  apt:
+    packages:
+    - ant
 script:
   - ./build.sh "m2" "$JAVA_HOME" "no-publish-token-for-travis" true ""
