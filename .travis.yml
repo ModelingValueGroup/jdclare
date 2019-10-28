@@ -5,5 +5,7 @@ addons:
   apt:
     packages:
     - ant
+    - ant-optional
 script:
+  - ant -v
   - ./build.sh
