@@ -9,12 +9,13 @@ addons:
     - htop
     - aha
 script:
-  - lscpu; df -h; echo tq | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
-  - ./00-prep.sh
-  - ./01-getTools.sh
-  - ./02-makePoms.sh
-  - ./03-getDependencies.sh
-  - ./04-build.sh
-  - ./05-test.sh
-  - ./06-javadoc.sh
-  - ./07-publish.sh
+  - lscpu; df -h; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
+
+  - build/00-prep.sh
+  - build/01-getTools.sh
+  - build/02-makePoms.sh
+  - build/03-getDependencies.sh
+  - build/04-build.sh
+  - build/05-test.sh
+  - build/06-javadoc.sh
+  - build/07-publish.sh
