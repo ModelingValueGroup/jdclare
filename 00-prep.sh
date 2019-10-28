@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -ue
 ################################################################
-export mavenReposDir="${1:m2}"                  ; shift || :
-export       jdkHome="${1:${JAVA_HOME:UNKNOWN}}"; shift || :
-export   gitHubToken="${1:NO_TOKEN}"            ; shift || :
-export      runTests="${1:true}"                ; shift || :
-export       release="${1:-}"                   ; shift || :
+export mavenReposDir="${1:-m2}"                  ; shift || :
+export       jdkHome="${1:-${JAVA_HOME:UNKNOWN}}"; shift || :
+export   gitHubToken="${1:-NO_TOKEN}"            ; shift || :
+export      runTests="${1:-true}"                ; shift || :
+export       release="${1:-}"                    ; shift || :
 ################################################################
 export      ANT_OPTS="-Djdk.home.9.0.4=$jdkHome -Dpath.variable.maven_repository=$mavenReposDir"
 export    MAVEN_OPTS="-Dmaven.repo.local=$mavenReposDir -DoutputDirectory=out/dependency"
