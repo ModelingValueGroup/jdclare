@@ -29,6 +29,10 @@ public final class ContextThread extends ForkJoinWorkerThread {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
     }
 
+    public static ContextPool createPool(UncaughtExceptionHandler handler) {
+        return new ContextPool(Collection.PARALLELISM, FACTORY, handler, false);
+    }
+
     private final static ThreadLocal<Object[]> CONTEXT = new ThreadLocal<Object[]>();
 
     public static Object[] getContext() {
@@ -113,7 +117,12 @@ public final class ContextThread extends ForkJoinWorkerThread {
         getPool().counter.set(nr, 0);
         context = null;
         if (exception != null) {
-            exception.printStackTrace();
+            UncaughtExceptionHandler handler = getPool().getUncaughtExceptionHandler();
+            if (handler != null) {
+                handler.uncaughtException(this, exception);
+            } else {
+                exception.printStackTrace();
+            }
         }
         super.onTermination(exception);
     }
