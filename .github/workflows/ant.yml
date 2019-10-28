@@ -14,14 +14,16 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 9
+    - name: lscpu
+      run: lscpu;df -h
     - name: prepare...
       run: >
         ./00-prep.sh
-        ./m2
-        /opt/hostedtoolcache/Java/9.0.7/x64
-        token
-        true
-        SNAPHOT
+          ./m2
+          /opt/hostedtoolcache/Java/9.0.7/x64
+          token
+          true
+          SNAPHOT
     - name: get tools
       run: ./01-getTools.sh
     - name: make poms
