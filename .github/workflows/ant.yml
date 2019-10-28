@@ -17,13 +17,7 @@ jobs:
     - name: lscpu
       run: lscpu;df -h
     - name: prepare...
-      run: >
-        ./00-prep.sh
-          ./m2
-          /opt/hostedtoolcache/Java/9.0.7/x64
-          token
-          true
-          SNAPHOT
+      run: ./00-prep.sh m2 /opt/hostedtoolcache/Java/9.0.7/x64 token true SNAPHOT
     - name: get tools
       run: ./01-getTools.sh
     - name: make poms
