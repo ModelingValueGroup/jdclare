@@ -2,4 +2,4 @@ language: java
 jdk:
   - openjdk11
 script:
-  - ./build.sh "m2" "$JAVA_HOME" "no-token" false false
+  - ./build.sh "m2" "$JAVA_HOME" "no-publish-token-for-travis" false ""
