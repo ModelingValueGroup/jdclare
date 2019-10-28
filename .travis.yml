@@ -9,8 +9,7 @@ addons:
     - htop
     - aha
 script:
-      - lscpu;df -h
-      - echo q | htop | aha --black --line-fix
+      - lscpu; df -h; echo tq | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
       - ./00-prep.sh
       - ./01-getTools.sh
       - ./02-makePoms.sh
