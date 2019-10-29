@@ -8,31 +8,29 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    #- name: machine features
+    #  run:  sudo apt-get install htop aha; lscpu; df -h; export TERM=linux; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
+
     - name: checkout...
       uses: actions/checkout@v1
     - name: setup JDK...
       uses: actions/setup-java@v1
       with:
-        java-version: 9
+        java-version: 11
+
     - name: prepare...
-      run: >
-        ./00-prep.sh
-        ./m2
-        /opt/hostedtoolcache/Java/9.0.7/x64
-        token
-        true
-        SNAPHOT
+      run:  build/00-prep.sh
     - name: get tools
-      run: ./01-getTools.sh
+      run:  build/01-getTools.sh
     - name: make poms
-      run: ./02-makePoms.sh
+      run:  build/02-makePoms.sh
     - name: get dependencies
-      run: ./03-getDependencies.sh
+      run:  build/03-getDependencies.sh
     - name: build
-      run: ./04-build.sh
+      run:  build/04-build.sh
     - name: test
-      run: ./05-test.sh
+      run:  build/05-test.sh
     - name: generate javadoc
-      run: ./06-javadoc.sh
+      run:  build/06-javadoc.sh
     - name: publish
-      run: ./07-publish.sh
+      run:  build/07-publish.sh

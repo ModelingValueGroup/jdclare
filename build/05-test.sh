@@ -5,9 +5,16 @@ set -ue
 if [ "$runTests" == true ]; then
   echo "...testing"
   generateAntTestFile "mvg-jdclare" > test.xml
-  if ant -Dpath.variable.maven_repository=$mavenReposDir -f test.xml; then
-    echo "...all tests ok!"
-  else
+
+  # to keep travis-ci happy:
+  SECONDS=0
+  while sleep 60; do
+    echo "=====[ still running after $SECONDS sec... ]====="
+  done &
+
+
+  if ! ant -Dpath.variable.maven_repository=$mavenReposDir -f test.xml; then
+    kill %1
     echo "======================================================================"
     echo " FAILURES DETECTED"
     echo "======================================================================"
@@ -21,4 +28,6 @@ if [ "$runTests" == true ]; then
     echo "======================================================================"
     exit 99
   fi
+  kill %1
+  echo "...all tests ok!"
 fi
