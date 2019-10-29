@@ -19,7 +19,7 @@ jobs:
         java-version: 11
 
     - name: prepare...
-      run:  build/00-prep.sh m2 "$JAVA_HOME" token true SNAPHOT
+      run:  build/00-prep.sh
     - name: get tools
       run:  build/01-getTools.sh
     - name: make poms

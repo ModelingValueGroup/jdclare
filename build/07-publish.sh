@@ -2,8 +2,8 @@
 set -ue
 . 00-vars.sh
 ################################################################
-if [ "$release" != "" -a "$release" != SNAPHOT ]; then
-  echo "...publish to github"
+if [[ $release != "" && $release != SNAPHOT && $gitHubToken != "" && $gitHubToken != NO_TOKEN ]]; then
+  echo "...publish to github as release '$release'"
   publishJarsOnGitHub \
       "$release" \
       "$gitHubToken" \
