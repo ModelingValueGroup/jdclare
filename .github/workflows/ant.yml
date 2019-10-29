@@ -13,12 +13,10 @@ jobs:
     - name: setup JDK...
       uses: actions/setup-java@v1
       with:
-        java-version: 9
+        java-version: 11
 
-    - name: install packages
-      run:  sudo apt-get install htop aha
-    - name: machine features
-      run:  lscpu; df -h; export TERM=linux; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
+    #- name: machine features
+    #  run:  sudo apt-get install htop aha; lscpu; df -h; export TERM=linux; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
 
     - name: prepare...
       run:  build/00-prep.sh m2 /opt/hostedtoolcache/Java/9.0.7/x64 token true SNAPHOT

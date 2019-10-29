@@ -4,13 +4,10 @@ jdk:
 addons:
   apt:
     packages:
-    - ant
     - ant-optional
-    - htop
-    - aha
-script:
-  - lscpu; df -h; echo "TERM=${TERM:-blubber}"; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
 
+script:
+  #- sudo apt-get install htop aha; lscpu; df -h; echo "TERM=${TERM:-blubber}"; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
   - build/00-prep.sh
   - build/01-getTools.sh
   - build/02-makePoms.sh
