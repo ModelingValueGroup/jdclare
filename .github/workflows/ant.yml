@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    #- name: machine features
+    #  run:  sudo apt-get install htop aha; lscpu; df -h; export TERM=linux; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
+
     - name: checkout...
       uses: actions/checkout@v1
     - name: setup JDK...
@@ -15,13 +18,8 @@ jobs:
       with:
         java-version: 11
 
-    #- name: machine features
-    #  run:  sudo apt-get install htop aha; lscpu; df -h; export TERM=linux; echo tHq | htop 2>&1 >/dev/null; echo q | COLUMNS=300 ROWS=300 htop | aha --black --line-fix
-
-    - name: java...
-      run:  echo "JAVA_HOME=$JAVA_HOME"
     - name: prepare...
-      run:  build/00-prep.sh m2 /opt/hostedtoolcache/Java/9.0.7/x64 token true SNAPHOT
+      run:  build/00-prep.sh m2 "$JAVA_HOME" token true SNAPHOT
     - name: get tools
       run:  build/01-getTools.sh
     - name: make poms
