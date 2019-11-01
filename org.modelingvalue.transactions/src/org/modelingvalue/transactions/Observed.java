@@ -81,7 +81,7 @@ public class Observed<O, T> extends Setable<O, T> {
             }
             for (int ia = 0; ia < 2; ia++) {
                 DefaultMap<Observer, Set<Mutable>> obsSet = l.get(o, observers[ia]);
-                l.checkTooManyObservers(o, observers[ia].observed, obsSet);
+                observers[ia].observed.checkTooManyObservers(l, o, obsSet);
                 for (Entry<Observer, Set<Mutable>> e : obsSet) {
                     for (Mutable m : e.getValue()) {
                         Mutable mutable = m.resolve((Mutable) o);
@@ -104,6 +104,13 @@ public class Observed<O, T> extends Setable<O, T> {
         this.observers = observers;
         for (int ia = 0; ia < 2; ia++) {
             observers[ia].observed = this;
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected void checkTooManyObservers(LeafTransaction tx, Object object, DefaultMap<Observer, Set<Mutable>> observers) {
+        if (tx.universeTransaction().maxNrOfObservers() < LeafTransaction.size(observers)) {
+            throw new TooManyObserversException(object, this, observers, tx.universeTransaction());
         }
     }
 
@@ -144,7 +151,7 @@ public class Observed<O, T> extends Setable<O, T> {
 
         private Observers(Object id, Direction direction) {
             super(Pair.of(id, direction), Observer.OBSERVER_MAP, false, null, null, null, false);
-            changed = (tx, o, b, a) -> tx.checkTooManyObservers(o, observed, a);
+            changed = (tx, o, b, a) -> observed.checkTooManyObservers(tx, o, a);
             this.direction = direction;
         }
 
