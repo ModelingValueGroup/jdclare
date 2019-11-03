@@ -121,10 +121,9 @@ public class MutableTransaction extends Transaction implements StateMergeHandler
                 }
             }
             return sa[0];
-        } catch (TransactionException te) {
-            return universeTransaction().handleException(te.getState(), new TransactionException(te.getState(), mutable(), te));
         } catch (Throwable t) {
-            return universeTransaction().handleException(sa[0], new TransactionException(sa[0], mutable(), t));
+            universeTransaction().handleException(new TransactionException(mutable(), t));
+            return state;
         } finally {
             sa[0] = null;
             ts[0] = null;

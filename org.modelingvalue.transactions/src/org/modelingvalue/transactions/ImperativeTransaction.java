@@ -50,9 +50,7 @@ public class ImperativeTransaction extends LeafTransaction {
             try {
                 r.run();
             } catch (Throwable t) {
-                if (pre != null) {
-                    pre = universeTransaction.handleException(pre, t);
-                }
+                universeTransaction.handleException(t);
             }
         });
     }
@@ -100,7 +98,7 @@ public class ImperativeTransaction extends LeafTransaction {
                     });
                 } catch (Throwable t) {
                     CHANGE_NR.set(ImperativeTransaction.this, finalState.get(ImperativeTransaction.this, CHANGE_NR));
-                    pre = universeTransaction().handleException(pre, t);
+                    universeTransaction().handleException(t);
                 }
             });
         }
