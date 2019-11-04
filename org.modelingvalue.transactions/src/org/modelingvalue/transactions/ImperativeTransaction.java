@@ -59,10 +59,6 @@ public class ImperativeTransaction extends LeafTransaction {
     public void stop() {
         if (isOpen()) {
             super.stop();
-            pre = null;
-            state = null;
-            setted = null;
-            diffHandler = null;
             if (LeafTransaction.getCurrent() == this) {
                 LeafTransaction.setCurrent(null);
             }
