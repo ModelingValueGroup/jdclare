@@ -51,7 +51,7 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
             CURRENT.run(this, () -> run(state, universeTransaction()));
             return result();
         } catch (Throwable t) {
-            universeTransaction().handleException(new TransactionException(parent().mutable(), new TransactionException(action(), t)));
+            universeTransaction().handleException(state, new TransactionException(parent().mutable(), new TransactionException(action(), t)));
             return state;
         } finally {
             clear();
