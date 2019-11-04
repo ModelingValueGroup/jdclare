@@ -180,7 +180,7 @@ public class UniverseTransaction extends MutableTransaction {
                         }
                     }
                 } catch (Throwable t) {
-                    handleException(state, t);
+                    handleException(t);
                 } finally {
                     end(leaf);
                     TraceTimer.traceEnd("root");
@@ -194,7 +194,7 @@ public class UniverseTransaction extends MutableTransaction {
         init();
     }
 
-    protected void handleException(State state, Throwable t) {
+    protected void handleException(Throwable t) {
         if (error == null) {
             error = t;
         }
@@ -377,6 +377,10 @@ public class UniverseTransaction extends MutableTransaction {
 
     public State preState() {
         return preState;
+    }
+
+    public State currentState() {
+        return state;
     }
 
     protected boolean isTimeTraveling() {
