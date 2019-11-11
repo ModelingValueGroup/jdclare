@@ -14,6 +14,7 @@
 package org.modelingvalue.transactions;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
 
@@ -23,12 +24,17 @@ public interface Mutable extends TransactionClass {
 
     Set<Mutable>                                          THIS_SINGLETON      = Set.of(THIS);
 
-    Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>> D_PARENT_CONTAINING = Observed.of("D_PARENT_CONTAINING", null);
+    Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>> D_PARENT_CONTAINING = new Observed<Mutable, Pair<Mutable, Setable<Mutable, ?>>>("D_PARENT_CONTAINING", null, false, null, null, null, true) {
+                                                                                  @SuppressWarnings("rawtypes")
+                                                                                  @Override
+                                                                                  protected void checkTooManyObservers(LeafTransaction tx, Object object, DefaultMap<Observer, Set<Mutable>> observers) {
+                                                                                  };
+                                                                              };                                                                                                                         //
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     Setable<Mutable, Set<? extends Observer<?>>>          D_OBSERVERS         = Setable.of("D_OBSERVERS", Set.of(), (tx, obj, pre, post) -> {
-                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                //
-                                                                                          added -> added.trigger(obj),                                                          //
+                                                                                  Setable.<Set<? extends Observer<?>>, Observer> diff(pre, post,                                                         //
+                                                                                          added -> added.trigger(obj),                                                                                   //
                                                                                           removed -> removed.deObserve(obj));
                                                                               });
 

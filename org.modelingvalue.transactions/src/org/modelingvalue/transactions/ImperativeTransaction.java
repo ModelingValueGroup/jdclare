@@ -145,6 +145,11 @@ public class ImperativeTransaction extends LeafTransaction {
         return oldNew[0];
     }
 
+    @Override
+    public <O, T> T current(O object, Getable<O, T> property) {
+        return get(object, property);
+    }
+
     private <O, T> void changed(O object, Setable<O, T> property, T preValue, T postValue, boolean first) {
         if (!Objects.equals(preValue, postValue)) {
             setted = setted.add(Pair.of(object, property));

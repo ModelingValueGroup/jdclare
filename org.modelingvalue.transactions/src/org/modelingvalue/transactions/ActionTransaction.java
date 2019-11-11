@@ -91,6 +91,11 @@ public class ActionTransaction extends LeafTransaction implements StateMergeHand
     }
 
     @Override
+    public <O, T> T current(O object, Getable<O, T> property) {
+        return setted.get().get(object, property);
+    }
+
+    @Override
     public <O, T, E> T set(O object, Setable<O, T> property, BiFunction<T, E, T> function, E element) {
         return set(object, property, function.apply(setted.get().get(object, property), element));
     }
