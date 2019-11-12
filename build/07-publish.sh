@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-set -ue
+set -uex
 . build/tmp/prep.sh
 ################################################################
 if [[ $OUR_BRANCH != "master" ]]; then
-  echo "INFO: not on master branch, no publish"
+  echo "INFO: no publish: on '$OUR_BRANCH' and not on 'master' branch"
 else
   if [[ $gitHubToken != "" && $gitHubToken != NO_TOKEN ]]; then
-    echo "INFO: can not publish, no \$gitHubToken defined"
+    echo "INFO: no publish: no \$gitHubToken defined"
   else
     echo "...publish to github as version '$OUR_VERSION'"
     publishJarsOnGitHub \
