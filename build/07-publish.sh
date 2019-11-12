@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -uex
+set -ue
 . build/tmp/prep.sh
 ################################################################
 if [[ $OUR_BRANCH != "master" ]]; then
