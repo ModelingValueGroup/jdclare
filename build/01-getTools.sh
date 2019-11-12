@@ -10,5 +10,7 @@ git clone 'https://github.com/ModelingValueGroup/tools.git'
 ) >> build/tmp/prep.sh-tmp
 cp build/tmp/prep.sh-tmp build/tmp/prep.sh
 
-set -x
- . build/tmp/prep.sh-tmp
+git remote -v | sed 's/^/@A@ /'
+git remote -v | head -1  | sed 's/^/@B@ /'
+git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||'  | sed 's/^/@C@ /'
+git remote -v | head -1 | sed 's|.*https://github.com/||;s|.*:||;s|\.git .*||' | sed 's|\([^/]*\)/\(.*\)|\2|' | sed 's/^/@D@ /'
