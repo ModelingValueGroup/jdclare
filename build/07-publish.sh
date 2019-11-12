@@ -8,7 +8,7 @@ if [[ $OUR_BRANCH == "master" ]]; then
   else
     echo "...publish to github as version '$OUR_VERSION'"
     publishJarsOnGitHub \
-        "$release" \
+        "$OUR_VERSION" \
         "$gitHubToken" \
         "false" \
         "${units[@]}"
