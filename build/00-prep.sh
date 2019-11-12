@@ -24,5 +24,6 @@ varNames=(
     OUR_VERSION
     units
 )
+mkdir -p build/tmp
 declare -p "${varNames[@]}" > build/tmp/prep.sh
 set
