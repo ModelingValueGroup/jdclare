@@ -12,7 +12,7 @@ while sleep 60; do
 done &
 
 
-if ! ant -Dpath.variable.maven_repository=$mavenReposDir -f test.xml; then
+if ! ant -f test.xml; then
   kill %1
   echo "======================================================================"
   echo " FAILURES DETECTED"
