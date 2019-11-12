@@ -34,11 +34,13 @@ jobs:
         with:
           name: collections.jar
           path: out/artifacts/collections-SNAPSHOT.jar
+
     - name: archive transactions
         uses: actions/upload-artifact@v1
         with:
           name: transactions.jar
           path: out/artifacts/transactions-SNAPSHOT.jar
+
     - name: archive jdclare
         uses: actions/upload-artifact@v1
         with:
