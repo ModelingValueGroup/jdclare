@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -ue
 ################################################################
-gitHubToken="${1:-NO_TOKEN}"  ; shift || :
+export gitHubToken="${1:-NO_TOKEN}"  ; shift || :
 ################################################################
-   ANT_OPTS="-Djdk.home.11=$JAVA_HOME -Dpath.variable.maven_repository=m2"
- MAVEN_OPTS="-Dmaven.repo.local=m2 -DoutputDirectory=out/dependency"
- OUR_DOMAIN="org.modelingvalue"
-OUR_PRODUCT="dclare"
-OUR_VERSION="$(head -1 releases.md | sed 's/#* *//')"
- OUR_BRANCH="$(sed 's|^refs/heads/||' <<<"$GITHUB_REF")"
+export    ANT_OPTS="-Djdk.home.11=$JAVA_HOME -Dpath.variable.maven_repository=m2"
+export  MAVEN_OPTS="-Dmaven.repo.local=m2 -DoutputDirectory=out/dependency"
+export  OUR_DOMAIN="org.modelingvalue"
+export OUR_PRODUCT="dclare"
+export OUR_VERSION="$(head -1 releases.md | sed 's/#* *//')"
+export  OUR_BRANCH="$(sed 's|^refs/heads/||' <<<"$GITHUB_REF")"
 ################################################################
 export units=(
     collections
