@@ -24,6 +24,15 @@ jobs:
       run:  build/01-getTools.sh
     - name: make poms
       run:  build/02-makePoms.sh
+
+#========================================================================================================
+    - name: cache m2
+      uses: actions/cache@v1
+      with:
+        path: m2
+        key: m2-${{ hashFiles('out/artifacts/ALL-SNAPSHOT.pom') }}
+#========================================================================================================
+
     - name: get dependencies
       run:  build/03-getDependencies.sh
     - name: build
