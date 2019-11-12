@@ -5,7 +5,7 @@ set -uex
 if [[ $OUR_BRANCH != "master" ]]; then
   echo "INFO: no publish: on '$OUR_BRANCH' and not on 'master' branch"
 else
-  if [[ $gitHubToken != "" && $gitHubToken != NO_TOKEN ]]; then
+  if [[ $gitHubToken == "" || $gitHubToken == NO_TOKEN ]]; then
     echo "INFO: no publish: no \$gitHubToken defined"
   else
     echo "...publish to github as version '$OUR_VERSION'"
