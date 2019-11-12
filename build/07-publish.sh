@@ -11,6 +11,7 @@ else
     echo "...publish to github as version '$OUR_VERSION'"
     set -x
     publishJarsOnGitHub \
+        "$OUR_BRANCH" \
         "$OUR_VERSION" \
         "$gitHubToken" \
         "false" \
