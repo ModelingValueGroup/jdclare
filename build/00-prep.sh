@@ -9,6 +9,8 @@ export  OUR_DOMAIN="org.modelingvalue"
 export OUR_PRODUCT="dclare"
 export OUR_VERSION="$(head -1 releases.md | sed 's/#* *//')"
 export  OUR_BRANCH="$(sed 's|^refs/heads/||' <<<"$GITHUB_REF")"
+echo "GITHUB_REF=$GITHUB_REF"
+echo "OUR_BRANCH=$OUR_BRANCH"
 ################################################################
 export units=(
     collections
