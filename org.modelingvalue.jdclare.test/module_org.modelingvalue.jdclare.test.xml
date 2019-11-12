@@ -5,8 +5,9 @@
   <property name="module.jdk.home.org.modelingvalue.jdclare.test" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.org.modelingvalue.jdclare.test" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.jdclare.test" value="${project.jdk.classpath}"/>
-  
-  <property name="compiler.args.org.modelingvalue.jdclare.test" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+
+    <property name="compiler.args.org.modelingvalue.jdclare.test"
+              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
   <property name="org.modelingvalue.jdclare.test.output.dir" value="${module.org.modelingvalue.jdclare.test.basedir}/../out/production/org.modelingvalue.jdclare.test"/>
   <property name="org.modelingvalue.jdclare.test.testoutput.dir" value="${module.org.modelingvalue.jdclare.test.basedir}/../out/test/org.modelingvalue.jdclare.test"/>
@@ -79,8 +80,7 @@
   
   <target name="compile.module.org.modelingvalue.jdclare.test.tests" depends="compile.module.org.modelingvalue.jdclare.test.production" description="compile module org.modelingvalue.jdclare.test; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.jdclare.test.testoutput.dir}"/>
-      <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.test.testoutput.dir}"
-             debug="${compiler.debug}"
+      <javac destdir="${org.modelingvalue.jdclare.test.testoutput.dir}" debug="${compiler.debug}"
              nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
              executable="${module.jdk.bin.org.modelingvalue.jdclare.test}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.jdclare.test}"/>

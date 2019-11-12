@@ -5,8 +5,9 @@
   <property name="module.jdk.home.org.modelingvalue.transactions" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.org.modelingvalue.transactions" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.transactions" value="${project.jdk.classpath}"/>
-  
-  <property name="compiler.args.org.modelingvalue.transactions" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+
+    <property name="compiler.args.org.modelingvalue.transactions"
+              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
   <property name="org.modelingvalue.transactions.output.dir" value="${module.org.modelingvalue.transactions.basedir}/../out/production/org.modelingvalue.transactions"/>
   <property name="org.modelingvalue.transactions.testoutput.dir" value="${module.org.modelingvalue.transactions.basedir}/../out/test/org.modelingvalue.transactions"/>
@@ -58,7 +59,7 @@
   
   <target name="compile.module.org.modelingvalue.transactions.production" depends="compile.module.org.modelingvalue.collections" description="Compile module org.modelingvalue.transactions; production classes">
     <mkdir dir="${org.modelingvalue.transactions.output.dir}"/>
-      <javac includeantruntime="false" destdir="${org.modelingvalue.transactions.output.dir}" debug="${compiler.debug}"
+      <javac destdir="${org.modelingvalue.transactions.output.dir}" debug="${compiler.debug}"
              nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
              executable="${module.jdk.bin.org.modelingvalue.transactions}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.transactions}"/>

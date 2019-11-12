@@ -5,8 +5,9 @@
   <property name="module.jdk.home.org.modelingvalue.jdclare.syntax" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.org.modelingvalue.jdclare.syntax" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.jdclare.syntax" value="${project.jdk.classpath}"/>
-  
-  <property name="compiler.args.org.modelingvalue.jdclare.syntax" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+
+    <property name="compiler.args.org.modelingvalue.jdclare.syntax"
+              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
   <property name="org.modelingvalue.jdclare.syntax.output.dir" value="${module.org.modelingvalue.jdclare.syntax.basedir}/../out/production/org.modelingvalue.jdclare.syntax"/>
   <property name="org.modelingvalue.jdclare.syntax.testoutput.dir" value="${module.org.modelingvalue.jdclare.syntax.basedir}/../out/test/org.modelingvalue.jdclare.syntax"/>
@@ -68,8 +69,7 @@
   
   <target name="compile.module.org.modelingvalue.jdclare.syntax.production" depends="compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.transactions,compile.module.org.modelingvalue.jdclare" description="Compile module org.modelingvalue.jdclare.syntax; production classes">
     <mkdir dir="${org.modelingvalue.jdclare.syntax.output.dir}"/>
-      <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.syntax.output.dir}"
-             debug="${compiler.debug}"
+      <javac destdir="${org.modelingvalue.jdclare.syntax.output.dir}" debug="${compiler.debug}"
              nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
              executable="${module.jdk.bin.org.modelingvalue.jdclare.syntax}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.jdclare.syntax}"/>

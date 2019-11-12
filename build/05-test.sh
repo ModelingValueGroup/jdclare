@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -ue
-. 00-vars.sh
+. build/tmp/prep.sh
 ################################################################
 if [ "$runTests" == true ]; then
   echo "...testing"
