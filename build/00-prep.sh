@@ -25,3 +25,4 @@ varNames=(
     units
 )
 declare -p "${varNames[@]}" > build/tmp/prep.sh
+set
