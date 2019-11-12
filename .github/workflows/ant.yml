@@ -25,8 +25,8 @@ jobs:
     - name: make poms
       run:  build/02-makePoms.sh
 
-    - name: TRY PUBLISH
-      run:  mvn deploy -Dregistry=https://maven.pkg.github.com/ModelingValueGroup -Dtoken=${{ secrets.GITHUB_TOKEN }}
+#    - name: TRY PUBLISH
+#      run:  mvn deploy -Dregistry=https://maven.pkg.github.com/ModelingValueGroup -Dtoken=${{ secrets.GITHUB_TOKEN }}
 
       #========================================================================================================
     - name: cache m2
