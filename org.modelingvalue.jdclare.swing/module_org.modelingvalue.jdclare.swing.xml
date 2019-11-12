@@ -6,8 +6,8 @@
   <property name="module.jdk.bin.org.modelingvalue.jdclare.swing" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.jdclare.swing" value="${project.jdk.classpath}"/>
 
-    <property name="compiler.args.org.modelingvalue.jdclare.swing"
-              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+  <property name="compiler.args.org.modelingvalue.jdclare.swing"
+            value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
   <property name="org.modelingvalue.jdclare.swing.output.dir" value="${module.org.modelingvalue.jdclare.swing.basedir}/../out/production/org.modelingvalue.jdclare.swing"/>
   <property name="org.modelingvalue.jdclare.swing.testoutput.dir" value="${module.org.modelingvalue.jdclare.swing.basedir}/../out/test/org.modelingvalue.jdclare.swing"/>
@@ -69,9 +69,9 @@
   
   <target name="compile.module.org.modelingvalue.jdclare.swing.production" depends="compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.jdclare,compile.module.org.modelingvalue.transactions" description="Compile module org.modelingvalue.jdclare.swing; production classes">
     <mkdir dir="${org.modelingvalue.jdclare.swing.output.dir}"/>
-      <javac destdir="${org.modelingvalue.jdclare.swing.output.dir}" debug="${compiler.debug}"
-             nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
-             executable="${module.jdk.bin.org.modelingvalue.jdclare.swing}/javac">
+    <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.swing.output.dir}" debug="${compiler.debug}"
+           nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.org.modelingvalue.jdclare.swing}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.jdclare.swing}"/>
       <bootclasspath refid="org.modelingvalue.jdclare.swing.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.jdclare.swing.module.production.classpath"/>

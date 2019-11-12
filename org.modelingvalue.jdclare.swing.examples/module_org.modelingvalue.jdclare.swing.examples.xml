@@ -6,8 +6,8 @@
   <property name="module.jdk.bin.org.modelingvalue.jdclare.swing.examples" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.jdclare.swing.examples" value="${project.jdk.classpath}"/>
 
-    <property name="compiler.args.org.modelingvalue.jdclare.swing.examples"
-              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+  <property name="compiler.args.org.modelingvalue.jdclare.swing.examples"
+            value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
   <property name="org.modelingvalue.jdclare.swing.examples.output.dir" value="${module.org.modelingvalue.jdclare.swing.examples.basedir}/../out/production/org.modelingvalue.jdclare.swing.examples"/>
   <property name="org.modelingvalue.jdclare.swing.examples.testoutput.dir" value="${module.org.modelingvalue.jdclare.swing.examples.basedir}/../out/test/org.modelingvalue.jdclare.swing.examples"/>
@@ -77,9 +77,10 @@
   
   <target name="compile.module.org.modelingvalue.jdclare.swing.examples.tests" depends="compile.module.org.modelingvalue.jdclare.swing.examples.production" description="compile module org.modelingvalue.jdclare.swing.examples; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}"/>
-      <javac destdir="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}" debug="${compiler.debug}"
-             nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
-             executable="${module.jdk.bin.org.modelingvalue.jdclare.swing.examples}/javac">
+    <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.swing.examples.testoutput.dir}"
+           debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}"
+           memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.org.modelingvalue.jdclare.swing.examples}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.jdclare.swing.examples}"/>
       <bootclasspath refid="org.modelingvalue.jdclare.swing.examples.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.jdclare.swing.examples.module.classpath"/>

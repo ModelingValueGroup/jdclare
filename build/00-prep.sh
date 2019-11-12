@@ -3,7 +3,7 @@ set -ue
 ################################################################
 export   gitHubToken="${1:-NO_TOKEN}"  ; shift || :
 ################################################################
-export      ANT_OPTS="-Djdk.home.9.0.4=$JAVA_HOME -Dpath.variable.maven_repository=m2"
+export      ANT_OPTS="-Djdk.home.11=$JAVA_HOME -Dpath.variable.maven_repository=m2"
 export    MAVEN_OPTS="-Dmaven.repo.local=m2 -DoutputDirectory=out/dependency"
 export    OUR_DOMAIN="org.modelingvalue"
 export   OUR_PRODUCT="dclare"
