@@ -2,7 +2,9 @@
 set -ue
 . build/tmp/prep.sh
 ################################################################
-if [[ $OUR_BRANCH == "master" ]]; then
+if [[ $OUR_BRANCH != "master" ]]; then
+  echo "INFO: not on master branch, no publish"
+else
   if [[ $gitHubToken != "" && $gitHubToken != NO_TOKEN ]]; then
     echo "INFO: can not publish, no \$gitHubToken defined"
   else

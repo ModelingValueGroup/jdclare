@@ -19,7 +19,7 @@ jobs:
         java-version: 11
 
     - name: prepare...
-      run:  build/00-prep.sh
+      run:  build/00-prep.sh ${{ secrets.GITHUB_TOKEN }}
     - name: get tools
       run:  build/01-getTools.sh
     - name: make poms
