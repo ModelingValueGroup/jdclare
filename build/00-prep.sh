@@ -28,4 +28,6 @@ varNames=(
 )
 mkdir -p build/tmp
 declare -p "${varNames[@]}" > build/tmp/prep.sh
-set
+
+cat $GITHUB_EVENT_PATH
+find /home/runner/work -type f
