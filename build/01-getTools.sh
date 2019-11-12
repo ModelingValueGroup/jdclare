@@ -11,4 +11,4 @@ git clone 'https://github.com/ModelingValueGroup/tools.git'
 cp build/tmp/prep.sh-tmp build/tmp/prep.sh
 
 set -x
-build/tmp/prep.sh-tmp
+ . build/tmp/prep.sh-tmp
