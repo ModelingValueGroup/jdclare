@@ -30,22 +30,22 @@ jobs:
       run:  build/04-build.sh
 
     - name: archive collections
-        uses: actions/upload-artifact@v1
-        with:
-          name: collections.jar
-          path: out/artifacts/collections-SNAPSHOT.jar
+      uses: actions/upload-artifact@v1
+      with:
+        name: collections.jar
+        path: out/artifacts/collections-SNAPSHOT.jar
 
     - name: archive transactions
-        uses: actions/upload-artifact@v1
-        with:
-          name: transactions.jar
-          path: out/artifacts/transactions-SNAPSHOT.jar
+      uses: actions/upload-artifact@v1
+      with:
+        name: transactions.jar
+        path: out/artifacts/transactions-SNAPSHOT.jar
 
     - name: archive jdclare
-        uses: actions/upload-artifact@v1
-        with:
-          name: jdclare.jar
-          path: out/artifacts/jdclare-SNAPSHOT.jar
+      uses: actions/upload-artifact@v1
+      with:
+        name: jdclare.jar
+        path: out/artifacts/jdclare-SNAPSHOT.jar
 
     - name: test
       run:  build/05-test.sh
