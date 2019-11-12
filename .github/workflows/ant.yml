@@ -28,9 +28,34 @@ jobs:
       run:  build/03-getDependencies.sh
     - name: build
       run:  build/04-build.sh
+
+    - name: archive collections
+        uses: actions/upload-artifact@v1
+        with:
+          name: collections.jar
+          path: out/artifacts/collections-SNAPSHOT.jar
+    - name: archive transactions
+        uses: actions/upload-artifact@v1
+        with:
+          name: transactions.jar
+          path: out/artifacts/transactions-SNAPSHOT.jar
+    - name: archive jdclare
+        uses: actions/upload-artifact@v1
+        with:
+          name: jdclare.jar
+          path: out/artifacts/jdclare-SNAPSHOT.jar
+
     - name: test
       run:  build/05-test.sh
+
+    - name: cache javadoc collections
+      uses: actions/cache@v1
+      with:
+        path: cache/collections
+        key: javadoc-${{ hashFiles('org.modelingvalue.collections/src/**/*.java') }}
+
     - name: generate javadoc
       run:  build/06-javadoc.sh
+
     - name: publish
       run:  build/07-publish.sh
