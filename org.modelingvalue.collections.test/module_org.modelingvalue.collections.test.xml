@@ -5,8 +5,9 @@
   <property name="module.jdk.home.org.modelingvalue.collections.test" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.org.modelingvalue.collections.test" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.collections.test" value="${project.jdk.classpath}"/>
-  
-  <property name="compiler.args.org.modelingvalue.collections.test" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+
+  <property name="compiler.args.org.modelingvalue.collections.test"
+            value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
   <property name="org.modelingvalue.collections.test.output.dir" value="${module.org.modelingvalue.collections.test.basedir}/../out/production/org.modelingvalue.collections.test"/>
   <property name="org.modelingvalue.collections.test.testoutput.dir" value="${module.org.modelingvalue.collections.test.basedir}/../out/test/org.modelingvalue.collections.test"/>
@@ -64,10 +65,10 @@
   
   <target name="compile.module.org.modelingvalue.collections.test.tests" depends="compile.module.org.modelingvalue.collections.test.production" description="compile module org.modelingvalue.collections.test; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.collections.test.testoutput.dir}"/>
-      <javac includeantruntime="false" destdir="${org.modelingvalue.collections.test.testoutput.dir}"
-             debug="${compiler.debug}"
-             nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
-             executable="${module.jdk.bin.org.modelingvalue.collections.test}/javac">
+    <javac includeantruntime="false" destdir="${org.modelingvalue.collections.test.testoutput.dir}"
+           debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}"
+           memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.org.modelingvalue.collections.test}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.collections.test}"/>
       <bootclasspath refid="org.modelingvalue.collections.test.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.collections.test.module.classpath"/>

@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -ue
-. 00-vars.sh
+. build/tmp/prep.sh
 ################################################################
 echo "...get our tools"
 rm -rf tools
 git clone 'https://github.com/ModelingValueGroup/tools.git'
 ( echo ". tools/tools.sh"
-  cat 00-vars.sh
-) >> 00-vars.sh-tmp
-cp 00-vars.sh-tmp 00-vars.sh
+  cat build/tmp/prep.sh
+) >> build/tmp/prep.sh-tmp
+cp build/tmp/prep.sh-tmp build/tmp/prep.sh
+
+set -x
+. build/tmp/prep.sh

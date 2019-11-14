@@ -5,8 +5,9 @@
   <property name="module.jdk.home.org.modelingvalue.jdclare.examples" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.org.modelingvalue.jdclare.examples" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.jdclare.examples" value="${project.jdk.classpath}"/>
-  
-  <property name="compiler.args.org.modelingvalue.jdclare.examples" value="-encoding UTF-8 -source 9 -target 9 ${compiler.args}"/>
+
+  <property name="compiler.args.org.modelingvalue.jdclare.examples"
+            value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
   <property name="org.modelingvalue.jdclare.examples.output.dir" value="${module.org.modelingvalue.jdclare.examples.basedir}/../out/production/org.modelingvalue.jdclare.examples"/>
   <property name="org.modelingvalue.jdclare.examples.testoutput.dir" value="${module.org.modelingvalue.jdclare.examples.basedir}/../out/test/org.modelingvalue.jdclare.examples"/>
@@ -70,10 +71,10 @@
   
   <target name="compile.module.org.modelingvalue.jdclare.examples.tests" depends="compile.module.org.modelingvalue.jdclare.examples.production" description="compile module org.modelingvalue.jdclare.examples; test classes" unless="skip.tests">
     <mkdir dir="${org.modelingvalue.jdclare.examples.testoutput.dir}"/>
-      <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.examples.testoutput.dir}"
-             debug="${compiler.debug}"
-             nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
-             executable="${module.jdk.bin.org.modelingvalue.jdclare.examples}/javac">
+    <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.examples.testoutput.dir}"
+           debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}"
+           memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.org.modelingvalue.jdclare.examples}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.jdclare.examples}"/>
       <bootclasspath refid="org.modelingvalue.jdclare.examples.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.jdclare.examples.module.classpath"/>

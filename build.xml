@@ -57,66 +57,51 @@
   
   <!-- JDK definitions -->
   
-  <property name="jdk.bin.9.0.4" value="${jdk.home.9.0.4}/bin"/>
-  <path id="jdk.classpath.9.0.4">
-    <fileset dir="${jdk.home.9.0.4}">
-      <include name="../Home!/java.activation"/>
+  <property name="jdk.bin.11" value="${jdk.home.11}/bin"/>
+  <path id="jdk.classpath.11">
+    <fileset dir="${jdk.home.11}">
       <include name="../Home!/java.base"/>
       <include name="../Home!/java.compiler"/>
-      <include name="../Home!/java.corba"/>
       <include name="../Home!/java.datatransfer"/>
       <include name="../Home!/java.desktop"/>
       <include name="../Home!/java.instrument"/>
-      <include name="../Home!/java.jnlp"/>
       <include name="../Home!/java.logging"/>
       <include name="../Home!/java.management"/>
       <include name="../Home!/java.management.rmi"/>
       <include name="../Home!/java.naming"/>
+      <include name="../Home!/java.net.http"/>
       <include name="../Home!/java.prefs"/>
       <include name="../Home!/java.rmi"/>
       <include name="../Home!/java.scripting"/>
       <include name="../Home!/java.se"/>
-      <include name="../Home!/java.se.ee"/>
       <include name="../Home!/java.security.jgss"/>
       <include name="../Home!/java.security.sasl"/>
       <include name="../Home!/java.smartcardio"/>
       <include name="../Home!/java.sql"/>
       <include name="../Home!/java.sql.rowset"/>
-      <include name="../Home!/java.transaction"/>
+      <include name="../Home!/java.transaction.xa"/>
       <include name="../Home!/java.xml"/>
-      <include name="../Home!/java.xml.bind"/>
       <include name="../Home!/java.xml.crypto"/>
-      <include name="../Home!/java.xml.ws"/>
-      <include name="../Home!/java.xml.ws.annotation"/>
-      <include name="../Home!/javafx.base"/>
-      <include name="../Home!/javafx.controls"/>
-      <include name="../Home!/javafx.deploy"/>
-      <include name="../Home!/javafx.fxml"/>
-      <include name="../Home!/javafx.graphics"/>
-      <include name="../Home!/javafx.media"/>
-      <include name="../Home!/javafx.swing"/>
-      <include name="../Home!/javafx.web"/>
       <include name="../Home!/jdk.accessibility"/>
+      <include name="../Home!/jdk.aot"/>
       <include name="../Home!/jdk.attach"/>
       <include name="../Home!/jdk.charsets"/>
       <include name="../Home!/jdk.compiler"/>
       <include name="../Home!/jdk.crypto.cryptoki"/>
       <include name="../Home!/jdk.crypto.ec"/>
-      <include name="../Home!/jdk.deploy"/>
-      <include name="../Home!/jdk.deploy.controlpanel"/>
       <include name="../Home!/jdk.dynalink"/>
       <include name="../Home!/jdk.editpad"/>
       <include name="../Home!/jdk.hotspot.agent"/>
       <include name="../Home!/jdk.httpserver"/>
-      <include name="../Home!/jdk.incubator.httpclient"/>
       <include name="../Home!/jdk.internal.ed"/>
       <include name="../Home!/jdk.internal.jvmstat"/>
       <include name="../Home!/jdk.internal.le"/>
       <include name="../Home!/jdk.internal.opt"/>
       <include name="../Home!/jdk.internal.vm.ci"/>
+      <include name="../Home!/jdk.internal.vm.compiler"/>
+      <include name="../Home!/jdk.internal.vm.compiler.management"/>
       <include name="../Home!/jdk.jartool"/>
       <include name="../Home!/jdk.javadoc"/>
-      <include name="../Home!/jdk.javaws"/>
       <include name="../Home!/jdk.jcmd"/>
       <include name="../Home!/jdk.jconsole"/>
       <include name="../Home!/jdk.jdeps"/>
@@ -130,39 +115,27 @@
       <include name="../Home!/jdk.localedata"/>
       <include name="../Home!/jdk.management"/>
       <include name="../Home!/jdk.management.agent"/>
-      <include name="../Home!/jdk.management.cmm"/>
       <include name="../Home!/jdk.management.jfr"/>
-      <include name="../Home!/jdk.management.resource"/>
       <include name="../Home!/jdk.naming.dns"/>
       <include name="../Home!/jdk.naming.rmi"/>
       <include name="../Home!/jdk.net"/>
       <include name="../Home!/jdk.pack"/>
-      <include name="../Home!/jdk.packager"/>
-      <include name="../Home!/jdk.packager.services"/>
-      <include name="../Home!/jdk.plugin"/>
-      <include name="../Home!/jdk.plugin.dom"/>
-      <include name="../Home!/jdk.plugin.server"/>
-      <include name="../Home!/jdk.policytool"/>
       <include name="../Home!/jdk.rmic"/>
       <include name="../Home!/jdk.scripting.nashorn"/>
       <include name="../Home!/jdk.scripting.nashorn.shell"/>
       <include name="../Home!/jdk.sctp"/>
       <include name="../Home!/jdk.security.auth"/>
       <include name="../Home!/jdk.security.jgss"/>
-      <include name="../Home!/jdk.snmp"/>
       <include name="../Home!/jdk.unsupported"/>
-      <include name="../Home!/jdk.xml.bind"/>
+      <include name="../Home!/jdk.unsupported.desktop"/>
       <include name="../Home!/jdk.xml.dom"/>
-      <include name="../Home!/jdk.xml.ws"/>
       <include name="../Home!/jdk.zipfs"/>
-      <include name="../Home!/oracle.desktop"/>
-      <include name="../Home!/oracle.net"/>
     </fileset>
   </path>
   
-  <property name="project.jdk.home" value="${jdk.home.9.0.4}"/>
-  <property name="project.jdk.bin" value="${jdk.bin.9.0.4}"/>
-  <property name="project.jdk.classpath" value="jdk.classpath.9.0.4"/>
+  <property name="project.jdk.home" value="${jdk.home.11}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.11}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.11"/>
   
   
   <!-- Project Libraries -->
