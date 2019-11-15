@@ -1,3 +1,8 @@
+# 1.0.2
+`${date}`
+
+Forced constants get and set
+
 # 1.0.1
 `${date}`
 
