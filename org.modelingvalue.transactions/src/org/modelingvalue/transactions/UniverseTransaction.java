@@ -217,10 +217,11 @@ public class UniverseTransaction extends MutableTransaction {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected void checkConsistency(State pre, State post) {
+        LeafTransaction lt = LeafTransaction.getCurrent();
         pre.diff(post, o -> o instanceof Mutable).forEach(e0 -> {
             if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT_CONTAINING) != null) {
                 ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
-                    ((Setable) s).checkConsistency(post, e0.getKey(), e0.getValue().a().get(s), e0.getValue().b().get(s));
+                    ((Setable) s).checkConsistency(post, e0.getKey(), s instanceof Constant ? constantState.get(lt, e0.getKey(), (Constant) s, true) : e0.getValue().b().get(s));
                 });
             } else {
                 checkOrphanState(e0);

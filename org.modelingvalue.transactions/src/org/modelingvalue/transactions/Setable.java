@@ -224,7 +224,7 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void checkConsistency(State state, O object, T pre, T post) {
+    public void checkConsistency(State state, O object, T post) {
         if (isReference) {
             for (Mutable m : mutables(post)) {
                 if (isOrphan(state, m)) {
