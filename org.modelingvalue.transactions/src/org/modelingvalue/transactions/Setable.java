@@ -49,6 +49,7 @@ public class Setable<O, T> extends Getable<O, T> {
     @SuppressWarnings("rawtypes")
     private final Constant<T, Entry<Setable, Object>> internal;
     protected final boolean                           checkConsistency;
+    private boolean                                   isReference;
 
     protected Setable(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Supplier<Setable<O, Set<?>>> scope, QuadConsumer<LeafTransaction, O, T, T> changed, boolean checkConsistency) {
         super(id, def);
@@ -138,6 +139,14 @@ public class Setable<O, T> extends Getable<O, T> {
             }, removed -> {
                 opp.remove(removed, object);
             });
+        } else if (this != Mutable.D_PARENT_CONTAINING && !isReference) {
+            Object v = postValue;
+            if (v instanceof ContainingCollection) {
+                v = ((ContainingCollection<?>) v).isEmpty() ? null : ((ContainingCollection<?>) v).get(0);
+            }
+            if (v instanceof Mutable) {
+                isReference = true;
+            }
         }
     }
 
@@ -211,21 +220,34 @@ public class Setable<O, T> extends Getable<O, T> {
     }
 
     public boolean checkConsistency() {
-        return checkConsistency && scope != null;
+        return checkConsistency && (scope != null || isReference);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void checkConsistency(State state, O object, T pre, T post) {
-        Set s = state.get(object, scope.get());
-        if (post instanceof ContainingCollection) {
-            if (!s.containsAll((ContainingCollection) post)) {
-                throw new OutOfScopeException(object, this, post, s);
-            }
-        } else if (post != null) {
-            if (!s.contains(post)) {
-                throw new OutOfScopeException(object, this, post, s);
+        if (isReference) {
+            for (Mutable m : mutables(post)) {
+                if (isOrphan(state, m)) {
+                    throw new ReferencedOrphanException(object, this, m);
+                }
             }
         }
+        if (scope != null) {
+            Set s = state.get(object, scope.get());
+            if (post instanceof ContainingCollection) {
+                if (!s.containsAll((ContainingCollection) post)) {
+                    throw new OutOfScopeException(object, this, post, s);
+                }
+            } else if (post != null) {
+                if (!s.contains(post)) {
+                    throw new OutOfScopeException(object, this, post, s);
+                }
+            }
+        }
+    }
+
+    protected boolean isOrphan(State state, Mutable m) {
+        return !(m instanceof Universe) && state.get(m, Mutable.D_PARENT_CONTAINING) == null;
     }
 
 }

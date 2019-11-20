@@ -15,7 +15,6 @@ package org.modelingvalue.transactions;
 
 import java.util.function.Supplier;
 
-import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
@@ -56,7 +55,6 @@ public class Observed<O, T> extends Setable<O, T> {
     private final Observers<O, T>[]                   observers;
     @SuppressWarnings("rawtypes")
     private final Entry<Observed, Set<Mutable>>       thisInstance = Entry.of(this, Mutable.THIS_SINGLETON);
-    private boolean                                   isReference;
 
     @SuppressWarnings("unchecked")
     protected Observed(Object id, T def, boolean containment, Supplier<Setable<?, ?>> opposite, Supplier<Setable<O, Set<?>>> scope, QuadConsumer<LeafTransaction, O, T, T> changed, boolean checkConsistency) {
@@ -89,15 +87,6 @@ public class Observed<O, T> extends Setable<O, T> {
                             l.trigger(mutable, e.getKey(), Direction.values()[ia]);
                         }
                     }
-                }
-            }
-            if (!containment && opposite == null && this != Mutable.D_PARENT_CONTAINING && !isReference) {
-                Object v = n;
-                if (v instanceof ContainingCollection) {
-                    v = ((ContainingCollection<?>) v).isEmpty() ? null : ((ContainingCollection<?>) v).get(0);
-                }
-                if (v instanceof Mutable) {
-                    isReference = true;
                 }
             }
         };
@@ -173,29 +162,6 @@ public class Observed<O, T> extends Setable<O, T> {
     @SuppressWarnings("rawtypes")
     protected Entry<Observed, Set<Mutable>> entry(Mutable object, Mutable self) {
         return object.equals(self) ? thisInstance : Entry.of(this, Set.of(object));
-    }
-
-    @Override
-    public boolean checkConsistency() {
-        return super.checkConsistency() || (checkConsistency && isReference);
-    }
-
-    @Override
-    public void checkConsistency(State state, O object, T pre, T post) {
-        if (super.checkConsistency()) {
-            super.checkConsistency(state, object, pre, post);
-        }
-        if (isReference) {
-            for (Mutable m : mutables(post)) {
-                if (isOrphan(state, m)) {
-                    throw new ReferencedOrphanException(object, this, m);
-                }
-            }
-        }
-    }
-
-    protected boolean isOrphan(State state, Mutable m) {
-        return !(m instanceof Universe) && state.get(m, Mutable.D_PARENT_CONTAINING) == null;
     }
 
 }
