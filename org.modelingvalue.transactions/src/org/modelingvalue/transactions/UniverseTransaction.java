@@ -207,7 +207,7 @@ public class UniverseTransaction extends MutableTransaction {
     protected void init() {
         put("$init", () -> {
             addDiffHandler("$checkConsistency", (pre, post, last) -> {
-                if (last) {
+                if (!killed && last) {
                     checkConsistency(pre, post);
                 }
             });
