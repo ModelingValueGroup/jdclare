@@ -195,8 +195,13 @@ public class State implements Serializable {
     }
 
     public String asString() {
+        return asString(o -> true, s -> true);
+    }
+
+    @SuppressWarnings("rawtypes")
+    public String asString(Predicate<Object> objectFilter, Predicate<Setable> setableFilter) {
         return get(() -> {
-            return "State{" + map.sorted(COMPARATOR).reduce("", (s1, e1) -> s1 + "\n  " + StringUtil.toString(e1.getKey()) + //
+            return "State{" + filter(objectFilter, setableFilter).sorted(COMPARATOR).reduce("", (s1, e1) -> s1 + "\n  " + StringUtil.toString(e1.getKey()) + //
             "{" + e1.getValue().sorted(COMPARATOR).reduce("", (s2, e2) -> s2 + "\n    " + StringUtil.toString(e2.getKey()) + "=" + //
             (e2.getValue() instanceof State ? "State{...}" : StringUtil.toString(e2.getValue())), (a2, b2) -> a2 + b2) + "}", //
                     (a1, b1) -> a1 + b1) + "}";

@@ -80,9 +80,9 @@ public class MandatoryObserved<O, T> extends Observed<O, T> {
     }
 
     @Override
-    public void checkConsistency(State state, O object, T pre, T post) {
+    public void checkConsistency(State state, O object, T post) {
         if (super.checkConsistency()) {
-            super.checkConsistency(state, object, pre, post);
+            super.checkConsistency(state, object, post);
         }
         if (check(post)) {
             throw new EmptyMandatoryException(object, this);
