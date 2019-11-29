@@ -24,17 +24,17 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.NonLockingPrintWriter;
 import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.dclare.Mutable;
+import org.modelingvalue.dclare.MutableTransaction;
+import org.modelingvalue.dclare.Observer;
+import org.modelingvalue.dclare.Setable;
+import org.modelingvalue.dclare.State;
+import org.modelingvalue.dclare.Transaction;
+import org.modelingvalue.dclare.UniverseTransaction;
 import org.modelingvalue.jdclare.meta.DClass;
 import org.modelingvalue.jdclare.meta.DProperty;
 import org.modelingvalue.jdclare.meta.DRule;
 import org.modelingvalue.jdclare.meta.DStructClass;
-import org.modelingvalue.transactions.Mutable;
-import org.modelingvalue.transactions.MutableTransaction;
-import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Setable;
-import org.modelingvalue.transactions.State;
-import org.modelingvalue.transactions.Transaction;
-import org.modelingvalue.transactions.UniverseTransaction;
 
 @Extend(DClass.class)
 public interface DObject extends DStruct, Mutable {

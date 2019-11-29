@@ -16,8 +16,8 @@ package org.modelingvalue.jdclare;
 import static org.modelingvalue.jdclare.DClare.*;
 import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
+import org.modelingvalue.dclare.Universe;
 import org.modelingvalue.jdclare.meta.DPackageContainer;
-import org.modelingvalue.transactions.Universe;
 
 public interface DUniverse extends DPackageContainer, DStruct0, Universe {
 

@@ -9,33 +9,33 @@
     <property name="compiler.args.org.modelingvalue.transactions"
               value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
   
-  <property name="org.modelingvalue.transactions.output.dir" value="${module.org.modelingvalue.transactions.basedir}/../out/production/org.modelingvalue.transactions"/>
-  <property name="org.modelingvalue.transactions.testoutput.dir" value="${module.org.modelingvalue.transactions.basedir}/../out/test/org.modelingvalue.transactions"/>
+  <property name="org.modelingvalue.dclare.output.dir" value="${module.org.modelingvalue.transactions.basedir}/../out/production/org.modelingvalue.dclare"/>
+  <property name="org.modelingvalue.dclare.testoutput.dir" value="${module.org.modelingvalue.transactions.basedir}/../out/test/org.modelingvalue.dclare"/>
   
-  <path id="org.modelingvalue.transactions.module.bootclasspath">
+  <path id="org.modelingvalue.dclare.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
   
-  <path id="org.modelingvalue.transactions.module.production.classpath">
+  <path id="org.modelingvalue.dclare.module.production.classpath">
     <path refid="${module.jdk.classpath.org.modelingvalue.transactions}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
   </path>
   
-  <path id="org.modelingvalue.transactions.runtime.production.module.classpath">
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+  <path id="org.modelingvalue.dclare.runtime.production.module.classpath">
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
     <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
   </path>
   
-  <path id="org.modelingvalue.transactions.module.classpath">
+  <path id="org.modelingvalue.dclare.module.classpath">
     <path refid="${module.jdk.classpath.org.modelingvalue.transactions}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
   </path>
   
-  <path id="org.modelingvalue.transactions.runtime.module.classpath">
-    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+  <path id="org.modelingvalue.dclare.runtime.module.classpath">
+    <pathelement location="${org.modelingvalue.dclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
     <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
   </path>
   
@@ -48,28 +48,28 @@
     <patternset refid="excluded.from.module.org.modelingvalue.transactions"/>
   </patternset>
   
-  <path id="org.modelingvalue.transactions.module.sourcepath">
+  <path id="org.modelingvalue.dclare.module.sourcepath">
     <dirset dir="${module.org.modelingvalue.transactions.basedir}">
       <include name="src"/>
     </dirset>
   </path>
   
   
-  <target name="compile.module.org.modelingvalue.transactions" depends="compile.module.org.modelingvalue.transactions.production,compile.module.org.modelingvalue.transactions.tests" description="Compile module org.modelingvalue.transactions"/>
+  <target name="compile.module.org.modelingvalue.transactions" depends="compile.module.org.modelingvalue.transactions.production,compile.module.org.modelingvalue.transactions.tests" description="Compile module org.modelingvalue.dclare"/>
   
-  <target name="compile.module.org.modelingvalue.transactions.production" depends="compile.module.org.modelingvalue.collections" description="Compile module org.modelingvalue.transactions; production classes">
-    <mkdir dir="${org.modelingvalue.transactions.output.dir}"/>
-      <javac includeantruntime="false" destdir="${org.modelingvalue.transactions.output.dir}" debug="${compiler.debug}"
+  <target name="compile.module.org.modelingvalue.transactions.production" depends="compile.module.org.modelingvalue.collections" description="Compile module org.modelingvalue.dclare; production classes">
+    <mkdir dir="${org.modelingvalue.dclare.output.dir}"/>
+      <javac includeantruntime="false" destdir="${org.modelingvalue.dclare.output.dir}" debug="${compiler.debug}"
              nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
              executable="${module.jdk.bin.org.modelingvalue.transactions}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.transactions}"/>
-      <bootclasspath refid="org.modelingvalue.transactions.module.bootclasspath"/>
-      <classpath refid="org.modelingvalue.transactions.module.production.classpath"/>
-      <src refid="org.modelingvalue.transactions.module.sourcepath"/>
+      <bootclasspath refid="org.modelingvalue.dclare.module.bootclasspath"/>
+      <classpath refid="org.modelingvalue.dclare.module.production.classpath"/>
+      <src refid="org.modelingvalue.dclare.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.org.modelingvalue.transactions"/>
     </javac>
     
-    <copy todir="${org.modelingvalue.transactions.output.dir}">
+    <copy todir="${org.modelingvalue.dclare.output.dir}">
       <fileset dir="${module.org.modelingvalue.transactions.basedir}/src">
         <patternset refid="compiler.resources"/>
         <type type="file"/>
@@ -77,10 +77,10 @@
     </copy>
   </target>
   
-  <target name="compile.module.org.modelingvalue.transactions.tests" depends="compile.module.org.modelingvalue.transactions.production" description="compile module org.modelingvalue.transactions; test classes" unless="skip.tests"/>
+  <target name="compile.module.org.modelingvalue.transactions.tests" depends="compile.module.org.modelingvalue.transactions.production" description="compile module org.modelingvalue.dclare; test classes" unless="skip.tests"/>
   
   <target name="clean.module.org.modelingvalue.transactions" description="cleanup module">
-    <delete dir="${org.modelingvalue.transactions.output.dir}"/>
-    <delete dir="${org.modelingvalue.transactions.testoutput.dir}"/>
+    <delete dir="${org.modelingvalue.dclare.output.dir}"/>
+    <delete dir="${org.modelingvalue.dclare.testoutput.dir}"/>
   </target>
 </project>

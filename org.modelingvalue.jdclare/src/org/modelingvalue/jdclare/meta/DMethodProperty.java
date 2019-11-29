@@ -22,6 +22,7 @@ import java.util.function.Function;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.dclare.State;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNative.ChangeHandler;
 import org.modelingvalue.jdclare.DObject;
@@ -29,7 +30,6 @@ import org.modelingvalue.jdclare.DStruct;
 import org.modelingvalue.jdclare.DStruct1;
 import org.modelingvalue.jdclare.Native;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.transactions.State;
 
 public interface DMethodProperty<O extends DStruct, T> extends DProperty<O, T>, DStruct1<Method> {
 

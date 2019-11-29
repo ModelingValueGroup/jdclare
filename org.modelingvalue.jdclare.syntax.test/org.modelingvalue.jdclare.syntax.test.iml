@@ -8,7 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="org.modelingvalue.collections" />
-    <orderEntry type="module" module-name="org.modelingvalue.transactions" />
+    <orderEntry type="module" module-name="org.modelingvalue.dclare" />
     <orderEntry type="module" module-name="org.modelingvalue.jdclare" />
     <orderEntry type="module" module-name="org.modelingvalue.jdclare.syntax" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.12" level="project" />

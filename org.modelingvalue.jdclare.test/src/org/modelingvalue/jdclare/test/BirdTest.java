@@ -11,6 +11,12 @@ import org.junit.Test;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.NotMergeableException;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.dclare.EmptyMandatoryException;
+import org.modelingvalue.dclare.NonDeterministicException;
+import org.modelingvalue.dclare.State;
+import org.modelingvalue.dclare.TooManyChangesException;
+import org.modelingvalue.dclare.TooManyObservedException;
+import org.modelingvalue.dclare.TooManyObserversException;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.test.BirdUniverse.Bird;
 import org.modelingvalue.jdclare.test.BirdUniverse.Condor;
@@ -19,12 +25,6 @@ import org.modelingvalue.jdclare.test.BirdUniverse.HummingBird;
 import org.modelingvalue.jdclare.test.BirdUniverse.Pheasant;
 import org.modelingvalue.jdclare.test.BirdUniverse.Pigeon;
 import org.modelingvalue.jdclare.test.BirdUniverse.Sparrow;
-import org.modelingvalue.transactions.EmptyMandatoryException;
-import org.modelingvalue.transactions.NonDeterministicException;
-import org.modelingvalue.transactions.State;
-import org.modelingvalue.transactions.TooManyChangesException;
-import org.modelingvalue.transactions.TooManyObservedException;
-import org.modelingvalue.transactions.TooManyObserversException;
 
 public class BirdTest {
 

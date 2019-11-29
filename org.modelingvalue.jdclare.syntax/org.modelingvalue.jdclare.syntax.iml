@@ -8,7 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="org.modelingvalue.collections" />
-    <orderEntry type="module" module-name="org.modelingvalue.transactions" />
+    <orderEntry type="module" module-name="org.modelingvalue.dclare" />
     <orderEntry type="module" module-name="org.modelingvalue.jdclare" />
   </component>
 </module>

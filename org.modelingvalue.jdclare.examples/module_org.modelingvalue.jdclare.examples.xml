@@ -19,14 +19,14 @@
   <path id="org.modelingvalue.jdclare.examples.module.production.classpath">
     <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.examples}"/>
     <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
   </path>
   
   <path id="org.modelingvalue.jdclare.examples.runtime.production.module.classpath">
     <pathelement location="${org.modelingvalue.jdclare.examples.output.dir}"/>
     <path refid="org.modelingvalue.jdclare.runtime.production.module.classpath"/>
-    <path refid="org.modelingvalue.transactions.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.dclare.runtime.production.module.classpath"/>
     <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
   </path>
   
@@ -35,8 +35,8 @@
     <pathelement location="${org.modelingvalue.jdclare.examples.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
   </path>
@@ -45,7 +45,7 @@
     <pathelement location="${org.modelingvalue.jdclare.examples.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.examples.output.dir}"/>
     <path refid="org.modelingvalue.jdclare.runtime.module.classpath"/>
-    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.dclare.runtime.module.classpath"/>
     <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
   </path>
   

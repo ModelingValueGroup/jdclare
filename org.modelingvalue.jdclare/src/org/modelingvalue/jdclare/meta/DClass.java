@@ -22,14 +22,14 @@ import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.dclare.Constant;
+import org.modelingvalue.dclare.Mutable;
+import org.modelingvalue.dclare.MutableClass;
+import org.modelingvalue.dclare.Observer;
+import org.modelingvalue.dclare.Setable;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.transactions.Constant;
-import org.modelingvalue.transactions.Mutable;
-import org.modelingvalue.transactions.MutableClass;
-import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Setable;
 
 public interface DClass<T extends DObject> extends DStructClass<T>, MutableClass {
 

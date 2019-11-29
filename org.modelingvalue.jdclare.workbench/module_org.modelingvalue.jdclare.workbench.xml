@@ -47,8 +47,8 @@
     <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.syntax.test.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.syntax.test.output.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
   </path>
   
   <path id="org.modelingvalue.jdclare.workbench.runtime.module.classpath">
@@ -59,7 +59,7 @@
     <path refid="org.modelingvalue.jdclare.swing.runtime.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.syntax.runtime.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.syntax.test.runtime.module.classpath"/>
-    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.dclare.runtime.module.classpath"/>
   </path>
   
   

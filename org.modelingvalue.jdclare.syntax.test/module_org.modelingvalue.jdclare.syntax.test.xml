@@ -19,7 +19,7 @@
   <path id="org.modelingvalue.jdclare.syntax.test.module.production.classpath">
     <path refid="${module.jdk.classpath.org.modelingvalue.jdclare.syntax.test}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.syntax.output.dir}"/>
   </path>
@@ -27,7 +27,7 @@
   <path id="org.modelingvalue.jdclare.syntax.test.runtime.production.module.classpath">
     <pathelement location="${org.modelingvalue.jdclare.syntax.test.output.dir}"/>
     <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
-    <path refid="org.modelingvalue.transactions.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.dclare.runtime.production.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.runtime.production.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.syntax.runtime.production.module.classpath"/>
   </path>
@@ -37,8 +37,8 @@
     <pathelement location="${org.modelingvalue.jdclare.syntax.test.output.dir}"/>
     <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.syntax.testoutput.dir}"/>
@@ -51,7 +51,7 @@
     <pathelement location="${org.modelingvalue.jdclare.syntax.test.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.syntax.test.output.dir}"/>
     <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
-    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.dclare.runtime.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.runtime.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.syntax.runtime.module.classpath"/>
     <path refid="library.maven:_junit:junit:4.12.classpath"/>

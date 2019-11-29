@@ -17,13 +17,13 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.util.function.Consumer;
 
+import org.modelingvalue.dclare.Direction;
+import org.modelingvalue.dclare.NonInternableObserver;
+import org.modelingvalue.dclare.Observer;
+import org.modelingvalue.dclare.Priority;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct2;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.transactions.Direction;
-import org.modelingvalue.transactions.NonInternableObserver;
-import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Priority;
 
 public interface DObjectRule<O extends DObject> extends DRule<O>, DStruct2<O, String> {
 
