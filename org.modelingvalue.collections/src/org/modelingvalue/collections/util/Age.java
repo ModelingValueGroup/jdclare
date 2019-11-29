@@ -15,7 +15,6 @@ package org.modelingvalue.collections.util;
 
 import java.lang.reflect.Field;
 
-@SuppressWarnings("restriction")
 public final class Age {
 
     private static sun.misc.Unsafe UNSAFE = null;
