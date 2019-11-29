@@ -9,6 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="org.modelingvalue.collections" />
     <orderEntry type="module" module-name="org.modelingvalue.jdclare" />
-    <orderEntry type="module" module-name="org.modelingvalue.transactions" />
+    <orderEntry type="module" module-name="org.modelingvalue.dclare" />
   </component>
 </module>

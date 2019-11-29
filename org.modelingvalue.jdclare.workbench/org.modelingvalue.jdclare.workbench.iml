@@ -12,6 +12,6 @@
     <orderEntry type="module" module-name="org.modelingvalue.jdclare.swing" />
     <orderEntry type="module" module-name="org.modelingvalue.jdclare.syntax" />
     <orderEntry type="module" module-name="org.modelingvalue.jdclare.syntax.test" />
-    <orderEntry type="module" module-name="org.modelingvalue.transactions" scope="TEST" />
+    <orderEntry type="module" module-name="org.modelingvalue.dclare" scope="TEST" />
   </component>
 </module>

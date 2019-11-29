@@ -17,13 +17,13 @@ import static org.modelingvalue.jdclare.PropertyQualifier.*;
 
 import java.util.function.Consumer;
 
+import org.modelingvalue.dclare.Direction;
+import org.modelingvalue.dclare.Observer;
+import org.modelingvalue.dclare.Priority;
 import org.modelingvalue.jdclare.Abstract;
 import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.Property;
-import org.modelingvalue.transactions.Direction;
-import org.modelingvalue.transactions.Observer;
-import org.modelingvalue.transactions.Priority;
 
 @Abstract
 public interface DRule<O extends DObject> extends DNamed {

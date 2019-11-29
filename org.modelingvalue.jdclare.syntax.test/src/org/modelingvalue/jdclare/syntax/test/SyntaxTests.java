@@ -22,12 +22,12 @@ import java.time.ZoneId;
 
 import org.junit.Test;
 import org.modelingvalue.collections.List;
+import org.modelingvalue.dclare.State;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.syntax.Text;
 import org.modelingvalue.jdclare.syntax.meta.GrammarClass;
 import org.modelingvalue.jdclare.syntax.test.MySyntax.Unit;
-import org.modelingvalue.transactions.State;
 
 public class SyntaxTests {
 

@@ -26,15 +26,15 @@ import org.junit.Test;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.dclare.Direction;
+import org.modelingvalue.dclare.OutOfScopeException;
+import org.modelingvalue.dclare.State;
 import org.modelingvalue.jdclare.DClare;
 import org.modelingvalue.jdclare.DNamed;
 import org.modelingvalue.jdclare.DObject;
 import org.modelingvalue.jdclare.DStruct;
 import org.modelingvalue.jdclare.DUniverse;
 import org.modelingvalue.jdclare.test.PrioUniverse.Prio;
-import org.modelingvalue.transactions.Direction;
-import org.modelingvalue.transactions.OutOfScopeException;
-import org.modelingvalue.transactions.State;
 
 public class JDclareTests {
 

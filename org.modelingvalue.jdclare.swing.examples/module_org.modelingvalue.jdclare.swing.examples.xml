@@ -21,7 +21,7 @@
     <pathelement location="${org.modelingvalue.jdclare.output.dir}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.swing.output.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
   </path>
   
   <path id="org.modelingvalue.jdclare.swing.examples.runtime.production.module.classpath">
@@ -29,7 +29,7 @@
     <path refid="org.modelingvalue.jdclare.runtime.production.module.classpath"/>
     <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.swing.runtime.production.module.classpath"/>
-    <path refid="org.modelingvalue.transactions.runtime.production.module.classpath"/>
+    <path refid="org.modelingvalue.dclare.runtime.production.module.classpath"/>
   </path>
   
   <path id="org.modelingvalue.jdclare.swing.examples.module.classpath">
@@ -41,8 +41,8 @@
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.swing.testoutput.dir}"/>
     <pathelement location="${org.modelingvalue.jdclare.swing.output.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.testoutput.dir}"/>
-    <pathelement location="${org.modelingvalue.transactions.output.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.testoutput.dir}"/>
+    <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
   </path>
   
   <path id="org.modelingvalue.jdclare.swing.examples.runtime.module.classpath">
@@ -51,7 +51,7 @@
     <path refid="org.modelingvalue.jdclare.runtime.module.classpath"/>
     <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
     <path refid="org.modelingvalue.jdclare.swing.runtime.module.classpath"/>
-    <path refid="org.modelingvalue.transactions.runtime.module.classpath"/>
+    <path refid="org.modelingvalue.dclare.runtime.module.classpath"/>
   </path>
   
   
