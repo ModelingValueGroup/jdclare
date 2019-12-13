@@ -15,6 +15,7 @@ package org.modelingvalue.collections.util;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public class Context<T> {
@@ -70,6 +71,11 @@ public class Context<T> {
         set(ContextThread.getContext(), v);
     }
 
+    public <E> void set(BiFunction<T, E, T> f, E e) {
+        Object[] c = ContextThread.getContext();
+        set(c, f.apply(get(c), e));
+    }
+
     @SuppressWarnings("unchecked")
     private boolean set(Object[] c, T v) {
         if (v != (c != null && c.length > nr ? (T) c[nr] : (T) DEFAULTS[nr])) {
@@ -85,9 +91,12 @@ public class Context<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public T get() {
-        Object[] c = ContextThread.getContext();
+        return get(ContextThread.getContext());
+    }
+
+    @SuppressWarnings("unchecked")
+    private T get(Object[] c) {
         return c == null || c.length <= nr ? (T) DEFAULTS[nr] : (T) c[nr];
     }
 
