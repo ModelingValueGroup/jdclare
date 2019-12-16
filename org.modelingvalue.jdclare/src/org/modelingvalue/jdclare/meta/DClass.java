@@ -22,7 +22,6 @@ import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.dclare.Constant;
 import org.modelingvalue.dclare.Mutable;
 import org.modelingvalue.dclare.MutableClass;
 import org.modelingvalue.dclare.Observer;
@@ -90,17 +89,6 @@ public interface DClass<T extends DObject> extends DStructClass<T>, MutableClass
     @SuppressWarnings({"unchecked", "rawtypes"})
     default Collection<? extends Observer<?>> dObservers() {
         return (Collection) allRules().map(DRule::observer);
-    }
-
-    @Override
-    default Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
-        return allContainments().map(DClare::setable);
-    }
-
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    default Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
-        return allConstants().map(DClare::getable).filter(Constant.class).filter(c -> ((Constant) c).deriver() != null);
     }
 
     @SuppressWarnings("unchecked")

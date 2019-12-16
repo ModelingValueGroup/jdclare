@@ -14,15 +14,20 @@
 package org.modelingvalue.dclare;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Set;
 
 public interface MutableClass {
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Constant<MutableClass, Set<Setable>>  D_CONTAINMENTS = Constant.of("D_CONTAINMENTS", c ->                     //
+    (Set<Setable>) c.dSetables().filter(s -> s.containment()).toSet());
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Constant<MutableClass, Set<Constant>> D_CONSTANTS    = Constant.of("D_CONSTANTS", c ->                        //
+    (Set<Constant>) c.dSetables().filter(s -> s instanceof Constant && ((Constant) s).deriver() != null).toSet());
 
     Collection<? extends Observer<?>> dObservers();
 
     Collection<? extends Setable<? extends Mutable, ?>> dSetables();
-
-    Collection<? extends Setable<? extends Mutable, ?>> dContainers();
-
-    Collection<? extends Constant<? extends Mutable, ?>> dConstants();
 
 }

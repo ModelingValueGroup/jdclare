@@ -42,9 +42,9 @@ public interface Mutable extends TransactionClass {
                                                                                   D_OBSERVERS.set(m, Collection.concat(m.dClass().dObservers(), m.dMutableObservers()).toSet());
                                                                               }, Priority.preDepth);
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     Observer<Mutable>                                     D_CONSTANTS_RULE    = Observer.of("D_CONSTANTS_RULE", m -> {
-                                                                                  m.dClass().dConstants().forEach(c -> ((Constant) c).get(m));
+                                                                                  MutableClass.D_CONSTANTS.get(m.dClass()).forEach(c -> c.get(m));
                                                                               }, Priority.preDepth);
 
     default Mutable dParent() {
@@ -91,16 +91,18 @@ public interface Mutable extends TransactionClass {
 
     MutableClass dClass();
 
-    Collection<? extends Observer<?>> dMutableObservers();
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    default Collection<? extends Mutable> dChildren() {
-        return dClass().dContainers().flatMap(c -> (Collection<? extends Mutable>) ((Setable) c).getCollection(this));
+    default Collection<? extends Observer<?>> dMutableObservers() {
+        return Set.of();
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
+    default Collection<? extends Mutable> dChildren() {
+        return MutableClass.D_CONTAINMENTS.get(dClass()).flatMap(c -> (Collection<? extends Mutable>) c.getCollection(this));
+    }
+
+    @SuppressWarnings("unchecked")
     default Collection<? extends Mutable> dChildren(State state) {
-        return dClass().dContainers().flatMap(c -> (Collection<? extends Mutable>) state.getCollection(this, (Setable) c));
+        return MutableClass.D_CONTAINMENTS.get(dClass()).flatMap(c -> (Collection<? extends Mutable>) state.getCollection(this, c));
     }
 
     @Override
