@@ -115,8 +115,12 @@ public class Setable<O, T> extends Getable<O, T> {
         return scope != null ? scope.get() : null;
     }
 
+    protected final boolean isHandlingChange() {
+        return changed != null || containment || opposite != null;
+    }
+
     @SuppressWarnings("unchecked")
-    protected void changed(LeafTransaction tx, O object, T preValue, T postValue) {
+    protected final void changed(LeafTransaction tx, O object, T preValue, T postValue) {
         if (changed != null) {
             changed.accept(tx, object, preValue, postValue);
         }

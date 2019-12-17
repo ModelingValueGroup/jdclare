@@ -94,20 +94,25 @@ public class ConstantState {
         }
 
         @SuppressWarnings("unchecked")
-        public <V> V get(LeafTransaction leafTransaction, O object, Constant<O, V> constant, boolean forced) {
+        public <V> V get(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
             Map<Constant<O, ?>, Object> prev = constants;
             V ist = (V) prev.get(constant);
             if (ist == null) {
                 if (constant.deriver() == null) {
-                    if (!forced) {
-                        throw new Error("Constant " + constant + " is not set and not derived");
-                    }
+                    throw new Error("Constant " + constant + " is not set and not derived");
                 } else {
                     V soll = derive(leafTransaction, object, constant);
                     ist = set(leafTransaction, object, constant, prev, soll == null ? (V) NULL : soll, false);
                 }
             }
             return ist == NULL ? null : ist;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <V> boolean isSet(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
+            Map<Constant<O, ?>, Object> prev = constants;
+            V ist = (V) prev.get(constant);
+            return ist != null;
         }
 
         @SuppressWarnings("unchecked")
@@ -184,7 +189,7 @@ public class ConstantState {
                                     Pair<Object, Constant> me = Pair.of(object, constant);
                                     throw new NonDeterministicException(object, constant, "Circular constant definition: " + list.sublist(list.lastIndexOf(me), list.size()).add(me));
                                 }
-                                ConstantState.this.get(leafTransaction, lazy.a(), lazy.b(), false);
+                                ConstantState.this.get(leafTransaction, lazy.a(), lazy.b());
                             }
                         } finally {
                             WEAK.set(weak);
@@ -226,8 +231,12 @@ public class ConstantState {
         remover.interrupt();
     }
 
-    public <O, V> V get(LeafTransaction leafTransaction, O object, Constant<O, V> constant, boolean forced) {
-        return getConstants(leafTransaction, object).get(leafTransaction, object, constant, forced);
+    public <O, V> V get(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
+        return getConstants(leafTransaction, object).get(leafTransaction, object, constant);
+    }
+
+    public <O, V> boolean isSet(LeafTransaction leafTransaction, O object, Constant<O, V> constant) {
+        return getConstants(leafTransaction, object).isSet(leafTransaction, object, constant);
     }
 
     public <O, V> V set(LeafTransaction leafTransaction, O object, Constant<O, V> constant, V value, boolean forced) {
