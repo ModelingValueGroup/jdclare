@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="module_org.modelingvalue.collections" default="compile.module.org.modelingvalue.collections">
-  <dirname property="module.org.modelingvalue.collections.basedir" file="${ant.file.module_org.modelingvalue.collections}"/>
-  
+  <dirname property="module.org.modelingvalue.collections.basedir"
+           file="${ant.file.module_org.modelingvalue.collections}"/>
+
   <property name="module.jdk.home.org.modelingvalue.collections" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.org.modelingvalue.collections" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.org.modelingvalue.collections" value="${project.jdk.classpath}"/>
 
-    <property name="compiler.args.org.modelingvalue.collections"
-              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
-  
-  <property name="org.modelingvalue.collections.output.dir" value="${module.org.modelingvalue.collections.basedir}/../out/production/org.modelingvalue.collections"/>
-  <property name="org.modelingvalue.collections.testoutput.dir" value="${module.org.modelingvalue.collections.basedir}/../out/test/org.modelingvalue.collections"/>
-  
+  <property name="compiler.args.org.modelingvalue.collections"
+            value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+
+  <property name="org.modelingvalue.collections.output.dir"
+            value="${module.org.modelingvalue.collections.basedir}/../out/production/org.modelingvalue.collections"/>
+  <property name="org.modelingvalue.collections.testoutput.dir"
+            value="${module.org.modelingvalue.collections.basedir}/../out/test/org.modelingvalue.collections"/>
+
   <path id="org.modelingvalue.collections.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
-  
+
   <path id="org.modelingvalue.collections.module.production.classpath">
     <path refid="${module.jdk.classpath.org.modelingvalue.collections}"/>
   </path>
@@ -54,9 +57,9 @@
   
   <target name="compile.module.org.modelingvalue.collections.production" description="Compile module org.modelingvalue.collections; production classes">
     <mkdir dir="${org.modelingvalue.collections.output.dir}"/>
-      <javac includeantruntime="false" destdir="${org.modelingvalue.collections.output.dir}" debug="${compiler.debug}"
-             nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
-             executable="${module.jdk.bin.org.modelingvalue.collections}/javac">
+    <javac destdir="${org.modelingvalue.collections.output.dir}" debug="${compiler.debug}"
+           nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+           executable="${module.jdk.bin.org.modelingvalue.collections}/javac">
       <compilerarg line="${compiler.args.org.modelingvalue.collections}"/>
       <bootclasspath refid="org.modelingvalue.collections.module.bootclasspath"/>
       <classpath refid="org.modelingvalue.collections.module.production.classpath"/>
