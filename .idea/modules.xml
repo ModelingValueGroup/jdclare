@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.collections/org.modelingvalue.collections.iml" filepath="$PROJECT_DIR$/org.modelingvalue.collections/org.modelingvalue.collections.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.collections.test/org.modelingvalue.collections.test.iml" filepath="$PROJECT_DIR$/org.modelingvalue.collections.test/org.modelingvalue.collections.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.dclare/org.modelingvalue.dclare.iml" filepath="$PROJECT_DIR$/org.modelingvalue.dclare/org.modelingvalue.dclare.iml" />
+      <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.dclare.test/org.modelingvalue.dclare.test.iml" filepath="$PROJECT_DIR$/org.modelingvalue.dclare.test/org.modelingvalue.dclare.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.jdclare/org.modelingvalue.jdclare.iml" filepath="$PROJECT_DIR$/org.modelingvalue.jdclare/org.modelingvalue.jdclare.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.jdclare.examples/org.modelingvalue.jdclare.examples.iml" filepath="$PROJECT_DIR$/org.modelingvalue.jdclare.examples/org.modelingvalue.jdclare.examples.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.jdclare.swing/org.modelingvalue.jdclare.swing.iml" filepath="$PROJECT_DIR$/org.modelingvalue.jdclare.swing/org.modelingvalue.jdclare.swing.iml" />
@@ -12,8 +14,6 @@
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.jdclare.syntax.test/org.modelingvalue.jdclare.syntax.test.iml" filepath="$PROJECT_DIR$/org.modelingvalue.jdclare.syntax.test/org.modelingvalue.jdclare.syntax.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.jdclare.test/org.modelingvalue.jdclare.test.iml" filepath="$PROJECT_DIR$/org.modelingvalue.jdclare.test/org.modelingvalue.jdclare.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.jdclare.workbench/org.modelingvalue.jdclare.workbench.iml" filepath="$PROJECT_DIR$/org.modelingvalue.jdclare.workbench/org.modelingvalue.jdclare.workbench.iml" />
-      <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.transactions/org.modelingvalue.transactions.iml" filepath="$PROJECT_DIR$/org.modelingvalue.transactions/org.modelingvalue.transactions.iml" />
-      <module fileurl="file://$PROJECT_DIR$/org.modelingvalue.transactions.test/org.modelingvalue.transactions.test.iml" filepath="$PROJECT_DIR$/org.modelingvalue.transactions.test/org.modelingvalue.transactions.test.iml" />
     </modules>
   </component>
 </project>
