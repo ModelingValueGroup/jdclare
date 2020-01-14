@@ -156,7 +156,7 @@ public class ImperativeTransaction extends LeafTransaction {
             if (first) {
                 universeTransaction().dummy();
             }
-            // changed(object, property, preValue, postValue);
+            changed(object, property, preValue, postValue);
         }
     }
 

@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="module_org.modelingvalue.jdclare" default="compile.module.org.modelingvalue.jdclare">
-  <dirname property="module.org.modelingvalue.jdclare.basedir" file="${ant.file.module_org.modelingvalue.jdclare}"/>
-  
-  <property name="module.jdk.home.org.modelingvalue.jdclare" value="${project.jdk.home}"/>
-  <property name="module.jdk.bin.org.modelingvalue.jdclare" value="${project.jdk.bin}"/>
-  <property name="module.jdk.classpath.org.modelingvalue.jdclare" value="${project.jdk.classpath}"/>
+    <dirname property="module.org.modelingvalue.jdclare.basedir" file="${ant.file.module_org.modelingvalue.jdclare}"/>
 
-  <property name="compiler.args.org.modelingvalue.jdclare"
-            value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
-  
-  <property name="org.modelingvalue.jdclare.output.dir" value="${module.org.modelingvalue.jdclare.basedir}/../out/production/org.modelingvalue.jdclare"/>
-  <property name="org.modelingvalue.jdclare.testoutput.dir" value="${module.org.modelingvalue.jdclare.basedir}/../out/test/org.modelingvalue.jdclare"/>
-  
-  <path id="org.modelingvalue.jdclare.module.bootclasspath">
-    <!-- Paths to be included in compilation bootclasspath -->
-  </path>
-  
-  <path id="org.modelingvalue.jdclare.module.production.classpath">
-    <path refid="${module.jdk.classpath.org.modelingvalue.jdclare}"/>
+    <property name="module.jdk.home.org.modelingvalue.jdclare" value="${project.jdk.home}"/>
+    <property name="module.jdk.bin.org.modelingvalue.jdclare" value="${project.jdk.bin}"/>
+    <property name="module.jdk.classpath.org.modelingvalue.jdclare" value="${project.jdk.classpath}"/>
+
+    <property name="compiler.args.org.modelingvalue.jdclare"
+              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+
+    <property name="org.modelingvalue.jdclare.output.dir"
+              value="${module.org.modelingvalue.jdclare.basedir}/../out/production/org.modelingvalue.jdclare"/>
+    <property name="org.modelingvalue.jdclare.testoutput.dir"
+              value="${module.org.modelingvalue.jdclare.basedir}/../out/test/org.modelingvalue.jdclare"/>
+
+    <path id="org.modelingvalue.jdclare.module.bootclasspath">
+        <!-- Paths to be included in compilation bootclasspath -->
+    </path>
+
+    <path id="org.modelingvalue.jdclare.module.production.classpath">
+        <path refid="${module.jdk.classpath.org.modelingvalue.jdclare}"/>
     <pathelement location="${org.modelingvalue.collections.output.dir}"/>
     <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
   </path>
@@ -61,20 +63,22 @@
   
   
   <target name="compile.module.org.modelingvalue.jdclare" depends="compile.module.org.modelingvalue.jdclare.production,compile.module.org.modelingvalue.jdclare.tests" description="Compile module org.modelingvalue.jdclare"/>
-  
-  <target name="compile.module.org.modelingvalue.jdclare.production" depends="compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.transactions" description="Compile module org.modelingvalue.jdclare; production classes">
-    <mkdir dir="${org.modelingvalue.jdclare.output.dir}"/>
-    <javac includeantruntime="false" destdir="${org.modelingvalue.jdclare.output.dir}" debug="${compiler.debug}"
-           nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
-           executable="${module.jdk.bin.org.modelingvalue.jdclare}/javac">
-      <compilerarg line="${compiler.args.org.modelingvalue.jdclare}"/>
-      <bootclasspath refid="org.modelingvalue.jdclare.module.bootclasspath"/>
-      <classpath refid="org.modelingvalue.jdclare.module.production.classpath"/>
-      <src refid="org.modelingvalue.jdclare.module.sourcepath"/>
-      <patternset refid="excluded.from.compilation.org.modelingvalue.jdclare"/>
-    </javac>
-    
-    <copy todir="${org.modelingvalue.jdclare.output.dir}">
+
+    <target name="compile.module.org.modelingvalue.jdclare.production"
+            depends="compile.module.org.modelingvalue.collections,compile.module.org.modelingvalue.dclare"
+            description="Compile module org.modelingvalue.jdclare; production classes">
+        <mkdir dir="${org.modelingvalue.jdclare.output.dir}"/>
+        <javac destdir="${org.modelingvalue.jdclare.output.dir}" debug="${compiler.debug}"
+               nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+               executable="${module.jdk.bin.org.modelingvalue.jdclare}/javac">
+            <compilerarg line="${compiler.args.org.modelingvalue.jdclare}"/>
+            <bootclasspath refid="org.modelingvalue.jdclare.module.bootclasspath"/>
+            <classpath refid="org.modelingvalue.jdclare.module.production.classpath"/>
+            <src refid="org.modelingvalue.jdclare.module.sourcepath"/>
+            <patternset refid="excluded.from.compilation.org.modelingvalue.jdclare"/>
+        </javac>
+
+        <copy todir="${org.modelingvalue.jdclare.output.dir}">
       <fileset dir="${module.org.modelingvalue.jdclare.basedir}/src">
         <patternset refid="compiler.resources"/>
         <type type="file"/>

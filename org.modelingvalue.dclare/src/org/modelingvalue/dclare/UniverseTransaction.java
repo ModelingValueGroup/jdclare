@@ -25,10 +25,10 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Concurrent;
 import org.modelingvalue.collections.util.ContextThread.ContextPool;
-import org.modelingvalue.dclare.NonCheckingObserver.NonCheckingTransaction;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TraceTimer;
 import org.modelingvalue.collections.util.TriConsumer;
+import org.modelingvalue.dclare.NonCheckingObserver.NonCheckingTransaction;
 
 public class UniverseTransaction extends MutableTransaction {
 
@@ -221,7 +221,9 @@ public class UniverseTransaction extends MutableTransaction {
         pre.diff(post, o -> o instanceof Mutable).forEach(e0 -> {
             if (e0.getKey() instanceof Universe || e0.getValue().b().get(Mutable.D_PARENT_CONTAINING) != null) {
                 ((Mutable) e0.getKey()).dClass().dSetables().filter(Setable::checkConsistency).forEach(s -> {
-                    ((Setable) s).checkConsistency(post, e0.getKey(), s instanceof Constant ? constantState.get(lt, e0.getKey(), (Constant) s, true) : e0.getValue().b().get(s));
+                    if (!(s instanceof Constant) || constantState.isSet(lt, e0.getKey(), (Constant) s)) {
+                        ((Setable) s).checkConsistency(post, e0.getKey(), s instanceof Constant ? constantState.get(lt, e0.getKey(), (Constant) s) : e0.getValue().b().get(s));
+                    }
                 });
             } else {
                 checkOrphanState(e0);

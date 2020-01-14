@@ -15,7 +15,6 @@ package org.modelingvalue.dclare;
 
 import java.io.Serializable;
 
-import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Internable;
 
@@ -26,22 +25,12 @@ public final class This implements Mutable, Internable, Serializable {
     private static final MutableClass THIS_CLASS       = new MutableClass() {
 
                                                            @Override
-                                                           public Collection<? extends Observer<?>> dObservers() {
+                                                           public Set<? extends Observer<?>> dObservers() {
                                                                return Set.of();
                                                            }
 
                                                            @Override
-                                                           public Collection<? extends Setable<? extends Mutable, ?>> dSetables() {
-                                                               return Set.of();
-                                                           }
-
-                                                           @Override
-                                                           public Collection<? extends Setable<? extends Mutable, ?>> dContainers() {
-                                                               return Set.of();
-                                                           }
-
-                                                           @Override
-                                                           public Collection<? extends Constant<? extends Mutable, ?>> dConstants() {
+                                                           public Set<? extends Setable<? extends Mutable, ?>> dSetables() {
                                                                return Set.of();
                                                            }
 
@@ -64,11 +53,6 @@ public final class This implements Mutable, Internable, Serializable {
     @Override
     public final Mutable resolve(Mutable self) {
         return self;
-    }
-
-    @Override
-    public Collection<? extends Observer<?>> dMutableObservers() {
-        return Set.of();
     }
 
 }

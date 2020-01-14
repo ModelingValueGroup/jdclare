@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_org.modelingvalue.dclare" default="compile.module.org.modelingvalue.dclare">
+    <dirname property="module.org.modelingvalue.dclare.basedir" file="${ant.file.module_org.modelingvalue.dclare}"/>
+
+    <property name="module.jdk.home.org.modelingvalue.dclare" value="${project.jdk.home}"/>
+    <property name="module.jdk.bin.org.modelingvalue.dclare" value="${project.jdk.bin}"/>
+    <property name="module.jdk.classpath.org.modelingvalue.dclare" value="${project.jdk.classpath}"/>
+
+    <property name="compiler.args.org.modelingvalue.dclare"
+              value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+
+    <property name="org.modelingvalue.dclare.output.dir"
+              value="${module.org.modelingvalue.dclare.basedir}/../out/production/org.modelingvalue.dclare"/>
+    <property name="org.modelingvalue.dclare.testoutput.dir"
+              value="${module.org.modelingvalue.dclare.basedir}/../out/test/org.modelingvalue.dclare"/>
+
+    <path id="org.modelingvalue.dclare.module.bootclasspath">
+        <!-- Paths to be included in compilation bootclasspath -->
+    </path>
+
+    <path id="org.modelingvalue.dclare.module.production.classpath">
+        <path refid="${module.jdk.classpath.org.modelingvalue.dclare}"/>
+        <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    </path>
+
+    <path id="org.modelingvalue.dclare.runtime.production.module.classpath">
+        <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
+        <path refid="org.modelingvalue.collections.runtime.production.module.classpath"/>
+    </path>
+
+    <path id="org.modelingvalue.dclare.module.classpath">
+        <path refid="${module.jdk.classpath.org.modelingvalue.dclare}"/>
+        <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
+        <pathelement location="${org.modelingvalue.collections.testoutput.dir}"/>
+        <pathelement location="${org.modelingvalue.collections.output.dir}"/>
+    </path>
+
+    <path id="org.modelingvalue.dclare.runtime.module.classpath">
+        <pathelement location="${org.modelingvalue.dclare.testoutput.dir}"/>
+        <pathelement location="${org.modelingvalue.dclare.output.dir}"/>
+        <path refid="org.modelingvalue.collections.runtime.module.classpath"/>
+    </path>
+
+
+    <patternset id="excluded.from.module.org.modelingvalue.dclare">
+        <patternset refid="ignored.files"/>
+    </patternset>
+
+    <patternset id="excluded.from.compilation.org.modelingvalue.dclare">
+        <patternset refid="excluded.from.module.org.modelingvalue.dclare"/>
+    </patternset>
+
+    <path id="org.modelingvalue.dclare.module.sourcepath">
+        <dirset dir="${module.org.modelingvalue.dclare.basedir}">
+            <include name="src"/>
+        </dirset>
+    </path>
+
+
+    <target name="compile.module.org.modelingvalue.dclare"
+            depends="compile.module.org.modelingvalue.dclare.production,compile.module.org.modelingvalue.dclare.tests"
+            description="Compile module org.modelingvalue.dclare"/>
+
+    <target name="compile.module.org.modelingvalue.dclare.production"
+            depends="compile.module.org.modelingvalue.collections"
+            description="Compile module org.modelingvalue.dclare; production classes">
+        <mkdir dir="${org.modelingvalue.dclare.output.dir}"/>
+        <javac destdir="${org.modelingvalue.dclare.output.dir}" debug="${compiler.debug}"
+               nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+               executable="${module.jdk.bin.org.modelingvalue.dclare}/javac">
+            <compilerarg line="${compiler.args.org.modelingvalue.dclare}"/>
+            <bootclasspath refid="org.modelingvalue.dclare.module.bootclasspath"/>
+            <classpath refid="org.modelingvalue.dclare.module.production.classpath"/>
+            <src refid="org.modelingvalue.dclare.module.sourcepath"/>
+            <patternset refid="excluded.from.compilation.org.modelingvalue.dclare"/>
+        </javac>
+
+        <copy todir="${org.modelingvalue.dclare.output.dir}">
+            <fileset dir="${module.org.modelingvalue.dclare.basedir}/src">
+                <patternset refid="compiler.resources"/>
+                <type type="file"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="compile.module.org.modelingvalue.dclare.tests"
+            depends="compile.module.org.modelingvalue.dclare.production"
+            description="compile module org.modelingvalue.dclare; test classes" unless="skip.tests"/>
+
+    <target name="clean.module.org.modelingvalue.dclare" description="cleanup module">
+        <delete dir="${org.modelingvalue.dclare.output.dir}"/>
+        <delete dir="${org.modelingvalue.dclare.testoutput.dir}"/>
+    </target>
+</project>

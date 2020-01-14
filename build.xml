@@ -32,15 +32,15 @@
     <exclude name="**/rcs/**"/>
   </patternset>
   <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.swc"/>
+    <include name="*.apk"/>
+    <include name="*.zip"/>
+    <include name="*.ane"/>
     <include name="*.egg"/>
     <include name="*.jar"/>
     <include name="*.ear"/>
-    <include name="*.ane"/>
     <include name="*.klib"/>
-    <include name="*.apk"/>
-    <include name="*.swc"/>
-    <include name="*.war"/>
-    <include name="*.zip"/>
   </patternset>
   <patternset id="compiler.resources">
     <include name="**/?*.properties"/>
@@ -157,11 +157,11 @@
   
   <import file="${basedir}/org.modelingvalue.collections.test/module_org.modelingvalue.collections.test.xml"/>
   
-  <import file="${basedir}/org.modelingvalue.transactions/module_org.modelingvalue.transactions.xml"/>
+  <import file="${basedir}/org.modelingvalue.dclare/module_org.modelingvalue.dclare.xml"/>
+  
+  <import file="${basedir}/org.modelingvalue.dclare.test/module_org.modelingvalue.dclare.test.xml"/>
   
   <import file="${basedir}/org.modelingvalue.jdclare/module_org.modelingvalue.jdclare.xml"/>
-  
-  <import file="${basedir}/org.modelingvalue.transactions.test/module_org.modelingvalue.transactions.test.xml"/>
   
   <import file="${basedir}/org.modelingvalue.jdclare.examples/module_org.modelingvalue.jdclare.examples.xml"/>
   
@@ -181,9 +181,9 @@
     <!-- Perform any build initialization in this target -->
   </target>
   
-  <target name="clean" depends="clean.module.org.modelingvalue.collections, clean.module.org.modelingvalue.collections.test, clean.module.org.modelingvalue.transactions, clean.module.org.modelingvalue.jdclare, clean.module.org.modelingvalue.transactions.test, clean.module.org.modelingvalue.jdclare.examples, clean.module.org.modelingvalue.jdclare.swing, clean.module.org.modelingvalue.jdclare.syntax, clean.module.org.modelingvalue.jdclare.swing.examples, clean.module.org.modelingvalue.jdclare.syntax.test, clean.module.org.modelingvalue.jdclare.test, clean.module.org.modelingvalue.jdclare.workbench" description="cleanup all"/>
+  <target name="clean" depends="clean.module.org.modelingvalue.collections, clean.module.org.modelingvalue.collections.test, clean.module.org.modelingvalue.dclare, clean.module.org.modelingvalue.dclare.test, clean.module.org.modelingvalue.jdclare, clean.module.org.modelingvalue.jdclare.examples, clean.module.org.modelingvalue.jdclare.swing, clean.module.org.modelingvalue.jdclare.syntax, clean.module.org.modelingvalue.jdclare.swing.examples, clean.module.org.modelingvalue.jdclare.syntax.test, clean.module.org.modelingvalue.jdclare.test, clean.module.org.modelingvalue.jdclare.workbench" description="cleanup all"/>
   
-  <target name="build.modules" depends="init, clean, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.collections.test, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.jdclare, compile.module.org.modelingvalue.transactions.test, compile.module.org.modelingvalue.jdclare.examples, compile.module.org.modelingvalue.jdclare.swing, compile.module.org.modelingvalue.jdclare.syntax, compile.module.org.modelingvalue.jdclare.swing.examples, compile.module.org.modelingvalue.jdclare.syntax.test, compile.module.org.modelingvalue.jdclare.test, compile.module.org.modelingvalue.jdclare.workbench" description="build all modules"/>
+  <target name="build.modules" depends="init, clean, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.collections.test, compile.module.org.modelingvalue.dclare, compile.module.org.modelingvalue.dclare.test, compile.module.org.modelingvalue.jdclare, compile.module.org.modelingvalue.jdclare.examples, compile.module.org.modelingvalue.jdclare.swing, compile.module.org.modelingvalue.jdclare.syntax, compile.module.org.modelingvalue.jdclare.swing.examples, compile.module.org.modelingvalue.jdclare.syntax.test, compile.module.org.modelingvalue.jdclare.test, compile.module.org.modelingvalue.jdclare.workbench" description="build all modules"/>
   
   <target name="init.artifacts">
     <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
@@ -207,7 +207,7 @@
     <mkdir dir="${artifact.temp.output.collections-snapshot-sources.jar}"/>
     <jar destfile="${temp.jar.path.collections-SNAPSHOT-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
+      <zipfileset dir="/Users/tom/projects/mvg-dc/jdclare/org.modelingvalue.collections/src"/>
     </jar>
     <copy file="${temp.jar.path.collections-SNAPSHOT-sources.jar}" tofile="${artifact.temp.output.collections-snapshot-sources.jar}/collections-SNAPSHOT-sources.jar"/>
   </target>
@@ -221,21 +221,20 @@
     <copy file="${temp.jar.path.collections-SNAPSHOT.jar}" tofile="${artifact.temp.output.collections-snapshot.jar}/collections-SNAPSHOT.jar"/>
   </target>
   
-  <target name="artifact.jdclare-snapshot-sources.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.jdclare" description="Build &#39;jdclare-SNAPSHOT-sources.jar&#39; artifact">
+  <target name="artifact.jdclare-snapshot-sources.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.jdclare" description="Build &#39;jdclare-SNAPSHOT-sources.jar&#39; artifact">
     <property name="artifact.temp.output.jdclare-snapshot-sources.jar" value="${artifacts.temp.dir}/jdclare_SNAPSHOT_sources_jar"/>
     <mkdir dir="${artifact.temp.output.jdclare-snapshot-sources.jar}"/>
     <jar destfile="${temp.jar.path.jdclare-SNAPSHOT-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
-      <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
+      <zipfileset dir="/Users/tom/projects/mvg-dc/jdclare/org.modelingvalue.collections/src"/>
       <zipfileset dir="${org.modelingvalue.jdclare.output.dir}"/>
-      <zipfileset dir="${basedir}/org.modelingvalue.jdclare/src"/>
+      <zipfileset dir="/Users/tom/projects/mvg-dc/jdclare/org.modelingvalue.jdclare/src"/>
     </jar>
     <copy file="${temp.jar.path.jdclare-SNAPSHOT-sources.jar}" tofile="${artifact.temp.output.jdclare-snapshot-sources.jar}/jdclare-SNAPSHOT-sources.jar"/>
   </target>
   
-  <target name="artifact.jdclare-snapshot.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.jdclare" description="Build &#39;jdclare-SNAPSHOT.jar&#39; artifact">
+  <target name="artifact.jdclare-snapshot.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections, compile.module.org.modelingvalue.jdclare" description="Build &#39;jdclare-SNAPSHOT.jar&#39; artifact">
     <property name="artifact.temp.output.jdclare-snapshot.jar" value="${artifacts.temp.dir}/jdclare_SNAPSHOT_jar"/>
     <mkdir dir="${artifact.temp.output.jdclare-snapshot.jar}"/>
     <jar destfile="${temp.jar.path.jdclare-SNAPSHOT.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
@@ -246,19 +245,18 @@
     <copy file="${temp.jar.path.jdclare-SNAPSHOT.jar}" tofile="${artifact.temp.output.jdclare-snapshot.jar}/jdclare-SNAPSHOT.jar"/>
   </target>
   
-  <target name="artifact.transactions-snapshot-sources.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;transactions-SNAPSHOT-sources.jar&#39; artifact">
+  <target name="artifact.transactions-snapshot-sources.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections" description="Build &#39;transactions-SNAPSHOT-sources.jar&#39; artifact">
     <property name="artifact.temp.output.transactions-snapshot-sources.jar" value="${artifacts.temp.dir}/transactions_SNAPSHOT_sources_jar"/>
     <mkdir dir="${artifact.temp.output.transactions-snapshot-sources.jar}"/>
     <jar destfile="${temp.jar.path.transactions-SNAPSHOT-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
       <zipfileset dir="${org.modelingvalue.transactions.output.dir}"/>
       <zipfileset dir="${org.modelingvalue.collections.output.dir}"/>
-      <zipfileset dir="${basedir}/org.modelingvalue.collections/src"/>
-      <zipfileset dir="${basedir}/org.modelingvalue.transactions/src"/>
+      <zipfileset dir="/Users/tom/projects/mvg-dc/jdclare/org.modelingvalue.collections/src"/>
     </jar>
     <copy file="${temp.jar.path.transactions-SNAPSHOT-sources.jar}" tofile="${artifact.temp.output.transactions-snapshot-sources.jar}/transactions-SNAPSHOT-sources.jar"/>
   </target>
   
-  <target name="artifact.transactions-snapshot.jar" depends="init.artifacts, compile.module.org.modelingvalue.transactions, compile.module.org.modelingvalue.collections" description="Build &#39;transactions-SNAPSHOT.jar&#39; artifact">
+  <target name="artifact.transactions-snapshot.jar" depends="init.artifacts, compile.module.org.modelingvalue.collections" description="Build &#39;transactions-SNAPSHOT.jar&#39; artifact">
     <property name="artifact.temp.output.transactions-snapshot.jar" value="${artifacts.temp.dir}/transactions_SNAPSHOT_jar"/>
     <mkdir dir="${artifact.temp.output.transactions-snapshot.jar}"/>
     <jar destfile="${temp.jar.path.transactions-SNAPSHOT.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">

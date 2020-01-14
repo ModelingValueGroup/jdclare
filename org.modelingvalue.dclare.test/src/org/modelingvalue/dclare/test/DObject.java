@@ -1,10 +1,7 @@
 package org.modelingvalue.dclare.test;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.dclare.Mutable;
-import org.modelingvalue.dclare.Observer;
 
 public class DObject implements Mutable {
     private final Object id;
@@ -50,11 +47,6 @@ public class DObject implements Mutable {
             DObject c = (DObject) obj;
             return id.equals(c.id) && dClass.equals(c.dClass);
         }
-    }
-
-    @Override
-    public Collection<? extends Observer<?>> dMutableObservers() {
-        return Set.of();
     }
 
 }

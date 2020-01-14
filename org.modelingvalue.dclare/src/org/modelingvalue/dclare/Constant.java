@@ -101,13 +101,13 @@ public class Constant<O, T> extends Setable<O, T> {
     public T get(O object) {
         LeafTransaction leafTransaction = LeafTransaction.getCurrent();
         ConstantState constants = leafTransaction.universeTransaction().constantState;
-        return constants.get(leafTransaction, object, this, false);
+        return constants.get(leafTransaction, object, this);
     }
 
-    public T force(O object) {
+    public boolean isSet(O object) {
         LeafTransaction leafTransaction = LeafTransaction.getCurrent();
         ConstantState constants = leafTransaction.universeTransaction().constantState;
-        return constants.get(leafTransaction, object, this, true);
+        return constants.isSet(leafTransaction, object, this);
     }
 
     @Override

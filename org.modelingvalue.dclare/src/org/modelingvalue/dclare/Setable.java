@@ -38,6 +38,10 @@ public class Setable<O, T> extends Getable<O, T> {
         return new Setable<C, V>(id, def, false, null, null, changed, true);
     }
 
+    public static <C, V> Setable<C, V> of(Object id, V def, Supplier<Setable<?, ?>> opposite) {
+        return new Setable<C, V>(id, def, false, opposite, null, null, true);
+    }
+
     public static <C, V> Setable<C, V> of(Object id, V def, boolean containment) {
         return new Setable<C, V>(id, def, containment, null, null, null, true);
     }
@@ -111,8 +115,12 @@ public class Setable<O, T> extends Getable<O, T> {
         return scope != null ? scope.get() : null;
     }
 
+    protected final boolean isHandlingChange() {
+        return changed != null || containment || opposite != null;
+    }
+
     @SuppressWarnings("unchecked")
-    protected void changed(LeafTransaction tx, O object, T preValue, T postValue) {
+    protected final void changed(LeafTransaction tx, O object, T preValue, T postValue) {
         if (changed != null) {
             changed.accept(tx, object, preValue, postValue);
         }
